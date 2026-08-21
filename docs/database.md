@@ -25,5 +25,40 @@ The database uses a normalized relational design strictly enforcing tenant bound
 - **Set Null**: Optional foreign keys (e.g., if a sale is no longer tied to a tracked branch, `branchId` is set to null).
 
 ### Security & Audit Strategy
-- **AuditLog**: An explicit table tracking sensitive actions (e.g., `SALE_CANCELLED`, `STOCK_ADJUSTED`) storing stringified JSON metadata and referencing the actor.
+- **AuditLog**: An explicit table tracking sensitive actions (e.g., `SALE_CANCELLED`, `STOCK_ADJUSTED`, `PURCHASE_CREATED`, `PURCHASE_CANCELLED`) storing stringified JSON metadata and referencing the actor.
 - **Notifications**: System-generated alerts (like "Low Stock") mapped with read statuses and owner-only privacy flags.
+
+### Purchases & Supplier Ledger (Step 7)
+- **Purchase**: Represents procurement transactions, tracking `invoiceNumber`, `purchaseDate`, `subtotal`, `discount`, `total`, `paidAmount`, and `status` (`RECEIVED`, `CANCELLED`).
+- **PurchaseItem**: Records immutable historical unit procurement price (`purchasePrice`), line quantity, and line discounts.
+- **Stock Integration**: Purchases create `StockMovement` records (`MovementType.PURCHASE`) and increment `Product.currentStock` atomically.
+- **Cancellation Protection**: Cancellation verifies stock has not been consumed before reversing. If cancelled, `Product.purchasePrice` is restored to the previous valid purchase.
+
+### Sales, POS & Customer Credit Architecture (Step 8)
+- **Sale**: Records invoice transactions (`invoiceNumber`, `subtotal`, `discount`, `total`, `paidAmount`, `paymentMethod`, `status`, `saleDate`).
+- **SaleItem**: Stores immutable snapshots of `sellingPrice`, `costPrice`, `discount`, `lineTotal`, and realized `lineProfit` (after proportional global discount share).
+- **Concurrency Protection**: Stock is decremented conditionally (`currentStock >= quantity`). Fails atomically with `INSUFFICIENT_STOCK` if stock is depleted by a concurrent transaction.
+- **Customer Udhaar & Ledger**: Credit is tracked via `Customer.outstanding`. Only debt payments against existing balance are written to `CustomerPayment`. Running balance is calculated from unified chronological events (Credit Sales, Payments, Cancellations).
+- **Sale Reversal**: Reverses stock, creates offsetting `StockMovement` (`MovementType.RETURN`), reverses unpaid credit from `Customer.outstanding`, and logs audit trail.
+
+### Employee & Staff Management Architecture (Step 10)
+- **Employee**: Business-scoped profiles with unique `employeeCode` (`@@unique([businessId, employeeCode])`), current `basicSalary`, salary type (`MONTHLY`, `DAILY`, `HOURLY`), branch, and optional `userId`.
+- **EmployeeAttendance**: Enforces strictly 1 record per staff member per business day (`@@unique([businessId, employeeId, date])`), tracking `PRESENT`, `ABSENT`, `LATE`, `LEAVE`, check-in/out timestamps, and notes.
+- **EmployeeLeave**: Tracks multi-day leaves (`CASUAL`, `SICK`, `ANNUAL`, `UNPAID`, `OTHER`), status (`PENDING`, `APPROVED`, `REJECTED`, `CANCELLED`), reviewer IDs, and approval notes.
+- **EmployeeSalary**: Immutable monthly payroll records (`period: "YYYY-MM"`, `@@unique([businessId, employeeId, period])`), storing `baseSalary`, `overtime`, `bonus`, `deductions`, `advance`, and calculated `netSalary` along with payment disbursement status (`PENDING`, `PAID`) and payment methods.
+- **EmployeeComplaint**: Confidential grievance logs with priority ratings (`LOW`, `MEDIUM`, `HIGH`, `URGENT`), manager resolution workflows, and strict role privacy.
+
+### Customer Experience & Feedback Architecture (Step 11)
+- **Customer**: Extended with `status` (`ACTIVE`, `INACTIVE`, `ARCHIVED`), maintaining indexed balance lookup (`outstanding`) and full historical relations.
+- **CustomerFeedback**: Records customer ratings (1 to 5 integer stars), `category` (`SERVICE`, `PRODUCT`, `PRICE`, `STAFF`, `CLEANLINESS`, `DELIVERY`, `OTHER`), `message`, `isAnonymous` flag, `status` (`NEW`, `REVIEWING`, `RESOLVED`, `ARCHIVED`), and private internal manager `resolutionNote`.
+- **FeedbackInviteToken**: Stores unguessable cryptographic tokens (`token @unique`), expiration timestamps (`expiresAt`), and `usedAt` single-use tracking for secure, authenticated or anonymous mobile review submission.
+
+### Internal Communication & Remote Monitoring Architecture (Step 12)
+- **Business**: Extended with `isOpen: Boolean` and `operatingHours: String?` for live store status.
+- **Conversation**: Business-scoped discussion channels (`type: DIRECT | GROUP`), indexed by `[businessId, updatedAt]`.
+- **ConversationParticipant**: Tracks user conversation membership, `joinedAt`, and `lastReadAt` for dynamic unread message count calculations (`@@unique([conversationId, userId])`).
+- **Message**: Stores plain-text content, sender relation, and soft-delete capability (`deletedAt`), indexed by `[conversationId, createdAt]` and `[businessId, createdAt]`.
+- **Announcement**: Store broadcasts authored by owners/managers, with priority (`NORMAL`, `IMPORTANT`, `URGENT`), role targeting (`ALL`, `OWNER`, `MANAGER`, `CASHIER`, `EMPLOYEE`), and optional expiry timestamps (`expiresAt`).
+- **AnnouncementRead**: Per-user read receipt tracker (`@@unique([announcementId, userId])`).
+
+

@@ -1,6 +1,5 @@
-import { PrismaClient, BusinessType, BusinessStatus, MembershipRole, MovementType } from '../src/generated/prisma/client'
-
-const prisma = new PrismaClient()
+import { BusinessType, BusinessStatus, MembershipRole, MovementType } from '../src/generated/prisma/client'
+import { prisma } from '../src/lib/db/prisma'
 
 async function main() {
   console.log('Seeding database...')

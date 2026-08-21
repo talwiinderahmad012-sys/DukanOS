@@ -15,6 +15,7 @@ model User {
   name          String?
   email         String?   @unique
   emailVerified DateTime?
+  password      String?
   image         String?
   
   accounts      Account[]
@@ -22,6 +23,13 @@ model User {
   memberships   BusinessMembership[]
   auditLogs     AuditLog[]
   notificationsReceived Notification[]
+  employeeProfiles Employee[]
+  conversationParticipants ConversationParticipant[]
+  messagesSent Message[]
+  announcementsAuthored Announcement[]
+  announcementReads AnnouncementRead[]
+  pushSubscriptions PushSubscription[]
+  notificationPreferences NotificationPreference[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -89,6 +97,8 @@ model Business {
   country     String?
   timezone    String         @default("Asia/Karachi")
   currency    String         @default("PKR")
+  isOpen      Boolean        @default(true)
+  operatingHours String?
 
   memberships   BusinessMembership[]
   branches      Branch[]
@@ -103,6 +113,18 @@ model Business {
   payments      CustomerPayment[]
   notifications Notification[]
   auditLogs     AuditLog[]
+  employees     Employee[]
+  attendances   EmployeeAttendance[]
+  leaves        EmployeeLeave[]
+  salaries      EmployeeSalary[]
+  complaints    EmployeeComplaint[]
+  feedbacks     CustomerFeedback[]
+  feedbackInvites FeedbackInviteToken[]
+  conversations Conversation[]
+  messages      Message[]
+  announcements Announcement[]
+  pushSubscriptions PushSubscription[]
+  notificationPreferences NotificationPreference[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -125,6 +147,9 @@ model Branch {
   purchases   Purchase[]
   movements   StockMovement[]
   expenses    Expense[]
+  employees   Employee[]
+  attendances EmployeeAttendance[]
+  announcements Announcement[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -259,29 +284,39 @@ model StockMovement {
 // ----------------------------------------
 // Customers & Udhaar (Credit)
 // ----------------------------------------
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
 model Customer {
-  id          String   @id @default(uuid())
+  id          String         @id @default(uuid())
   businessId  String
   name        String
   phone       String?
   email       String?
   address     String?
-  notes       String?  @db.Text
+  notes       String?        @db.Text
+  status      CustomerStatus @default(ACTIVE)
   
   // Aggregate customer balance for quick reads
   // Credit = Positive, Advance/Overpaid = Negative
-  outstanding Decimal  @default(0) @db.Decimal(12, 2)
+  outstanding Decimal        @default(0) @db.Decimal(12, 2)
   
-  isActive    Boolean  @default(true)
+  isActive    Boolean        @default(true)
 
-  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  business    Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
   sales       Sale[]
   payments    CustomerPayment[]
+  feedbacks   CustomerFeedback[]
+  feedbackInvites FeedbackInviteToken[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   @@index([businessId, phone])
+  @@index([businessId, status])
 }
 
 enum PaymentMethod {
@@ -337,19 +372,23 @@ model Sale {
   paymentMethod PaymentMethod @default(CASH)
   status        SaleStatus    @default(COMPLETED)
   createdBy     String?
+  clientTransactionId String? // Idempotent key for offline/queued transactions
 
-  business      Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  branch        Branch?   @relation(fields: [branchId], references: [id], onDelete: SetNull)
-  customer      Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  business      Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  branch        Branch?       @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  customer      Customer?     @relation(fields: [customerId], references: [id], onDelete: Restrict)
   
   items         SaleItem[]
   payments      CustomerPayment[]
+  feedbacks     CustomerFeedback[]
+  feedbackInvites FeedbackInviteToken[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   @@unique([businessId, invoiceNumber])
   @@index([businessId, saleDate])
+  @@index([businessId, clientTransactionId])
 }
 
 model SaleItem {
@@ -452,7 +491,9 @@ model Expense {
 // ----------------------------------------
 enum NotificationSeverity {
   INFO
+  SUCCESS
   WARNING
+  CRITICAL
   ALERT
 }
 
@@ -466,6 +507,7 @@ model Notification {
   message          String               @db.Text
   isOwnerOnly      Boolean              @default(false)
   isRead           Boolean              @default(false)
+  actionUrl        String?
   
   relatedEntity    String?              // e.g., "PRODUCT", "SALE"
   relatedEntityId  String?
@@ -478,6 +520,53 @@ model Notification {
   readAt           DateTime?
 
   @@index([businessId, recipientId, isRead])
+  @@index([businessId, deduplicationKey])
+}
+
+model PushSubscription {
+  id          String   @id @default(uuid())
+  userId      String
+  businessId  String?
+  endpoint    String   @unique
+  p256dh      String
+  auth        String
+  userAgent   String?
+  deviceLabel String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  business    Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
+
+  @@index([userId, isActive])
+  @@index([businessId, isActive])
+}
+
+model NotificationPreference {
+  id               String   @id @default(uuid())
+  userId           String
+  businessId       String
+  lowStockAlerts   Boolean  @default(true)
+  salesDropAlerts  Boolean  @default(true)
+  profitAlerts     Boolean  @default(true)
+  creditAlerts     Boolean  @default(true)
+  expenseAlerts    Boolean  @default(true)
+  feedbackAlerts   Boolean  @default(true)
+  employeeAlerts   Boolean  @default(true)
+  messagesAlerts   Boolean  @default(true)
+  dailyDigest      Boolean  @default(true)
+  dailyDigestTime  String   @default("09:00")
+  webPushEnabled   Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  business         Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, businessId])
+  @@index([businessId, userId])
 }
 
 model AuditLog {
@@ -499,3 +588,380 @@ model AuditLog {
   @@index([businessId, action])
   @@index([businessId, createdAt])
 }
+
+// ----------------------------------------
+// Human Resources: Employee Management
+// ----------------------------------------
+enum EmployeeStatus {
+  ACTIVE
+  ON_LEAVE
+  SUSPENDED
+  INACTIVE
+}
+
+enum SalaryType {
+  MONTHLY
+  DAILY
+  HOURLY
+}
+
+enum SalaryPaymentStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  LEAVE
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum LeaveType {
+  CASUAL
+  SICK
+  ANNUAL
+  UNPAID
+  OTHER
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  REJECTED
+}
+
+enum ComplaintPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Employee {
+  id                String         @id @default(uuid())
+  businessId        String
+  branchId          String?
+  userId            String?        // Optional login account link
+  
+  employeeCode      String         // e.g., EMP-001
+  name              String
+  phone             String?
+  email             String?
+  address           String?
+  position          String         // e.g., "Cashier", "Sales Associate", "Manager", "Storekeeper"
+  department        String?        // e.g., "Sales", "Operations", "Inventory"
+  joiningDate       DateTime       @default(now())
+  
+  salaryType        SalaryType     @default(MONTHLY)
+  basicSalary       Decimal        @default(0) @db.Decimal(12, 2)
+  status            EmployeeStatus @default(ACTIVE)
+  notes             String?        @db.Text
+
+  business          Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  branch            Branch?        @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  user              User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  attendances       EmployeeAttendance[]
+  leaves            EmployeeLeave[]
+  salaries          EmployeeSalary[]
+  complaints        EmployeeComplaint[]
+
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@unique([businessId, employeeCode])
+  @@index([businessId, status])
+}
+
+model EmployeeAttendance {
+  id          String           @id @default(uuid())
+  businessId  String
+  employeeId  String
+  branchId    String?
+  
+  date        DateTime         // Calendar day (00:00:00 UTC boundary)
+  status      AttendanceStatus @default(PRESENT)
+  checkIn     DateTime?
+  checkOut    DateTime?
+  notes       String?
+  recordedBy  String?          // User ID
+
+  business    Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  employee    Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  branch      Branch?          @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([businessId, employeeId, date])
+  @@index([businessId, date])
+}
+
+model EmployeeLeave {
+  id            String      @id @default(uuid())
+  businessId    String
+  employeeId    String
+  
+  leaveType     LeaveType   @default(CASUAL)
+  startDate     DateTime
+  endDate       DateTime
+  daysCount     Int         @default(1)
+  reason        String      @db.Text
+  status        LeaveStatus @default(PENDING)
+  
+  approvedBy    String?     // User ID
+  approvalNotes String?
+
+  business      Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  employee      Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([businessId, status])
+}
+
+model EmployeeSalary {
+  id            String              @id @default(uuid())
+  businessId    String
+  employeeId    String
+  
+  period        String              // e.g., "2026-08"
+  baseSalary    Decimal             @db.Decimal(12, 2)
+  overtime      Decimal             @default(0) @db.Decimal(12, 2)
+  bonus         Decimal             @default(0) @db.Decimal(12, 2)
+  deductions    Decimal             @default(0) @db.Decimal(12, 2)
+  advance       Decimal             @default(0) @db.Decimal(12, 2)
+  netSalary     Decimal             @db.Decimal(12, 2)
+  
+  paymentStatus SalaryPaymentStatus @default(PENDING)
+  paymentDate   DateTime?
+  paymentMethod PaymentMethod       @default(CASH)
+  notes         String?             @db.Text
+  recordedBy    String?             // User ID
+
+  business      Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  employee      Employee            @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@unique([businessId, employeeId, period])
+  @@index([businessId, period])
+}
+
+model EmployeeComplaint {
+  id              String            @id @default(uuid())
+  businessId      String
+  employeeId      String
+  
+  title           String
+  category        String            // "WORKPLACE", "HARASSMENT", "PAYROLL", "SAFETY", "OTHER"
+  description     String            @db.Text
+  priority        ComplaintPriority @default(MEDIUM)
+  status          ComplaintStatus   @default(OPEN)
+  
+  submittedBy     String?           // User ID or name
+  resolutionNote  String?           @db.Text
+  resolvedBy      String?           // User ID
+  resolvedAt      DateTime?
+
+  business        Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  employee        Employee          @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([businessId, status])
+}
+
+// ----------------------------------------
+// Customer Experience & Feedback (Step 11)
+// ----------------------------------------
+enum FeedbackCategory {
+  SERVICE
+  PRODUCT
+  PRICE
+  STAFF
+  CLEANLINESS
+  DELIVERY
+  OTHER
+}
+
+enum FeedbackStatus {
+  NEW
+  REVIEWING
+  RESOLVED
+  ARCHIVED
+}
+
+model CustomerFeedback {
+  id             String           @id @default(uuid())
+  businessId     String
+  customerId     String?
+  saleId         String?
+  
+  rating         Int              // 1 to 5 stars
+  category       FeedbackCategory @default(SERVICE)
+  message        String           @db.Text
+  isAnonymous    Boolean          @default(false)
+  
+  status         FeedbackStatus   @default(NEW)
+  resolutionNote String?          @db.Text
+  resolvedBy     String?          // User ID of manager
+  resolvedAt     DateTime?
+  
+  token          String?          @unique // Secure invite token if linked
+  
+  business       Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customer       Customer?        @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  sale           Sale?            @relation(fields: [saleId], references: [id], onDelete: SetNull)
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([businessId, status])
+  @@index([businessId, rating])
+  @@index([businessId, createdAt])
+}
+
+model FeedbackInviteToken {
+  id          String    @id @default(uuid())
+  businessId  String
+  customerId  String?
+  saleId      String?
+  token       String    @unique
+  expiresAt   DateTime
+  usedAt      DateTime?
+  
+  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customer    Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  sale        Sale?     @relation(fields: [saleId], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime  @default(now())
+
+  @@index([token])
+  @@index([businessId, createdAt])
+}
+
+// ----------------------------------------
+// Internal Communication & Announcements (Step 12)
+// ----------------------------------------
+enum ConversationType {
+  DIRECT
+  GROUP
+}
+
+enum AnnouncementPriority {
+  NORMAL
+  IMPORTANT
+  URGENT
+}
+
+enum AnnouncementTargetRole {
+  ALL
+  OWNER
+  MANAGER
+  CASHIER
+  EMPLOYEE
+}
+
+model Conversation {
+  id           String                   @id @default(uuid())
+  businessId   String
+  type         ConversationType         @default(DIRECT)
+  title        String?                  // Optional group name
+  createdBy    String?                  // User ID
+
+  business     Business                 @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+
+  @@index([businessId, updatedAt])
+}
+
+model ConversationParticipant {
+  id             String       @id @default(uuid())
+  conversationId String
+  userId         String
+  joinedAt       DateTime     @default(now())
+  lastReadAt     DateTime     @default(now())
+  isActive       Boolean      @default(true)
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId, lastReadAt])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  businessId     String
+  conversationId String
+  senderId       String
+  content        String       @db.Text
+  deletedAt      DateTime?
+
+  business       Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([conversationId, createdAt])
+  @@index([businessId, createdAt])
+}
+
+model Announcement {
+  id          String                 @id @default(uuid())
+  businessId  String
+  branchId    String?
+  authorId    String
+  title       String
+  message     String                 @db.Text
+  priority    AnnouncementPriority   @default(NORMAL)
+  targetRole  AnnouncementTargetRole @default(ALL)
+  expiresAt   DateTime?
+  isArchived  Boolean                @default(false)
+
+  business    Business               @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  branch      Branch?                @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  author      User                   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  reads       AnnouncementRead[]
+
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  @@index([businessId, isArchived, createdAt])
+}
+
+model AnnouncementRead {
+  id             String       @id @default(uuid())
+  announcementId String
+  userId         String
+  readAt         DateTime     @default(now())
+
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([announcementId, userId])
+  @@index([userId, announcementId])
+}
+
+
+

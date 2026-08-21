@@ -1,0 +1,321 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { DollarSign, AlertCircle, X, CreditCard } from 'lucide-react';
+import { createSalaryRecordAction, recordSalaryPaymentAction } from '@/app/actions/employee.actions';
+
+type PaymentMethodType = 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'MOBILE_WALLET';
+
+export function CreateSalaryModal({
+  businessId,
+  employeeId,
+  defaultBaseSalary,
+  isOpen,
+  onClose,
+}: {
+  businessId: string;
+  employeeId: string;
+  defaultBaseSalary: number;
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  const router = useRouter();
+  const currentPeriod = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+  const [period, setPeriod] = useState(currentPeriod);
+  const [baseSalary, setBaseSalary] = useState(defaultBaseSalary);
+  const [overtime, setOvertime] = useState(0);
+  const [bonus, setBonus] = useState(0);
+  const [deductions, setDeductions] = useState(0);
+  const [advance, setAdvance] = useState(0);
+  const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!isOpen) return null;
+
+  const netSalary = Math.max(0, Number(baseSalary) + Number(overtime) + Number(bonus) - Number(deductions) - Number(advance));
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const res = await createSalaryRecordAction(businessId, {
+      employeeId,
+      period,
+      baseSalary: Number(baseSalary),
+      overtime: Number(overtime),
+      bonus: Number(bonus),
+      deductions: Number(deductions),
+      advance: Number(advance),
+      notes: notes.trim() || undefined,
+    });
+
+    if (res.success) {
+      router.refresh();
+      onClose();
+    } else {
+      setError(res.message || 'Failed to generate salary record');
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <DollarSign className="w-4 h-4" />
+          </div>
+          <div>
+            <h3 className="font-bold text-gray-900 text-base">Generate Monthly Payroll Record</h3>
+            <p className="text-xs text-gray-500">Calculate net salary with overtime, bonuses, deductions, and advances</p>
+          </div>
+        </div>
+
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-3.5">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-gray-700">Salary Period (YYYY-MM)</label>
+              <input
+                type="month"
+                required
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-gray-700">Base Salary (Rs.)</label>
+              <input
+                type="number"
+                min="0"
+                step="any"
+                required
+                value={baseSalary}
+                onChange={(e) => setBaseSalary(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-bold text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-gray-700">Overtime / Extra (Rs.)</label>
+              <input
+                type="number"
+                min="0"
+                step="any"
+                value={overtime}
+                onChange={(e) => setOvertime(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs text-green-700 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-gray-700">Bonus / Incentive (Rs.)</label>
+              <input
+                type="number"
+                min="0"
+                step="any"
+                value={bonus}
+                onChange={(e) => setBonus(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs text-green-700 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-gray-700">Deductions (Rs.)</label>
+              <input
+                type="number"
+                min="0"
+                step="any"
+                value={deductions}
+                onChange={(e) => setDeductions(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs text-red-600 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-gray-700">Advance Deducted (Rs.)</label>
+              <input
+                type="number"
+                min="0"
+                step="any"
+                value={advance}
+                onChange={(e) => setAdvance(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs text-red-600 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Net Salary Summary Box */}
+          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
+            <span className="text-xs font-bold text-emerald-900">Calculated Net Payable:</span>
+            <span className="text-lg font-extrabold text-emerald-700">
+              Rs. {netSalary.toLocaleString()}
+            </span>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-gray-700">Notes (Optional)</label>
+            <input
+              type="text"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="e.g. Eid bonus included + 2 days unpaid leave deducted"
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs transition-colors disabled:opacity-50"
+            >
+              {loading ? 'Generating...' : 'Save Salary Record'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export function RecordPaymentModal({
+  businessId,
+  salaryId,
+  period,
+  netSalary,
+  isOpen,
+  onClose,
+}: {
+  businessId: string;
+  salaryId: string;
+  period: string;
+  netSalary: number;
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  const router = useRouter();
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('CASH');
+  const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const res = await recordSalaryPaymentAction(businessId, {
+      salaryId,
+      paymentMethod: paymentMethod as any,
+      notes: notes.trim() || undefined,
+    });
+
+    if (res.success) {
+      router.refresh();
+      onClose();
+    } else {
+      setError(res.message || 'Failed to record payment');
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center">
+            <CreditCard className="w-4 h-4" />
+          </div>
+          <div>
+            <h3 className="font-bold text-gray-900 text-base">Disburse Salary Payment</h3>
+            <p className="text-xs text-gray-500">Period: {period} • Amount: Rs. {netSalary.toLocaleString()}</p>
+          </div>
+        </div>
+
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-3.5">
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-gray-700">Payment Channel</label>
+            <select
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value as PaymentMethodType)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            >
+              <option value="CASH">Cash in Hand</option>
+              <option value="BANK_TRANSFER">Bank Transfer</option>
+              <option value="MOBILE_WALLET">EasyPaisa / JazzCash</option>
+              <option value="CARD">Company Card / Check</option>
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-gray-700">Payment Reference / Notes</label>
+            <input
+              type="text"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="e.g. Paid in cash by Ahmad, receipt signed"
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 text-xs font-semibold bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-xs transition-colors disabled:opacity-50"
+            >
+              {loading ? 'Processing...' : 'Confirm Paid'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
