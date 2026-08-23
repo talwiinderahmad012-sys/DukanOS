@@ -13,9 +13,19 @@ export async function getActiveBusiness() {
     throw new Error('NO_BUSINESS');
   }
 
+  const { cookies } = await import('next/headers');
+  const cookieStore = await cookies();
+  const activeBusinessId = cookieStore.get('dukaanos_active_business_id')?.value;
+
+  let activeMembership = memberships[0];
+  if (activeBusinessId) {
+    const found = memberships.find(m => m.businessId === activeBusinessId);
+    if (found) activeMembership = found;
+  }
+
   return {
     user,
-    membership: memberships[0],
-    business: memberships[0].business
+    membership: activeMembership,
+    business: activeMembership.business
   };
 }

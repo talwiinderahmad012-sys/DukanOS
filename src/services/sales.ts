@@ -1,8 +1,11 @@
 import 'server-only';
 import { prisma } from '@/lib/db/prisma';
-import { PaymentMethod, MovementType, SaleStatus } from '@/generated/prisma/client';
+import { PaymentMethod, MovementType, SaleStatus, BusinessStatus } from '@/generated/prisma/client';
 import { recordAuditLog } from './audit';
-import { AppErrors } from '@/lib/utils/api-response';
+import { invalidateAnalyticsCache } from '@/lib/cache/analytics-cache';
+import { publishAnalyticsEvent } from '@/lib/cache/analytics-events';
+import { AppError, ErrorCodes } from '@/lib/errors';
+import { logger } from '@/lib/logging/logger';
 
 export type SaleItemInput = {
   productId: string;
@@ -26,11 +29,20 @@ export type CreateSaleParams = {
 
 export async function createSale(params: CreateSaleParams) {
   if (!params.items || params.items.length === 0) {
-    throw new Error('At least one item is required to complete a sale.');
+    throw new AppError(ErrorCodes.VALIDATION_ERROR, 'At least one item is required to complete a sale.', 400);
   }
 
-  return prisma.$transaction(async (tx) => {
-    // 0. Idempotency check for offline / retried transactions
+  let saleResult = await prisma.$transaction(async (tx) => {
+    // 0. Validate Business status
+    const business = await tx.business.findUnique({
+      where: { id: params.businessId },
+      select: { status: true },
+    });
+    if (!business || business.status === BusinessStatus.ARCHIVED || business.status === BusinessStatus.INACTIVE) {
+      throw new AppError(ErrorCodes.UNAUTHORIZED, 'Cannot create sale for an ARCHIVED or inactive business.', 403);
+    }
+
+    // 0.1 Idempotency check for offline / retried transactions
     if (params.clientTransactionId) {
       const existingSale = await tx.sale.findFirst({
         where: {
@@ -44,6 +56,7 @@ export async function createSale(params: CreateSaleParams) {
         },
       });
       if (existingSale) {
+        logger.warn('Duplicate sale transaction detected', { businessId: params.businessId, clientTransactionId: params.clientTransactionId });
         return existingSale;
       }
     }
@@ -56,10 +69,10 @@ export async function createSale(params: CreateSaleParams) {
       });
 
       if (!customer) {
-        throw new Error('Customer not found or does not belong to this business');
+        throw new AppError(ErrorCodes.NOT_FOUND, 'Customer not found or does not belong to this business', 404);
       }
       if (!customer.isActive) {
-        throw new Error('Cannot process credit sale for an archived customer');
+        throw new AppError(ErrorCodes.INTERNAL_ERROR, 'Cannot process credit sale for an archived customer');
       }
     }
 
@@ -69,7 +82,7 @@ export async function createSale(params: CreateSaleParams) {
         where: { id: params.branchId, businessId: params.businessId },
       });
       if (!branch) {
-        throw new Error('Branch not found or does not belong to this business');
+        throw new AppError(ErrorCodes.NOT_FOUND, 'Branch not found or does not belong to this business', 404);
       }
     }
 
@@ -89,7 +102,7 @@ export async function createSale(params: CreateSaleParams) {
 
     for (const item of params.items) {
       if (item.quantity <= 0) {
-        throw new Error('Item quantity must be greater than 0');
+        throw new AppError(ErrorCodes.VALIDATION_ERROR, 'Item quantity must be greater than 0', 400);
       }
 
       // Concurrency-Safe Atomic Conditional Decrement via PostgreSQL
@@ -118,12 +131,13 @@ export async function createSale(params: CreateSaleParams) {
         });
 
         if (!existing) {
-          throw new Error(`Product ${item.productId} not found`);
+          throw new AppError(ErrorCodes.NOT_FOUND, `Product ${item.productId} not found`, 404);
         }
         if (!existing.isActive) {
-          throw new Error(`Product ${existing.name} is archived and cannot be sold`);
+          throw new AppError(ErrorCodes.INTERNAL_ERROR, `Product ${existing.name} is archived and cannot be sold`);
         }
-        throw new Error(AppErrors.INSUFFICIENT_STOCK);
+        logger.warn('Insufficient stock for sale', { businessId: params.businessId, productId: item.productId, requested: item.quantity });
+        throw new AppError(ErrorCodes.INSUFFICIENT_STOCK, 'Insufficient stock', 409);
       }
 
       const product = rows[0];
@@ -160,7 +174,7 @@ export async function createSale(params: CreateSaleParams) {
 
     // Rule: Credit / Partial sales strictly require an identified customer
     if (paidAmount < grandTotal && !params.customerId) {
-      throw new Error('An identified customer is required for credit / partial sales.');
+      throw new AppError(ErrorCodes.VALIDATION_ERROR, 'An identified customer is required for credit / partial sales.', 400);
     }
 
     const saleItemsData = processedItems.map((item) => {
@@ -248,6 +262,8 @@ export async function createSale(params: CreateSaleParams) {
       });
     }
 
+    logger.warn('Sale created', { businessId: params.businessId, saleId: sale.id, invoiceNumber, total: grandTotal, itemCount: sale.items.length });
+
     // 8. Record Audit Log
     await recordAuditLog({
       businessId: params.businessId,
@@ -267,6 +283,17 @@ export async function createSale(params: CreateSaleParams) {
 
     return sale;
   });
+
+  try {
+    invalidateAnalyticsCache({ businessId: params.businessId, branchId: params.branchId || undefined, module: 'sales' });
+    invalidateAnalyticsCache({ businessId: params.businessId, branchId: params.branchId || undefined, module: 'customers' });
+    invalidateAnalyticsCache({ businessId: params.businessId, branchId: params.branchId || undefined, module: 'inventory' });
+    publishAnalyticsEvent({ type: 'sale', businessId: params.businessId, branchId: params.branchId || null, timestamp: Date.now() });
+  } catch {
+    // cache invalidation must never break the sale
+  }
+
+  return saleResult;
 }
 
 export async function getSaleById(businessId: string, saleId: string) {
@@ -429,18 +456,18 @@ export async function cancelSale(
   saleId: string,
   reason: string
 ) {
-  return prisma.$transaction(async (tx) => {
+  let cancelledSale = await prisma.$transaction(async (tx) => {
     const sale = await tx.sale.findUnique({
       where: { id: saleId, businessId },
       include: { items: true, customer: true },
     });
 
     if (!sale) {
-      throw new Error(AppErrors.NOT_FOUND);
+      throw new AppError(ErrorCodes.NOT_FOUND, 'Sale not found', 404);
     }
 
     if (sale.status === SaleStatus.CANCELLED) {
-      throw new Error('Sale is already cancelled.');
+      throw new AppError(ErrorCodes.INTERNAL_ERROR, 'Sale is already cancelled.');
     }
 
     // 1. Restore Product Stock & Create Reverse Stock Movement
@@ -514,4 +541,15 @@ export async function cancelSale(
 
     return updatedSale;
   });
+
+  try {
+    invalidateAnalyticsCache({ businessId, branchId: cancelledSale.branchId || undefined, module: 'sales' });
+    invalidateAnalyticsCache({ businessId, branchId: cancelledSale.branchId || undefined, module: 'customers' });
+    invalidateAnalyticsCache({ businessId, branchId: cancelledSale.branchId || undefined, module: 'inventory' });
+    publishAnalyticsEvent({ type: 'sale', businessId, branchId: cancelledSale.branchId || null, timestamp: Date.now() });
+  } catch {
+    // cache invalidation must never break the mutation
+  }
+
+  return cancelledSale;
 }

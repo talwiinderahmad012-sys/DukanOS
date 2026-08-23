@@ -13,6 +13,8 @@ export type NotificationType =
   | 'NEW_MESSAGE'
   | 'ANNOUNCEMENT'
   | 'DAILY_DIGEST'
+  | 'WEEKLY_REPORT'
+  | 'MONTHLY_REPORT'
   | 'SYSTEM';
 
 export type NotificationSeverityLevel = 'INFO' | 'SUCCESS' | 'WARNING' | 'CRITICAL' | 'ALERT';

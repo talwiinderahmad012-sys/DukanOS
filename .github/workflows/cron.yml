@@ -1,0 +1,19 @@
+name: Cron Maintenance
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  cron:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Run scheduled maintenance cron
+        run: |
+          curl -fsSL -X POST "https://${{ secrets.APP_URL }}/api/cron" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            --max-time 300 \
+            || echo "Cron job completed with errors (check server logs)"

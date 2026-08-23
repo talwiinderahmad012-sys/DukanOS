@@ -19,15 +19,22 @@ import {
   BarChart3,
   Sparkles,
   UserCheck,
+  User,
   Star,
   MessageSquare,
   Activity,
-  RefreshCw
+  RefreshCw,
+  Camera,
+  Banknote,
+  ShieldCheck,
+  Rocket,
+  Bug
 } from 'lucide-react';
 import { signOut } from '@/lib/auth/auth';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { NetworkStatusBadge } from '@/components/pwa/pwa-provider';
 import { NotificationBell } from '@/components/notifications/notification-bell';
+import LiveAnalyticsRefresher from '@/components/analytics/live-analytics-refresher';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await requireAuthenticatedUser().catch(() => redirect('/login'));
@@ -47,25 +54,38 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const activeMembership = memberships[0];
   const activeBusiness = activeMembership.business;
 
+  const isOwner = activeMembership.role === 'OWNER';
+  const isManager = activeMembership.role === 'MANAGER';
+  const isOwnerOrManager = isOwner || isManager;
+
   const navigation = [
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'My Workspace', href: '/dashboard/me', icon: User },
     { name: 'POS Terminal', href: '/dashboard/pos', icon: ShoppingCart },
     { name: 'Offline Sync', href: '/dashboard/sync', icon: RefreshCw },
     { name: 'Sales Invoices', href: '/dashboard/sales', icon: Receipt },
     { name: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
     { name: 'Growth', href: '/dashboard/growth', icon: TrendingUp },
+    { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     { name: 'Advisor', href: '/dashboard/advisor', icon: Sparkles },
     { name: 'Remote Monitor', href: '/dashboard/monitoring', icon: Store },
+    ...(isOwnerOrManager ? [{ name: 'CCTV Cameras', href: '/dashboard/cameras', icon: Camera }] : []),
     { name: 'Communications', href: '/dashboard/communications', icon: MessageSquare },
     { name: 'Activity Stream', href: '/dashboard/activity', icon: Activity },
-    { name: 'Customer Feedback', href: '/dashboard/feedback', icon: Star },
+    { name: 'Feedback', href: '/dashboard/feedback', icon: Star },
     { name: 'Customers (Udhaar)', href: '/dashboard/customers', icon: Users },
     { name: 'Staff (Employees)', href: '/dashboard/employees', icon: UserCheck },
+    ...(isOwner ? [{ name: 'Payroll', href: '/dashboard/payroll', icon: Banknote }] : []),
     { name: 'Products', href: '/dashboard/products', icon: Package },
     { name: 'Categories', href: '/dashboard/categories', icon: Layers },
     { name: 'Suppliers', href: '/dashboard/suppliers', icon: Truck },
     { name: 'Inventory', href: '/dashboard/inventory', icon: ClipboardList },
     { name: 'Purchases', href: '/dashboard/purchases', icon: Receipt },
+    ...(isOwnerOrManager ? [{ name: 'Product Insights', href: '/dashboard/product-insights', icon: Sparkles }] : []),
+    ...(isOwnerOrManager ? [{ name: 'System Updates', href: '/dashboard/updates', icon: Rocket }] : []),
+    ...(isOwner ? [{ name: 'Platform Support', href: '/dashboard/product-feedback', icon: Bug }] : []),
+    ...(isOwnerOrManager ? [{ name: 'Settings Hub', href: '/dashboard/settings', icon: Settings }] : []),
+    ...(isOwner ? [{ name: 'System Health', href: '/dashboard/system', icon: ShieldCheck }] : []),
   ];
 
   return (
@@ -142,6 +162,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         {/* Page Content */}
         <div className="flex-1 p-4 md:p-8 overflow-y-auto">
           {children}
+          <LiveAnalyticsRefresher />
         </div>
       </main>
     </div>

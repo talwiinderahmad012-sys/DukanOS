@@ -1,12 +1,13 @@
 'use client';
 
-import { 
-  getAllSyncQueue, 
-  updateSyncTransaction, 
-  QueuedTransaction, 
-  SyncQueueStatus 
+import {
+  getAllSyncQueue,
+  updateSyncTransaction,
+  QueuedTransaction,
+  SyncQueueStatus
 } from './db';
 import { createSaleAction } from '@/app/actions/sale.actions';
+import { logger } from '@/lib/logging/logger';
 
 export type SyncResultSummary = {
   totalPending: number;
@@ -45,6 +46,12 @@ export async function processSyncQueue(businessId: string): Promise<SyncResultSu
 
     summary.totalPending = pendingItems.length;
 
+    logger.info('Sync started', {
+      businessId,
+      pendingCount: pendingItems.length,
+      category: 'SYNC',
+    });
+
     for (const item of pendingItems) {
       // 1. Mark as SYNCING
       await updateSyncTransaction(item.id, { status: 'SYNCING' });
@@ -68,6 +75,13 @@ export async function processSyncQueue(businessId: string): Promise<SyncResultSu
               lastError: undefined,
             });
             summary.synced += 1;
+
+            logger.info('Sync item completed', {
+              businessId,
+              transactionId: item.id,
+              invoiceNumber: saleData.invoiceNumber,
+              category: 'SYNC',
+            });
           } else {
             const isStockConflict =
               res.errorCode === 'INSUFFICIENT_STOCK' ||
@@ -78,26 +92,74 @@ export async function processSyncQueue(businessId: string): Promise<SyncResultSu
               ? 'This offline sale could not be completed because available stock changed while you were offline.'
               : res.message || 'Server rejected transaction during synchronization.';
 
+            const newRetryCount = item.retryCount + 1;
+
             await updateSyncTransaction(item.id, {
               status,
-              retryCount: item.retryCount + 1,
+              retryCount: newRetryCount,
               lastError: errorMessage,
             });
 
             if (isStockConflict) {
               summary.conflicts += 1;
+
+              logger.warn('Sync conflict detected', {
+                businessId,
+                transactionId: item.id,
+                errorCode: res.errorCode,
+                reason: 'stock_conflict',
+                category: 'SYNC',
+              });
             } else {
               summary.failed += 1;
+
+              logger.error('Sync item failed', {
+                businessId,
+                transactionId: item.id,
+                errorCode: res.errorCode,
+                errorMessage: res.message,
+                retryCount: newRetryCount,
+                category: 'SYNC',
+              });
+            }
+
+            if (newRetryCount > 3) {
+              logger.warn('Sync item repeated failure', {
+                businessId,
+                transactionId: item.id,
+                retryCount: newRetryCount,
+                status,
+                category: 'SYNC',
+              });
             }
           }
         }
       } catch (err: any) {
+        const newRetryCount = item.retryCount + 1;
+
         await updateSyncTransaction(item.id, {
           status: 'FAILED',
-          retryCount: item.retryCount + 1,
+          retryCount: newRetryCount,
           lastError: err.message || 'Network error during sync execution.',
         });
         summary.failed += 1;
+
+        logger.error('Sync item error', {
+          businessId,
+          transactionId: item.id,
+          errorMessage: err.message,
+          retryCount: newRetryCount,
+          category: 'SYNC',
+        });
+
+        if (newRetryCount > 3) {
+          logger.warn('Sync item repeated failure', {
+            businessId,
+            transactionId: item.id,
+            retryCount: newRetryCount,
+            category: 'SYNC',
+          });
+        }
       }
 
       notifySyncStateChange();
@@ -106,6 +168,15 @@ export async function processSyncQueue(businessId: string): Promise<SyncResultSu
     isSyncing = false;
     notifySyncStateChange();
   }
+
+  logger.info('Sync completed', {
+    businessId,
+    totalPending: summary.totalPending,
+    synced: summary.synced,
+    conflicts: summary.conflicts,
+    failed: summary.failed,
+    category: 'SYNC',
+  });
 
   return summary;
 }

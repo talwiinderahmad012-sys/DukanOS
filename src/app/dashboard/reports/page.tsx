@@ -1,62 +1,118 @@
 import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
-import { getMonthlyReport, getTopSellingProducts, getSlowMovingProducts } from '@/services/reports';
+import {
+  getMonthlyReport,
+  getTopSellingProducts,
+  getSlowMovingProducts,
+} from '@/services/reports';
+import { prisma } from '@/lib/db/prisma';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { 
-  Calendar, 
-  BarChart3, 
-  TrendingUp, 
-  DollarSign, 
-  ChevronRight, 
-  Package, 
-  Clock, 
+import {
+  Calendar,
+  BarChart3,
+  TrendingUp,
+  DollarSign,
+  ChevronRight,
+  Package,
+  Clock,
   AlertTriangle,
   ArrowUpRight,
-  Receipt
+  Receipt,
+  Layers,
+  Users,
+  Truck,
+  FileText,
+  Briefcase,
+  UserCheck,
 } from 'lucide-react';
 import { SimpleBarChart } from '@/components/charts/bar-chart';
+import ReportFilters from './report-filters';
+
+const REPORT_CATEGORIES = [
+  {
+    type: 'SALES',
+    title: 'Sales Report',
+    desc: 'Revenue, orders, payment methods, and top products.',
+    href: '/dashboard/reports/report?type=SALES',
+    icon: Receipt,
+    color: 'bg-blue-50 text-blue-600 border-blue-100',
+  },
+  {
+    type: 'PROFIT',
+    title: 'Profit Report',
+    desc: 'Gross profit, net profit, margin %, and best-profit products.',
+    href: '/dashboard/reports/report?type=PROFIT',
+    icon: TrendingUp,
+    color: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+  },
+  {
+    type: 'PURCHASES',
+    title: 'Purchase Report',
+    desc: 'Purchase spend, orders, and top suppliers.',
+    href: '/dashboard/reports/report?type=PURCHASES',
+    icon: Truck,
+    color: 'bg-amber-50 text-amber-600 border-amber-100',
+  },
+  {
+    type: 'INVENTORY',
+    title: 'Inventory Report',
+    desc: 'Stock valuation, low stock, dead stock, and slow movers.',
+    href: '/dashboard/reports/report?type=INVENTORY',
+    icon: Package,
+    color: 'bg-purple-50 text-purple-600 border-purple-100',
+  },
+  {
+    type: 'EXPENSES',
+    title: 'Expense Report',
+    desc: 'Expense totals, category breakdown, and trends.',
+    href: '/dashboard/reports/report?type=EXPENSES',
+    icon: FileText,
+    color: 'bg-red-50 text-red-600 border-red-100',
+  },
+  {
+    type: 'CUSTOMERS',
+    title: 'Customer & Udhaar Report',
+    desc: 'Top customers, credit exposure, and cohort analytics.',
+    href: '/dashboard/reports/report?type=CUSTOMERS',
+    icon: Users,
+    color: 'bg-teal-50 text-teal-600 border-teal-100',
+  },
+  {
+    type: 'BRANCHES',
+    title: 'Branch Performance Report',
+    desc: 'Branch-by-branch revenue, profit, and orders.',
+    href: '/dashboard/reports/report?type=BRANCHES',
+    icon: BarChart3,
+    color: 'bg-indigo-50 text-indigo-600 border-indigo-100',
+  },
+  {
+    type: 'PAYROLL',
+    title: 'Payroll Summary Report',
+    desc: 'Payroll totals, attendance, and leave usage (Owner only).',
+    href: '/dashboard/reports/report?type=PAYROLL',
+    icon: UserCheck,
+    color: 'bg-orange-50 text-orange-600 border-orange-100',
+  },
+  {
+    type: 'BUSINESS_GROWTH',
+    title: 'Business Growth Report',
+    desc: 'Monthly trends, forecasts, and growth indicators.',
+    href: '/dashboard/reports/report?type=BUSINESS_GROWTH',
+    icon: Briefcase,
+    color: 'bg-cyan-50 text-cyan-600 border-cyan-100',
+  },
+];
 
 export default async function ReportsHubPage() {
   const { business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
 
-  const [monthlyData, topProducts, slowProducts] = await Promise.all([
+  const [monthlyData, topProducts, slowProducts, branches] = await Promise.all([
     getMonthlyReport(business.id, undefined, undefined, business.timezone),
     getTopSellingProducts(business.id, { limit: 5 }),
     getSlowMovingProducts(business.id, { daysThreshold: 30, limit: 5 }),
+    prisma.branch.findMany({ where: { businessId: business.id }, select: { id: true, name: true } }),
   ]);
 
-  const reportNav = [
-    {
-      title: 'Daily Report',
-      desc: "Today's sales, gross profit, expenses, orders, and hourly trends.",
-      href: '/dashboard/reports/daily',
-      icon: Clock,
-      color: 'bg-blue-50 text-blue-600 border-blue-100',
-    },
-    {
-      title: 'Weekly Report',
-      desc: '7-day day-by-day comparison, weekly volume, and net margins.',
-      href: '/dashboard/reports/weekly',
-      icon: BarChart3,
-      color: 'bg-indigo-50 text-indigo-600 border-indigo-100',
-    },
-    {
-      title: 'Monthly Report',
-      desc: 'Month-over-month growth, category breakdown, and monthly trends.',
-      href: '/dashboard/reports/monthly',
-      icon: Calendar,
-      color: 'bg-green-50 text-green-600 border-green-100',
-    },
-    {
-      title: 'Yearly Report',
-      desc: '12-month annual overview, annual revenue, and year-over-year deltas.',
-      href: '/dashboard/reports/yearly',
-      icon: TrendingUp,
-      color: 'bg-purple-50 text-purple-600 border-purple-100',
-    },
-  ];
-
-  // Chart items for the current month
   const chartData = monthlyData.dailyData.slice(0, 15).map((d) => ({
     label: `Day ${d.day}`,
     value1: d.revenue,
@@ -66,21 +122,22 @@ export default async function ReportsHubPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Financial Reports & Analytics</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Audit-grade transactional reports, revenue analysis, profit margins, and performance insights.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Report Center</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Audit-grade business reports with date-range, branch filters, print, and CSV export.
+          </p>
+        </div>
+        <ReportFilters businessId={business.id} branches={branches} />
       </div>
 
-      {/* Report Categories Navigation Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {reportNav.map((item) => {
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {REPORT_CATEGORIES.map((item) => {
           const Icon = item.icon;
           return (
             <Link
-              key={item.title}
+              key={item.type}
               href={item.href}
               className="p-5 bg-white rounded-2xl border border-gray-200 shadow-xs hover:border-blue-500 hover:shadow-md transition-all group flex flex-col justify-between"
             >
@@ -91,13 +148,10 @@ export default async function ReportsHubPage() {
                 <h3 className="font-bold text-gray-900 text-base group-hover:text-blue-600 transition-colors">
                   {item.title}
                 </h3>
-                <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                  {item.desc}
-                </p>
+                <p className="text-xs text-gray-500 mt-1 leading-relaxed">{item.desc}</p>
               </div>
-
               <div className="pt-4 mt-4 border-t border-gray-100 flex items-center justify-between text-xs font-semibold text-blue-600">
-                <span>Open Report</span>
+                <span>Generate Report</span>
                 <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </div>
             </Link>
@@ -105,7 +159,6 @@ export default async function ReportsHubPage() {
         })}
       </div>
 
-      {/* Month-to-Date Performance Overview */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b pb-4">
           <div>
@@ -122,7 +175,6 @@ export default async function ReportsHubPage() {
           </Link>
         </div>
 
-        {/* Financial Summary KPI Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
             <span className="text-xs text-gray-500 font-medium">Gross Revenue</span>
@@ -161,19 +213,13 @@ export default async function ReportsHubPage() {
           </div>
         </div>
 
-        {/* Bar Chart Trend */}
         <div className="pt-2">
-          <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">
-            Daily Trend (Days 1–15)
-          </h4>
+          <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Daily Trend (Days 1–15)</h4>
           <SimpleBarChart data={chartData} height={200} />
         </div>
       </div>
 
-      {/* Product Analytics: Top Sellers & Slow Moving Side-by-Side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Top Selling Products */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
           <div className="flex justify-between items-center border-b pb-3">
             <h3 className="font-bold text-gray-900 flex items-center gap-2">
@@ -207,7 +253,6 @@ export default async function ReportsHubPage() {
           )}
         </div>
 
-        {/* Slow Moving Products */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
           <div className="flex justify-between items-center border-b pb-3">
             <h3 className="font-bold text-gray-900 flex items-center gap-2 text-amber-700">
@@ -237,7 +282,6 @@ export default async function ReportsHubPage() {
             </div>
           )}
         </div>
-
       </div>
     </div>
   );

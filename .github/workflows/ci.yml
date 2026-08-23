@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: dukaanos
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/dukaanos?schema=public
+      AUTH_SECRET: ci-placeholder-secret-not-for-production
+      NEXTAUTH_SECRET: ci-placeholder-secret-not-for-production
+      NEXTAUTH_URL: http://localhost:3000
+      APP_URL: http://localhost:3000
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      CRON_SECRET: ci-placeholder-cron-secret-not-for-production
+      VAPID_SUBJECT: mailto:ci@example.com
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Apply database migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/dukaanos?schema=public
+
+      - name: Validate Prisma schema
+        run: npx prisma validate
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Run reliability tests
+        run: npx tsx src/scripts/test_step34_reliability.ts
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/dukaanos?schema=public
+          AUTH_SECRET: ci-placeholder-secret-not-for-production
+          NEXTAUTH_SECRET: ci-placeholder-secret-not-for-production
+          NEXTAUTH_URL: http://localhost:3000
+          APP_URL: http://localhost:3000
+          CRON_SECRET: ci-placeholder-cron-secret-not-for-production
+
+      - name: Build production
+        run: npm run build
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/dukaanos?schema=public
+          AUTH_SECRET: ci-placeholder-secret-not-for-production
+          NEXTAUTH_SECRET: ci-placeholder-secret-not-for-production
+          NEXTAUTH_URL: http://localhost:3000
+          APP_URL: http://localhost:3000
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+          CRON_SECRET: ci-placeholder-cron-secret-not-for-production

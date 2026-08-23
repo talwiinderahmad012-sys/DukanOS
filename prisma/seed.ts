@@ -2,7 +2,12 @@ import { BusinessType, BusinessStatus, MembershipRole, MovementType } from '../s
 import { prisma } from '../src/lib/db/prisma'
 
 async function main() {
-  console.log('Seeding database...')
+  if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_PRODUCTION_SEED) {
+    console.error('CRITICAL: Seeding demo data into a production environment is strictly prohibited.');
+    process.exit(1);
+  }
+
+  console.log('Seeding development database...')
 
   // 1. Create a User
   const user = await prisma.user.upsert({

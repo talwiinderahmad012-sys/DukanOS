@@ -1,6 +1,6 @@
 'use server';
 
-import { requireBusinessAccess } from '@/lib/auth/context';
+import { requireBusinessAccess, requireAuthenticatedUser } from '@/lib/auth/context';
 import { MembershipRole } from '@/generated/prisma/client';
 import {
   createEmployee,
@@ -8,9 +8,24 @@ import {
   archiveEmployee,
   getEmployeeById,
   listEmployees,
+  getMyEmployeeProfile,
+  updateSalaryStructure,
+  deactivateEmployee,
+  assignBranch,
 } from '@/services/employees';
-import { recordAttendance, getDailyAttendance } from '@/services/attendance';
-import { createLeaveRequest, reviewLeaveRequest, listEmployeeLeaves } from '@/services/leave';
+import {
+  recordAttendance,
+  getDailyAttendance,
+  checkInEmployee,
+  checkOutEmployee,
+} from '@/services/attendance';
+import {
+  createLeaveRequest,
+  reviewLeaveRequest,
+  listEmployeeLeaves,
+  cancelLeaveRequest,
+  getEmployeeLeaveBalances,
+} from '@/services/leave';
 import { createSalaryRecord, recordSalaryPayment } from '@/services/salaries';
 import { createComplaint, resolveComplaint, listComplaints } from '@/services/complaints';
 import {
@@ -24,6 +39,10 @@ import {
   createComplaintSchema,
   resolveComplaintSchema,
   employeeFilterSchema,
+  employeeCheckInSchema,
+  cancelLeaveSchema,
+  updateSalaryStructureSchema,
+  assignBranchSchema,
 } from '@/lib/validations';
 import { createError, createSuccess, AppErrors } from '@/lib/utils/api-response';
 
@@ -320,5 +339,204 @@ export async function resolveComplaintAction(businessId: string, rawData: unknow
   } catch (error) {
     const err = error as Error;
     return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to resolve complaint');
+  }
+}
+
+// ----------------------------------------
+// Step 30: Check-In / Check-Out Actions
+// ----------------------------------------
+
+/** Resolves the employee profile linked to the current user. */
+async function requireMyEmployeeProfile(businessId: string) {
+  const user = await requireAuthenticatedUser();
+  const profile = await getMyEmployeeProfile(businessId, user.id);
+  if (!profile) {
+    throw new Error('No employee profile is linked to your account.');
+  }
+  return { user, profile };
+}
+
+/** True when the caller is OWNER or MANAGER of the business. */
+async function isPrivilegedMember(businessId: string): Promise<boolean> {
+  const { membership } = await requireBusinessAccess(businessId);
+  return membership.role === MembershipRole.OWNER || membership.role === MembershipRole.MANAGER;
+}
+
+/**
+ * Self-service check-in for the logged-in employee. Managers/owners may
+ * check in on behalf of an employee by passing employeeId.
+ */
+export async function checkInAction(businessId: string, rawData?: unknown) {
+  try {
+    const { user } = await requireBusinessAccess(businessId);
+    const validated = employeeCheckInSchema.safeParse(rawData || {});
+
+    if (validated.success && validated.data.employeeId) {
+      // On-behalf check-in requires elevated role.
+      if (!(await isPrivilegedMember(businessId))) {
+        return createError(AppErrors.UNAUTHORIZED, 'Not allowed to check in other employees');
+      }
+      const attendance = await checkInEmployee(
+        businessId,
+        validated.data.employeeId,
+        user.id,
+        { date: validated.data.date }
+      );
+      return createSuccess(attendance);
+    }
+
+    const date = validated.success ? validated.data.date : undefined;
+    const { profile } = await requireMyEmployeeProfile(businessId);
+    const attendance = await checkInEmployee(businessId, profile.id, user.id, { date });
+    return createSuccess(attendance);
+  } catch (error) {
+    const err = error as Error;
+    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to check in');
+  }
+}
+
+/** Self-service check-out; mirrors check-in authorization rules. */
+export async function checkOutAction(businessId: string, rawData?: unknown) {
+  try {
+    const { user } = await requireBusinessAccess(businessId);
+    const validated = employeeCheckInSchema.safeParse(rawData || {});
+
+    if (validated.success && validated.data.employeeId) {
+      if (!(await isPrivilegedMember(businessId))) {
+        return createError(AppErrors.UNAUTHORIZED, 'Not allowed to check out other employees');
+      }
+      const attendance = await checkOutEmployee(
+        businessId,
+        validated.data.employeeId,
+        user.id,
+        { date: validated.data.date }
+      );
+      return createSuccess(attendance);
+    }
+
+    const date = validated.success ? validated.data.date : undefined;
+    const { profile } = await requireMyEmployeeProfile(businessId);
+    const attendance = await checkOutEmployee(businessId, profile.id, user.id, { date });
+    return createSuccess(attendance);
+  } catch (error) {
+    const err = error as Error;
+    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to check out');
+  }
+}
+
+// ----------------------------------------
+// Step 30: Leave Self-Service & Balances
+// ----------------------------------------
+
+/** Employee cancels their own pending leave; managers/owners can cancel any. */
+export async function cancelLeaveAction(businessId: string, rawData: unknown) {
+  try {
+    const { user } = await requireBusinessAccess(businessId);
+    const validated = cancelLeaveSchema.safeParse(rawData);
+    if (!validated.success) {
+      return createError(AppErrors.VALIDATION_ERROR, 'Invalid cancellation data', validated.error.flatten().fieldErrors);
+    }
+
+    const cancelled = await cancelLeaveRequest(businessId, user.id, validated.data.leaveId, {
+      reason: validated.data.reason,
+      isPrivileged: await isPrivilegedMember(businessId),
+    });
+    return createSuccess(cancelled);
+  } catch (error) {
+    const err = error as Error;
+    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to cancel leave request');
+  }
+}
+
+/** Leave balances for the caller or a specific employee (elevated roles). */
+export async function getLeaveBalancesAction(businessId: string, employeeId?: string) {
+  try {
+    await requireBusinessAccess(businessId);
+
+    if (employeeId) {
+      if (!(await isPrivilegedMember(businessId))) {
+        return createError(AppErrors.UNAUTHORIZED, 'Not allowed to view other employees\' balances');
+      }
+      const balances = await getEmployeeLeaveBalances(businessId, employeeId);
+      return createSuccess(balances);
+    }
+
+    const { profile } = await requireMyEmployeeProfile(businessId);
+    const balances = await getEmployeeLeaveBalances(businessId, profile.id);
+    return createSuccess(balances);
+  } catch (error) {
+    const err = error as Error;
+    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to fetch leave balances');
+  }
+}
+
+// ----------------------------------------
+// Step 30: Salary Structure / Branch / Deactivation
+// ----------------------------------------
+
+export async function updateSalaryStructureAction(businessId: string, rawData: unknown) {
+  try {
+    const { user } = await requireBusinessAccess(businessId, [
+      MembershipRole.OWNER,
+      MembershipRole.MANAGER,
+    ]);
+
+    const validated = updateSalaryStructureSchema.safeParse(rawData);
+    if (!validated.success) {
+      return createError(AppErrors.VALIDATION_ERROR, 'Invalid salary structure data', validated.error.flatten().fieldErrors);
+    }
+
+    const updated = await updateSalaryStructure(businessId, user.id, validated.data as any);
+    return createSuccess(updated);
+  } catch (error) {
+    const err = error as Error;
+    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to update salary structure');
+  }
+}
+
+export async function assignBranchAction(businessId: string, rawData: unknown) {
+  try {
+    const { user } = await requireBusinessAccess(businessId, [
+      MembershipRole.OWNER,
+      MembershipRole.MANAGER,
+    ]);
+
+    const validated = assignBranchSchema.safeParse(rawData);
+    if (!validated.success) {
+      return createError(AppErrors.VALIDATION_ERROR, 'Invalid branch assignment data', validated.error.flatten().fieldErrors);
+    }
+
+    const updated = await assignBranch(businessId, user.id, validated.data.employeeId, validated.data.branchId);
+    return createSuccess(updated);
+  } catch (error) {
+    const err = error as Error;
+    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to assign branch');
+  }
+}
+
+export async function deactivateEmployeeAction(businessId: string, rawData: unknown) {
+  try {
+    const { user } = await requireBusinessAccess(businessId, [
+      MembershipRole.OWNER,
+      MembershipRole.MANAGER,
+    ]);
+
+    const parsed = (rawData || {}) as { employeeId?: string; status?: string; reason?: string };
+    if (!parsed.employeeId) {
+      return createError(AppErrors.VALIDATION_ERROR, 'employeeId is required');
+    }
+    const status = parsed.status === 'INACTIVE' ? ('INACTIVE' as const) : ('LEFT' as const);
+
+    const deactivated = await deactivateEmployee(
+      businessId,
+      user.id,
+      parsed.employeeId,
+      status,
+      parsed.reason || null
+    );
+    return createSuccess(deactivated);
+  } catch (error) {
+    const err = error as Error;
+    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to deactivate employee');
   }
 }

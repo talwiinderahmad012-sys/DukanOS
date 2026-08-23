@@ -153,7 +153,7 @@ async function runTests() {
       clientTransactionId: `offline-conflict-${timestamp}`,
     });
   } catch (err: any) {
-    if (err.message === 'INSUFFICIENT_STOCK') {
+    if (err.code === 'INSUFFICIENT_STOCK' || err.message === 'INSUFFICIENT_STOCK' || err.message?.includes('Insufficient stock')) {
       conflictOccurred = true;
     }
   }

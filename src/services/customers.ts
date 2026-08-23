@@ -2,7 +2,10 @@ import 'server-only';
 import { prisma } from '@/lib/db/prisma';
 import { PaymentMethod } from '@/generated/prisma/client';
 import { recordAuditLog } from './audit';
-import { AppErrors } from '@/lib/utils/api-response';
+import { invalidateAnalyticsCache } from '@/lib/cache/analytics-cache';
+import { publishAnalyticsEvent } from '@/lib/cache/analytics-events';
+import { AppError, ErrorCodes } from '@/lib/errors';
+import { logger } from '@/lib/logging/logger';
 
 export async function createCustomer(
   businessId: string,
@@ -56,7 +59,7 @@ export async function updateCustomer(
   });
 
   if (!existing) {
-    throw new Error('Customer not found or unauthorized.');
+    throw new AppError(ErrorCodes.NOT_FOUND, 'Customer not found or does not belong to this business', 404);
   }
 
   const updated = await prisma.customer.update({
@@ -312,15 +315,15 @@ export async function recordCustomerPayment(
   notes?: string | null
 ) {
   if (amount <= 0) {
-    throw new Error('Payment amount must be greater than 0');
+    throw new AppError(ErrorCodes.VALIDATION_ERROR, 'Payment amount must be greater than 0', 400);
   }
 
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const customer = await tx.customer.findUnique({
       where: { id: customerId, businessId },
     });
 
-    if (!customer) throw new Error(AppErrors.NOT_FOUND);
+    if (!customer) throw new AppError(ErrorCodes.NOT_FOUND, 'Customer not found', 404);
 
     const payment = await tx.customerPayment.create({
       data: {
@@ -340,6 +343,8 @@ export async function recordCustomerPayment(
       },
     });
 
+    logger.warn('Customer payment recorded', { businessId, customerId, amount, method });
+
     await recordAuditLog({
       businessId,
       userId,
@@ -356,4 +361,13 @@ export async function recordCustomerPayment(
 
     return updatedCustomer;
   });
+
+  try {
+    invalidateAnalyticsCache({ businessId, module: 'customers' });
+    publishAnalyticsEvent({ type: 'payment', businessId, timestamp: Date.now() });
+  } catch {
+    // cache invalidation must never break the mutation
+  }
+
+  return result;
 }

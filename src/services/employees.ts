@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db/prisma';
 import { EmployeeStatus, SalaryType } from '@/generated/prisma/client';
 import { recordAuditLog } from './audit';
 import { getDailyRange } from '@/lib/utils/date-utils';
+import { normalizePkPhone } from '@/lib/utils/phone';
 
 export async function generateNextEmployeeCode(businessId: string): Promise<string> {
   const count = await prisma.employee.count({
@@ -79,7 +80,7 @@ export async function createEmployee(
       branchId: data.branchId || null,
       employeeCode: code,
       name: data.name.trim(),
-      phone: data.phone?.trim() || null,
+      phone: normalizePkPhone(data.phone),
       email: data.email?.trim() || null,
       address: data.address?.trim() || null,
       position: data.position.trim(),
@@ -160,7 +161,7 @@ export async function updateEmployee(
     data: {
       ...(data.name && { name: data.name.trim() }),
       ...(data.employeeCode && { employeeCode: data.employeeCode.trim() }),
-      ...(data.phone !== undefined && { phone: data.phone?.trim() || null }),
+      ...(data.phone !== undefined && { phone: normalizePkPhone(data.phone) }),
       ...(data.email !== undefined && { email: data.email?.trim() || null }),
       ...(data.address !== undefined && { address: data.address?.trim() || null }),
       ...(data.position && { position: data.position.trim() }),
@@ -399,4 +400,182 @@ export async function getEmployeeDashboardStats(businessId: string) {
     pendingLeaves,
     openComplaints,
   };
+}
+
+// ----------------------------------------
+// Step 30: Advanced Employee Management
+// ----------------------------------------
+
+/**
+ * Updates an employee's salary structure. Historical salary records are never
+ * silently modified - every change is written to EmployeeSalaryHistory and audited.
+ */
+export async function updateSalaryStructure(
+  businessId: string,
+  userId: string,
+  data: {
+    employeeId: string;
+    basicSalary: number;
+    salaryType?: SalaryType;
+    effectiveDate?: Date | string;
+    reason?: string | null;
+  }
+) {
+  const employee = await prisma.employee.findFirst({
+    where: { id: data.employeeId, businessId },
+  });
+
+  if (!employee) {
+    throw new Error('Employee not found or unauthorized.');
+  }
+
+  if (employee.basicSalary.toNumber() === data.basicSalary && (!data.salaryType || data.salaryType === employee.salaryType)) {
+    throw new Error('Salary structure is unchanged.');
+  }
+
+  const effectiveDate = data.effectiveDate ? new Date(data.effectiveDate) : new Date();
+
+  const [updated] = await prisma.$transaction([
+    prisma.employee.update({
+      where: { id: employee.id },
+      data: {
+        basicSalary: data.basicSalary,
+        ...(data.salaryType ? { salaryType: data.salaryType } : {}),
+      },
+    }),
+    prisma.employeeSalaryHistory.create({
+      data: {
+        businessId,
+        employeeId: employee.id,
+        previousSalary: employee.basicSalary,
+        newSalary: data.basicSalary,
+        effectiveDate,
+        reason: data.reason?.trim() || 'Salary structure updated',
+        changedBy: userId,
+      },
+    }),
+  ]);
+
+  // Audit log intentionally omits exact amounts to limit exposure of salary data.
+  await recordAuditLog({
+    businessId,
+    userId,
+    action: 'EMPLOYEE_SALARY_STRUCTURE_CHANGED',
+    entityType: 'Employee',
+    entityId: employee.id,
+    metadata: {
+      employeeCode: employee.employeeCode,
+      previousSalaryBand: employee.basicSalary.toNumber() > 0 ? 'EXISTING' : 'ZERO',
+      salaryChanged: true,
+      reason: data.reason?.trim() || null,
+    },
+  });
+
+  return updated;
+}
+
+/**
+ * Deactivates an employee (LEFT or INACTIVE). Records are kept for history -
+ * employees are never deleted.
+ */
+export async function deactivateEmployee(
+  businessId: string,
+  userId: string,
+  employeeId: string,
+  status: 'LEFT' | 'INACTIVE' = 'LEFT',
+  reason?: string | null
+) {
+  const existing = await prisma.employee.findFirst({
+    where: { id: employeeId, businessId },
+  });
+
+  if (!existing) {
+    throw new Error('Employee not found or unauthorized.');
+  }
+
+  const deactivated = await prisma.employee.update({
+    where: { id: employeeId },
+    data: { status },
+  });
+
+  await recordAuditLog({
+    businessId,
+    userId,
+    action: status === 'LEFT' ? 'EMPLOYEE_DEACTIVATED_LEFT' : 'EMPLOYEE_DEACTIVATED',
+    entityType: 'Employee',
+    entityId: employeeId,
+    metadata: {
+      name: deactivated.name,
+      employeeCode: deactivated.employeeCode,
+      previousStatus: existing.status,
+      newStatus: status,
+      reason: reason?.trim() || null,
+    },
+  });
+
+  return deactivated;
+}
+
+/**
+ * Assigns (or clears) the branch of an employee. Branch must belong to the
+ * same business - tenant isolation is enforced here.
+ */
+export async function assignBranch(
+  businessId: string,
+  userId: string,
+  employeeId: string,
+  branchId: string | null
+) {
+  const employee = await prisma.employee.findFirst({
+    where: { id: employeeId, businessId },
+  });
+
+  if (!employee) {
+    throw new Error('Employee not found or unauthorized.');
+  }
+
+  if (branchId) {
+    const branch = await prisma.branch.findFirst({
+      where: { id: branchId, businessId },
+    });
+    if (!branch) {
+      throw new Error('Branch not found in this business.');
+    }
+  }
+
+  const updated = await prisma.employee.update({
+    where: { id: employeeId },
+    data: { branchId },
+    include: { branch: { select: { id: true, name: true } } },
+  });
+
+  await recordAuditLog({
+    businessId,
+    userId,
+    action: 'EMPLOYEE_BRANCH_ASSIGNED',
+    entityType: 'Employee',
+    entityId: employeeId,
+    branchId: branchId || undefined,
+    metadata: {
+      employeeCode: employee.employeeCode,
+      previousBranchId: employee.branchId,
+      newBranchId: branchId,
+    },
+  });
+
+  return updated;
+}
+
+/**
+ * Resolves the employee profile linked to a user account within a business.
+ * Used by the employee self-service dashboard - returns nothing if the user
+ * has no employee record (e.g. owner-only accounts).
+ */
+export async function getMyEmployeeProfile(businessId: string, userId: string) {
+  return prisma.employee.findFirst({
+    where: { businessId, userId },
+    include: {
+      branch: { select: { id: true, name: true } },
+    },
+  });
 }

@@ -3,15 +3,23 @@
 import { prisma } from '@/lib/db/prisma';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
-import { createError, createSuccess, AppErrors } from '@/lib/utils/api-response';
+import { createError, createSuccess, AppErrors, type ErrorCode } from '@/lib/utils/api-response';
+import { enforceRateLimit } from '@/lib/security/rate-limit-action';
+import { AppError, ErrorCodes } from '@/lib/errors';
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name is required"),
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 export async function registerUserAction(formData: Record<string, unknown>) {
+  try {
+    await enforceRateLimit('REGISTER', (formData.email as string) || 'unknown');
+  } catch {
+    return createError(AppErrors.RATE_LIMITED, 'Too many registration attempts. Please try again later.');
+  }
+
   try {
     const validatedData = registerSchema.safeParse(formData);
     
@@ -46,6 +54,9 @@ export async function registerUserAction(formData: Record<string, unknown>) {
 
     return createSuccess(user);
   } catch (error) {
+    if (error instanceof AppError) {
+      return createError(error.code as ErrorCode, error.message);
+    }
     const err = error as Error;
     return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to register');
   }

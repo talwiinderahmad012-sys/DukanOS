@@ -209,6 +209,54 @@ export const resolveComplaintSchema = z.object({
 });
 
 // ----------------------------------------
+// Employee Self-Service & Advanced HR Schemas (Step 30)
+// ----------------------------------------
+export const selfAttendanceSchema = z.object({
+  date: z.union([z.string(), z.date()]).optional(),
+});
+
+export const employeeCheckInSchema = z.object({
+  employeeId: z.string().uuid("Invalid employee ID").optional(),
+  date: z.union([z.string(), z.date()]).optional(),
+});
+
+export const cancelLeaveSchema = z.object({
+  leaveId: z.string().uuid("Invalid leave ID"),
+  reason: z.string().max(300).optional().nullable(),
+});
+
+export const updateSalaryStructureSchema = z.object({
+  employeeId: z.string().uuid("Invalid employee ID"),
+  basicSalary: z.number().min(0, "Basic salary cannot be negative"),
+  salaryType: z.enum(['MONTHLY', 'DAILY', 'HOURLY']).optional(),
+  effectiveDate: z.union([z.string(), z.date()]).optional(),
+  reason: z.string().max(300).optional().nullable(),
+});
+
+export const assignBranchSchema = z.object({
+  employeeId: z.string().uuid("Invalid employee ID"),
+  branchId: z.string().uuid("Invalid branch ID").nullable(),
+});
+
+export const payrollPeriodSchema = z.object({
+  periodName: z.string().min(3, "Period name must be at least 3 characters").max(50),
+  startDate: z.union([z.string(), z.date()]),
+  endDate: z.union([z.string(), z.date()]),
+});
+
+export const payrollActionSchema = z.object({
+  payrollId: z.string().uuid("Invalid payroll ID"),
+  paymentMethod: z.nativeEnum(PaymentMethod).optional(),
+  reason: z.string().min(3, "Reason is required").max(300).optional(),
+});
+
+export const notifyEmployeeSchema = z.object({
+  employeeId: z.string().uuid("Invalid employee ID"),
+  title: z.string().min(3, "Title must be at least 3 characters").max(150),
+  message: z.string().min(3, "Message must be at least 3 characters").max(1000),
+});
+
+// ----------------------------------------
 // Customer Experience & Feedback Schemas (Step 11)
 // ----------------------------------------
 export const updateCustomerSchema = z.object({

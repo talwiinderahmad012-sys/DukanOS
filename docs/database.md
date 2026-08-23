@@ -27,6 +27,8 @@ The database uses a normalized relational design strictly enforcing tenant bound
 ### Security & Audit Strategy
 - **AuditLog**: An explicit table tracking sensitive actions (e.g., `SALE_CANCELLED`, `STOCK_ADJUSTED`, `PURCHASE_CREATED`, `PURCHASE_CANCELLED`) storing stringified JSON metadata and referencing the actor.
 - **Notifications**: System-generated alerts (like "Low Stock") mapped with read statuses and owner-only privacy flags.
+- **Centralized Error Codes**: `src/lib/errors/error-codes.ts` provides deterministic error codes for consistent API responses. Database errors are sanitized before reaching the client.
+- **Idempotency Keys**: `Sale.clientTransactionId` and `Notification.deduplicationKey` prevent duplicate financial transactions and spam notifications.
 
 ### Purchases & Supplier Ledger (Step 7)
 - **Purchase**: Represents procurement transactions, tracking `invoiceNumber`, `purchaseDate`, `subtotal`, `discount`, `total`, `paidAmount`, and `status` (`RECEIVED`, `CANCELLED`).

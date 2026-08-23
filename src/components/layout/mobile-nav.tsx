@@ -5,31 +5,11 @@ import {
   Menu, X, Store, LogOut,
   LayoutDashboard, ShoppingCart, Package, Users, 
   TrendingUp, Receipt, Layers, Truck, ClipboardList,
-  BarChart3, Sparkles, UserCheck, Star, MessageSquare, Activity, RefreshCw
+  BarChart3, Sparkles, UserCheck, Star, MessageSquare, Activity, RefreshCw,
+  User, Camera, Banknote, Settings, ShieldCheck, Rocket, Bug
 } from 'lucide-react';
 import Link from 'next/link';
 import { NetworkStatusBadge } from '@/components/pwa/pwa-provider';
-
-const navigation = [
-  { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'POS Terminal', href: '/dashboard/pos', icon: ShoppingCart },
-  { name: 'Offline Sync', href: '/dashboard/sync', icon: RefreshCw },
-  { name: 'Sales Invoices', href: '/dashboard/sales', icon: Receipt },
-  { name: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
-  { name: 'Growth', href: '/dashboard/growth', icon: TrendingUp },
-  { name: 'Advisor', href: '/dashboard/advisor', icon: Sparkles },
-  { name: 'Remote Monitor', href: '/dashboard/monitoring', icon: Store },
-  { name: 'Communications', href: '/dashboard/communications', icon: MessageSquare },
-  { name: 'Activity Stream', href: '/dashboard/activity', icon: Activity },
-  { name: 'Customer Feedback', href: '/dashboard/feedback', icon: Star },
-  { name: 'Customers (Udhaar)', href: '/dashboard/customers', icon: Users },
-  { name: 'Staff (Employees)', href: '/dashboard/employees', icon: UserCheck },
-  { name: 'Products', href: '/dashboard/products', icon: Package },
-  { name: 'Categories', href: '/dashboard/categories', icon: Layers },
-  { name: 'Suppliers', href: '/dashboard/suppliers', icon: Truck },
-  { name: 'Inventory', href: '/dashboard/inventory', icon: ClipboardList },
-  { name: 'Purchases', href: '/dashboard/purchases', icon: Receipt },
-];
 
 export function MobileNav({ 
   businessName, 
@@ -39,6 +19,40 @@ export function MobileNav({
   role: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+
+  const isOwner = role === 'OWNER';
+  const isManager = role === 'MANAGER';
+  const isOwnerOrManager = isOwner || isManager;
+
+  const navigation = [
+    { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'My Workspace', href: '/dashboard/me', icon: User },
+    { name: 'POS Terminal', href: '/dashboard/pos', icon: ShoppingCart },
+    { name: 'Offline Sync', href: '/dashboard/sync', icon: RefreshCw },
+    { name: 'Sales Invoices', href: '/dashboard/sales', icon: Receipt },
+    { name: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
+    { name: 'Growth', href: '/dashboard/growth', icon: TrendingUp },
+    { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+    { name: 'Advisor', href: '/dashboard/advisor', icon: Sparkles },
+    { name: 'Remote Monitor', href: '/dashboard/monitoring', icon: Store },
+    ...(isOwnerOrManager ? [{ name: 'CCTV Cameras', href: '/dashboard/cameras', icon: Camera }] : []),
+    { name: 'Communications', href: '/dashboard/communications', icon: MessageSquare },
+    { name: 'Activity Stream', href: '/dashboard/activity', icon: Activity },
+    { name: 'Feedback', href: '/dashboard/feedback', icon: Star },
+    { name: 'Customers (Udhaar)', href: '/dashboard/customers', icon: Users },
+    { name: 'Staff (Employees)', href: '/dashboard/employees', icon: UserCheck },
+    ...(isOwner ? [{ name: 'Payroll', href: '/dashboard/payroll', icon: Banknote }] : []),
+    { name: 'Products', href: '/dashboard/products', icon: Package },
+    { name: 'Categories', href: '/dashboard/categories', icon: Layers },
+    { name: 'Suppliers', href: '/dashboard/suppliers', icon: Truck },
+    { name: 'Inventory', href: '/dashboard/inventory', icon: ClipboardList },
+    { name: 'Purchases', href: '/dashboard/purchases', icon: Receipt },
+    ...(isOwnerOrManager ? [{ name: 'Product Insights', href: '/dashboard/product-insights', icon: Sparkles }] : []),
+    ...(isOwnerOrManager ? [{ name: 'System Updates', href: '/dashboard/updates', icon: Rocket }] : []),
+    ...(isOwner ? [{ name: 'Platform Support', href: '/dashboard/product-feedback', icon: Bug }] : []),
+    ...(isOwnerOrManager ? [{ name: 'Settings Hub', href: '/dashboard/settings', icon: Settings }] : []),
+    ...(isOwner ? [{ name: 'System Health', href: '/dashboard/system', icon: ShieldCheck }] : []),
+  ];
 
   return (
     <>

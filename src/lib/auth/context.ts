@@ -2,7 +2,7 @@ import 'server-only';
 import { auth } from '@/lib/auth/auth';
 import { prisma } from '@/lib/db/prisma';
 import { MembershipRole } from '@/generated/prisma/client';
-import { AppErrors } from '../utils/api-response';
+import { AppError, ErrorCodes } from '@/lib/errors';
 
 export async function getCurrentUser() {
   const session = await auth();
@@ -13,7 +13,7 @@ export async function getCurrentUser() {
 export async function requireAuthenticatedUser() {
   const user = await getCurrentUser();
   if (!user || !user.id) {
-    throw new Error(AppErrors.UNAUTHENTICATED);
+    throw new AppError(ErrorCodes.UNAUTHENTICATED, 'Authentication required', 401);
   }
   return { ...user, id: user.id };
 }
@@ -37,11 +37,11 @@ export async function requireBusinessAccess(businessId: string, allowedRoles?: M
   const membership = await getBusinessMembership(user.id, businessId);
 
   if (!membership) {
-    throw new Error(AppErrors.BUSINESS_ACCESS_DENIED);
+    throw new AppError(ErrorCodes.BUSINESS_ACCESS_DENIED, 'Business access denied', 403);
   }
 
   if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(membership.role)) {
-    throw new Error(AppErrors.UNAUTHORIZED);
+    throw new AppError(ErrorCodes.UNAUTHORIZED, 'Insufficient permissions for this action', 403);
   }
 
   return {

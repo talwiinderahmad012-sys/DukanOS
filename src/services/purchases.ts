@@ -2,7 +2,10 @@ import 'server-only';
 import { prisma } from '@/lib/db/prisma';
 import { MovementType, PurchaseStatus } from '@/generated/prisma/client';
 import { recordAuditLog } from './audit';
-import { AppErrors } from '@/lib/utils/api-response';
+import { invalidateAnalyticsCache } from '@/lib/cache/analytics-cache';
+import { publishAnalyticsEvent } from '@/lib/cache/analytics-events';
+import { AppError, ErrorCodes } from '@/lib/errors';
+import { logger } from '@/lib/logging/logger';
 
 export type PurchaseItemInput = {
   productId: string;
@@ -26,20 +29,20 @@ export type CreatePurchaseParams = {
 
 export async function createPurchase(params: CreatePurchaseParams) {
   if (!params.items || params.items.length === 0) {
-    throw new Error('At least one purchase item is required');
+    throw new AppError(ErrorCodes.VALIDATION_ERROR, 'At least one purchase item is required', 400);
   }
 
-  return prisma.$transaction(async (tx) => {
+  let purchaseResult = await prisma.$transaction(async (tx) => {
     // 1. Validate Supplier if provided
     if (params.supplierId) {
       const supplier = await tx.supplier.findUnique({
         where: { id: params.supplierId, businessId: params.businessId },
       });
       if (!supplier) {
-        throw new Error('Supplier not found or does not belong to this business');
+        throw new AppError(ErrorCodes.NOT_FOUND, 'Supplier not found or does not belong to this business', 404);
       }
       if (!supplier.isActive) {
-        throw new Error('Cannot create purchase for an archived supplier');
+        throw new AppError(ErrorCodes.INTERNAL_ERROR, 'Cannot create purchase for an archived supplier');
       }
     }
 
@@ -49,7 +52,7 @@ export async function createPurchase(params: CreatePurchaseParams) {
         where: { id: params.branchId, businessId: params.businessId },
       });
       if (!branch) {
-        throw new Error('Branch not found or does not belong to this business');
+        throw new AppError(ErrorCodes.NOT_FOUND, 'Branch not found or does not belong to this business', 404);
       }
     }
 
@@ -69,16 +72,16 @@ export async function createPurchase(params: CreatePurchaseParams) {
       });
 
       if (!product) {
-        throw new Error(`Product ${item.productId} not found in this business`);
+        throw new AppError(ErrorCodes.NOT_FOUND, `Product ${item.productId} not found`, 404);
       }
       if (!product.isActive) {
-        throw new Error(`Cannot purchase archived product: ${product.name}`);
+        throw new AppError(ErrorCodes.INTERNAL_ERROR, `Cannot purchase archived product: ${product.name}`);
       }
       if (item.quantity <= 0) {
-        throw new Error(`Quantity for product ${product.name} must be greater than 0`);
+        throw new AppError(ErrorCodes.VALIDATION_ERROR, `Quantity for product ${product.name} must be greater than 0`, 400);
       }
       if (item.purchasePrice < 0) {
-        throw new Error(`Purchase price for product ${product.name} cannot be negative`);
+        throw new AppError(ErrorCodes.VALIDATION_ERROR, `Purchase price for product ${product.name} cannot be negative`, 400);
       }
 
       const itemDiscount = item.discount || 0;
@@ -163,6 +166,8 @@ export async function createPurchase(params: CreatePurchaseParams) {
       });
     }
 
+    logger.warn('Purchase created', { businessId: params.businessId, purchaseId: purchase.id, total, itemCount: purchase.items.length });
+
     // 6. Record Audit Log
     await recordAuditLog({
       businessId: params.businessId,
@@ -181,6 +186,16 @@ export async function createPurchase(params: CreatePurchaseParams) {
 
     return purchase;
   });
+
+  try {
+    invalidateAnalyticsCache({ businessId: params.businessId, branchId: params.branchId || undefined, module: 'purchases' });
+    invalidateAnalyticsCache({ businessId: params.businessId, branchId: params.branchId || undefined, module: 'inventory' });
+    publishAnalyticsEvent({ type: 'purchase', businessId: params.businessId, branchId: params.branchId || null, timestamp: Date.now() });
+  } catch {
+    // cache invalidation must never break the mutation
+  }
+
+  return purchaseResult;
 }
 
 export async function getPurchaseById(businessId: string, purchaseId: string) {
@@ -326,7 +341,7 @@ export async function cancelPurchase(
   purchaseId: string,
   reason: string
 ) {
-  return prisma.$transaction(async (tx) => {
+  let result = await prisma.$transaction(async (tx) => {
     // 1. Fetch Purchase
     const purchase = await tx.purchase.findUnique({
       where: { id: purchaseId, businessId },
@@ -334,12 +349,15 @@ export async function cancelPurchase(
     });
 
     if (!purchase) {
-      throw new Error(AppErrors.NOT_FOUND);
+      throw new AppError(ErrorCodes.NOT_FOUND, 'Purchase not found', 404);
     }
 
     if (purchase.status === PurchaseStatus.CANCELLED) {
-      throw new Error('Purchase is already cancelled.');
+      throw new AppError(ErrorCodes.INTERNAL_ERROR, 'Purchase is already cancelled.');
     }
+
+    // Save branchId for cache invalidation after transaction
+    const branchId = purchase.branchId;
 
     // 2. MANDATORY CHECK 1: Stock Sufficiency Check
     // Calculate whether reversing its inventory impact would make product stock negative
@@ -349,12 +367,14 @@ export async function cancelPurchase(
       });
 
       if (!product) {
-        throw new Error(`Product ${item.productId} not found`);
+        throw new AppError(ErrorCodes.NOT_FOUND, `Product ${item.productId} not found`, 404);
       }
 
       if (product.currentStock < item.quantity) {
-        throw new Error(
-          'Purchase cannot be cancelled because its stock has already been consumed. Review the related inventory/sales transactions first.'
+        throw new AppError(
+          ErrorCodes.INSUFFICIENT_STOCK,
+          'Purchase cannot be cancelled because its stock has already been consumed. Review the related inventory/sales transactions first.',
+          409
         );
       }
     }
@@ -451,6 +471,16 @@ export async function cancelPurchase(
       },
     });
 
-    return updatedPurchase;
+    return { purchase: updatedPurchase, branchId };
   });
+
+  try {
+    invalidateAnalyticsCache({ businessId, branchId: result.branchId || undefined, module: 'purchases' });
+    invalidateAnalyticsCache({ businessId, branchId: result.branchId || undefined, module: 'inventory' });
+    publishAnalyticsEvent({ type: 'purchase', businessId, branchId: result.branchId || null, timestamp: Date.now() });
+  } catch {
+    // cache invalidation must never break the mutation
+  }
+
+  return result.purchase;
 }

@@ -103,9 +103,13 @@ async function runTests() {
     throw new Error(`Expected exactly 1 sale to succeed and 1 to fail under stock race, got fulfilled=${fulfilled.length}, rejected=${rejected.length}`);
   }
 
-  const rejectedError = (rejected[0] as PromiseRejectedResult).reason as Error;
-  if (!rejectedError.message.includes(AppErrors.INSUFFICIENT_STOCK)) {
-    throw new Error(`Expected INSUFFICIENT_STOCK error, got: ${rejectedError.message}`);
+  const rejectedError = (rejected[0] as PromiseRejectedResult).reason as any;
+  const isInsufficientStock =
+    rejectedError.code === 'INSUFFICIENT_STOCK' ||
+    rejectedError.message?.includes('Insufficient stock') ||
+    rejectedError.message?.includes(AppErrors.INSUFFICIENT_STOCK);
+  if (!isInsufficientStock) {
+    throw new Error(`Expected INSUFFICIENT_STOCK error, got: ${rejectedError.message || rejectedError.code}`);
   }
 
   const updatedLimitedProduct = await prisma.product.findUnique({ where: { id: limitedProduct.id } });
@@ -319,10 +323,15 @@ async function runTests() {
       paymentMethod: PaymentMethod.CASH,
     });
     throw new Error('Cross-tenant product sale should have thrown an error.');
-  } catch (err) {
-    const e = err as Error;
-    if (!e.message.includes('not found') && !e.message.includes(AppErrors.INSUFFICIENT_STOCK)) {
-      throw e;
+  } catch (err: any) {
+    const isExpected =
+      err.code === 'NOT_FOUND' ||
+      err.code === 'INSUFFICIENT_STOCK' ||
+      err.message?.includes('not found') ||
+      err.message?.includes('Insufficient stock') ||
+      err.message?.includes(AppErrors.INSUFFICIENT_STOCK);
+    if (!isExpected) {
+      throw err;
     }
   }
   console.log('✓ Cross-tenant product access properly rejected.');

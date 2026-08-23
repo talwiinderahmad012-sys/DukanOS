@@ -25,6 +25,35 @@ export async function createSalaryRecord(
     throw new Error('Employee not found or unauthorized.');
   }
 
+  // Immutability: never silently modify paid salary records or records that
+  // belong to a finalized/paid payroll. Financial history stays intact.
+  const existingRecord = await prisma.employeeSalary.findUnique({
+    where: {
+      businessId_employeeId_period: {
+        businessId,
+        employeeId: data.employeeId,
+        period: data.period,
+      },
+    },
+    include: { payroll: { select: { status: true } } },
+  });
+
+  if (existingRecord) {
+    if (existingRecord.paymentStatus === SalaryPaymentStatus.PAID) {
+      throw new Error(
+        'This salary record has already been paid and cannot be modified. Record an adjustment instead.'
+      );
+    }
+    if (
+      existingRecord.payroll &&
+      (existingRecord.payroll.status === 'FINALIZED' || existingRecord.payroll.status === 'PAID')
+    ) {
+      throw new Error(
+        `This salary record belongs to a ${existingRecord.payroll.status.toLowerCase()} payroll and is immutable.`
+      );
+    }
+  }
+
   const baseSalary = Number(data.baseSalary) || 0;
   const overtime = Number(data.overtime) || 0;
   const bonus = Number(data.bonus) || 0;
@@ -140,3 +169,4 @@ export async function getEmployeeSalaryHistory(businessId: string, employeeId: s
     orderBy: { period: 'desc' },
   });
 }
+

@@ -848,3 +848,12 @@ export async function getBusinessGrowth(
     currentOrders: monthlyReport.summary.ordersCount,
   };
 }
+
+export {
+  generateBusinessReport,
+  type ReportType,
+  type ReportOptions,
+  type BaseReport,
+} from './business-reports';
+
+export { getBranchAnalytics } from '@/services/analytics';

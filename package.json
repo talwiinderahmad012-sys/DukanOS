@@ -1,12 +1,37 @@
 {
   "name": "dukaanos",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=20.18.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "prebuild": "prisma generate",
+    "postinstall": "prisma generate",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
+    "prisma:generate": "prisma generate",
+    "prisma:validate": "prisma validate",
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:migrate:dev": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "bootstrap": "tsx src/scripts/bootstrap_owner.ts",
+    "test": "tsx src/scripts/test_step34_reliability.ts",
+    "test:all": "tsx src/scripts/test_production_hardening.ts && tsx src/scripts/test_multi_business_branch.ts && tsx src/scripts/test_settings_step25.ts && tsx src/scripts/test_production_smoke.ts && tsx src/scripts/test_reconciliation.ts && tsx src/scripts/test_public_launch.ts && tsx src/scripts/test_product_analytics.ts && tsx src/scripts/test_saas_plans.ts && tsx src/scripts/test_step34_reliability.ts",
+    "test:reconciliation": "tsx src/scripts/test_reconciliation.ts",
+    "simulate:pilot": "tsx src/scripts/simulate_pilot_business.ts",
+    "test:launch": "tsx src/scripts/test_public_launch.ts",
+    "test:analytics": "tsx src/scripts/test_product_analytics.ts",
+    "test:plans": "tsx src/scripts/test_saas_plans.ts",
+    "ci": "prisma generate && prisma validate && tsc --noEmit && npx tsx src/scripts/test_step34_reliability.ts && next build",
+    "release:patch": "npm version patch -m \"chore(release): %s\" && git push && git push --tags",
+    "release:minor": "npm version minor -m \"chore(release): %s\" && git push && git push --tags",
+    "release:major": "npm version major -m \"chore(release): %s\" && git push && git push --tags"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.9.1",
