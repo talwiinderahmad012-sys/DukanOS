@@ -8,7 +8,8 @@ import {
   getCurrentMonthPeriods,
   getTopProducts,
 } from '@/services/analytics';
-import { DateRangeFilter, type DateRangePreset } from '@/components/analytics/date-range-filter';
+import { type DateRangePreset } from '@/components/analytics/date-range-filter';
+import { SalesAnalyticsFilter } from '@/components/analytics/sales-analytics-filter';
 import { ExportButton } from '@/components/analytics/export-button';
 import Link from 'next/link';
 import {
@@ -35,7 +36,7 @@ export default async function SalesAnalyticsPage({
   searchParams: Promise<{ preset?: string; start?: string; end?: string }>;
 }) {
   const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
-  if (membership.role === 'EMPLOYEE') redirect('/dashboard');
+  if (membership.role !== 'OWNER' && membership.role !== 'MANAGER') redirect('/dashboard');
 
   const params = await searchParams;
   const preset = (params.preset || 'thisMonth') as DateRangePreset;
@@ -148,31 +149,10 @@ export default async function SalesAnalyticsPage({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <DateRangeFilter
+          <SalesAnalyticsFilter
             preset={preset}
-            startDate={startDate}
-            endDate={endDate}
-            onPresetChange={(p) => {
-              const url = new URL(window.location.href);
-              url.searchParams.set('preset', p);
-              if (p === 'custom') {
-                url.searchParams.set('start', startDate.toISOString().split('T')[0]);
-                url.searchParams.set('end', endDate.toISOString().split('T')[0]);
-              }
-              window.location.href = url.toString();
-            }}
-            onStartDateChange={(d) => {
-              const url = new URL(window.location.href);
-              url.searchParams.set('start', d.toISOString().split('T')[0]);
-              url.searchParams.set('preset', 'custom');
-              window.location.href = url.toString();
-            }}
-            onEndDateChange={(d) => {
-              const url = new URL(window.location.href);
-              url.searchParams.set('end', d.toISOString().split('T')[0]);
-              url.searchParams.set('preset', 'custom');
-              window.location.href = url.toString();
-            }}
+            startISO={startDate.toISOString()}
+            endISO={endDate.toISOString()}
           />
           <ExportButton data={exportData} filename="sales-analytics" label="Export CSV" />
         </div>

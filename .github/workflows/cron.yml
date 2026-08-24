@@ -15,5 +15,4 @@ jobs:
           curl -fsSL -X POST "https://${{ secrets.APP_URL }}/api/cron" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json" \
-            --max-time 300 \
-            || echo "Cron job completed with errors (check server logs)"
+            --max-time 300 || { echo "Cron job failed (check server logs)"; exit 1; }

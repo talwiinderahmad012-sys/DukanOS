@@ -13,7 +13,9 @@ import {
   ExternalLink,
   Clock
 } from 'lucide-react';
-import { ActivityCategory, ActivityEvent } from '@/services/activity';
+// Type-only import: the source module is server-only; this client component
+// must never pull its runtime (Prisma) into the browser bundle.
+import type { ActivityCategory, ActivityEvent } from '@/services/activity';
 
 const categories: { id: ActivityCategory | 'ALL'; label: string; icon: any }[] = [
   { id: 'ALL', label: 'All Activities', icon: Activity },

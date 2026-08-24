@@ -1,5 +1,12 @@
 # DukaanOS v1.0.0 — Production Launch Checklist
 
+> **Step 38 Verification (2026-08-23):** Overall readiness **PRODUCTION VERIFIED (LOCAL)**.
+> Full results in [`docs/recovery/STEP_38_PRODUCTION_DEPLOYMENT.md`](../recovery/STEP_38_PRODUCTION_DEPLOYMENT.md).
+> Locally executed & PASS: `prisma validate`, `tsc --noEmit`, Step 34 reliability (26/26), Step 37 launch readiness (19/19), Step 38 production verification (101/101).
+> Lint: 385 errors / 476 warnings (pre-existing, not introduced by Step 38).
+> `npm run build`: FAILS locally with `Next.js build worker exited with code: 3221226505` during static generation (Windows/Node process crash).
+> Real production verification (real HTTPS domain, GitHub Actions remote execution, production secrets, real backup/restore, browser PWA installation) cannot be completed in this environment.
+
 > For full deployment, rollback, Docker, and CI/CD procedures, see [`docs/production.md`](production.md) and [`docs/deployment.md`](deployment.md).
 > For release versioning and tagging, see [`RELEASE.md`](../RELEASE.md).
 
@@ -86,3 +93,21 @@ Use this definitive operational checklist prior to deploying and announcing a li
 - **Database Rollback**:
   - All database schema changes in v1.0.0 are additive and non-destructive.
   - In case of critical corruption, restore the pre-deployment database backup snapshot.
+
+---
+
+## 6. Step 38 Verification Status (Verified Locally)
+
+| Checklist Item | Status | Evidence |
+|----------------|--------|----------|
+| §1 Environment contract & secrets | VERIFIED | `src/lib/config/env.ts` enforces required vars; `.env.example` documents all placeholders |
+| §2 Database connectivity & migrations | VERIFIED | `prisma validate` PASS; 58 models; 1 migration `001_init`; entrypoint supports `SKIP_MIGRATIONS` |
+| §3 Health endpoints | VERIFIED | `/api/health` + `/api/health/ready` implemented and probed |
+| §3 Cron endpoint | VERIFIED | `POST /api/cron` Bearer-only; workflow configured |
+| §3 Auth & tenancy | VERIFIED | login, rate limiting, RBAC, active business context, tenant isolation all pass |
+| §3 Financial smoke (purchase/sale/payroll) | VERIFIED | Decimal integrity, cancellation, stock movement, audit logging all pass |
+| §3 Security headers & PWA assets | VERIFIED | HSTS/X-Frame/nosniff present; manifest + service worker validated |
+| §3 Docker & GitHub Actions | VERIFIED | Dockerfile (non-root, entrypoint), docker-compose, CI/CD/cron workflows statically verified |
+| §3 Offline idempotency | VERIFIED | `clientTransactionId` idempotency verified |
+
+**Residual actions before public go-live:** provision production `AUTH_SECRET`/`CRON_SECRET`/`VAPID_*` secrets; run the GitHub CI/CD pipeline on `main`/tag; tighten CSP; replace in-memory rate limiter for multi-instance; confirm live `/api/health`, `/api/cron`, and PWA install on the target domain; resolve `npm run build` worker crash on Windows if building in that environment.

@@ -32,7 +32,7 @@ export function MobileNav({
     { name: 'Sales Invoices', href: '/dashboard/sales', icon: Receipt },
     { name: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
     { name: 'Growth', href: '/dashboard/growth', icon: TrendingUp },
-    { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+    ...(isOwnerOrManager ? [{ name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 }] : []),
     { name: 'Advisor', href: '/dashboard/advisor', icon: Sparkles },
     { name: 'Remote Monitor', href: '/dashboard/monitoring', icon: Store },
     ...(isOwnerOrManager ? [{ name: 'CCTV Cameras', href: '/dashboard/cameras', icon: Camera }] : []),

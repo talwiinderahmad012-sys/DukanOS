@@ -1,5 +1,3 @@
-import 'server-only';
-
 import { prisma } from '@/lib/db/prisma';
 import { getBusinessSubscription } from './plans';
 

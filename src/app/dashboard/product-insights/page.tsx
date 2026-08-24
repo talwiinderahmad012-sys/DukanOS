@@ -21,6 +21,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -30,6 +31,8 @@ export const metadata: Metadata = {
 
 export default async function ProductInsightsPage() {
   const { user, business, membership } = await getActiveBusiness();
+
+  if (membership.role !== 'OWNER' && membership.role !== 'MANAGER') redirect('/dashboard');
 
   // Load analytics metrics concurrently
   const [

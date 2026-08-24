@@ -1,6 +1,5 @@
 'use server';
 
-import { cookies } from 'next/headers';
 import { requireAuthenticatedUser, requireBusinessAccess } from '@/lib/auth/context';
 import { prisma } from '@/lib/db/prisma';
 import { MembershipRole, BusinessType } from '@/generated/prisma/client';
@@ -11,12 +10,17 @@ import {
   transferBusinessOwnership,
 } from '@/services/business/context';
 import { createError, createSuccess, AppErrors } from '@/lib/utils/api-response';
+import { recordAuditLog } from '@/services/audit';
+
+async function getCookieStore() {
+  const { cookies } = await import('next/headers');
+  return cookies();
+}
 
 export async function switchActiveBusinessAction(businessId: string) {
   try {
     const user = await requireAuthenticatedUser();
 
-    // Verify user has membership in the requested business
     const membership = await prisma.businessMembership.findUnique({
       where: {
         userId_businessId: {
@@ -37,15 +41,14 @@ export async function switchActiveBusinessAction(businessId: string) {
       return createError(AppErrors.BUSINESS_ACCESS_DENIED, 'You do not have access to this business.');
     }
 
-    const cookieStore = await cookies();
+    const cookieStore = await getCookieStore();
     cookieStore.set('dukaanos_active_business_id', businessId, {
       path: '/',
       httpOnly: true,
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+      maxAge: 60 * 60 * 24 * 30,
     });
 
-    // Reset branch cookie to default first branch or all
     const defaultBranchId = membership.business.branches.length > 0 ? membership.business.branches[0].id : 'all';
     cookieStore.set('dukaanos_active_branch_id', defaultBranchId, {
       path: '/',
@@ -56,15 +59,14 @@ export async function switchActiveBusinessAction(businessId: string) {
 
     return createSuccess({ businessId, branchId: defaultBranchId });
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to switch business');
+    return createError(AppErrors.INTERNAL_ERROR, 'Failed to switch business');
   }
 }
 
 export async function switchActiveBranchAction(branchId: string) {
   try {
     const user = await requireAuthenticatedUser();
-    const cookieStore = await cookies();
+    const cookieStore = await getCookieStore();
     const activeBusinessId = cookieStore.get('dukaanos_active_business_id')?.value;
 
     if (!activeBusinessId) {
@@ -72,7 +74,6 @@ export async function switchActiveBranchAction(branchId: string) {
     }
 
     if (branchId !== 'all') {
-      // Validate branch belongs to current business
       const branch = await prisma.branch.findUnique({
         where: { id: branchId, businessId: activeBusinessId },
       });
@@ -91,8 +92,7 @@ export async function switchActiveBranchAction(branchId: string) {
 
     return createSuccess({ branchId });
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to switch branch');
+    return createError(AppErrors.INTERNAL_ERROR, 'Failed to switch branch');
   }
 }
 
@@ -109,7 +109,16 @@ export async function createBusinessAction(payload: {
     const user = await requireAuthenticatedUser();
     const result = await createBusinessForUser(user.id, payload);
 
-    const cookieStore = await cookies();
+    await recordAuditLog({
+      businessId: result.business.id,
+      userId: user.id,
+      action: 'BUSINESS_CREATED',
+      entityType: 'Business',
+      entityId: result.business.id,
+      metadata: { name: result.business.name, type: result.business.type },
+    }).catch(() => {});
+
+    const cookieStore = await getCookieStore();
     cookieStore.set('dukaanos_active_business_id', result.business.id, {
       path: '/',
       httpOnly: true,
@@ -125,8 +134,7 @@ export async function createBusinessAction(payload: {
 
     return createSuccess(result);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to create business');
+    return createError(AppErrors.INTERNAL_ERROR, 'Failed to create business');
   }
 }
 
@@ -136,8 +144,7 @@ export async function archiveBusinessAction(businessId: string) {
     const updated = await archiveBusiness(businessId, user.id);
     return createSuccess(updated);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to archive business');
+    return createError(AppErrors.INTERNAL_ERROR, 'Failed to archive business');
   }
 }
 
@@ -156,8 +163,7 @@ export async function transferOwnershipAction(payload: {
     );
     return createSuccess(result);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to transfer ownership');
+    return createError(AppErrors.INTERNAL_ERROR, 'Failed to transfer ownership');
   }
 }
 
@@ -167,7 +173,6 @@ export async function listUserBusinessesAction() {
     const businesses = await listUserBusinesses(user.id);
     return createSuccess(businesses);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to list businesses');
+    return createError(AppErrors.INTERNAL_ERROR, 'Failed to list businesses');
   }
 }

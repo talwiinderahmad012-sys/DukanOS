@@ -143,13 +143,17 @@ export async function enqueueSyncTransaction(transaction: QueuedTransaction): Pr
   });
 }
 
-export async function getAllSyncQueue(businessId: string): Promise<QueuedTransaction[]> {
+export async function getAllSyncQueue(businessId?: string): Promise<QueuedTransaction[]> {
   try {
     const db = await openOfflineDB();
     const tx = db.transaction('sync_queue', 'readonly');
     const store = tx.objectStore('sync_queue');
-    const index = store.index('businessId');
-    const request = index.getAll(IDBKeyRange.only(businessId));
+    // When no businessId is given (global reconnect sync), return every queued
+    // transaction; each record carries its own businessId.
+    const request =
+      businessId !== undefined
+        ? store.index('businessId').getAll(IDBKeyRange.only(businessId))
+        : store.getAll();
 
     return new Promise((resolve, reject) => {
       request.onsuccess = () => {

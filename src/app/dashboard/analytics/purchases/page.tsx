@@ -18,7 +18,7 @@ export default async function PurchasesAnalyticsPage({
   searchParams: Promise<{ preset?: string }>;
 }) {
   const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
-  if (membership.role === 'EMPLOYEE') redirect('/dashboard');
+  if (membership.role !== 'OWNER' && membership.role !== 'MANAGER') redirect('/dashboard');
 
   const params = await searchParams;
   const preset = params.preset || 'thisMonth';

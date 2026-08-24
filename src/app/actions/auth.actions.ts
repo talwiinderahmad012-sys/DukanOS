@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { createError, createSuccess, AppErrors, type ErrorCode } from '@/lib/utils/api-response';
 import { enforceRateLimit } from '@/lib/security/rate-limit-action';
 import { AppError, ErrorCodes } from '@/lib/errors';
+import { recordAuthAudit } from '@/services/audit';
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -22,11 +23,11 @@ export async function registerUserAction(formData: Record<string, unknown>) {
 
   try {
     const validatedData = registerSchema.safeParse(formData);
-    
+
     if (!validatedData.success) {
       return createError(
-        AppErrors.VALIDATION_ERROR, 
-        'Invalid registration data', 
+        AppErrors.VALIDATION_ERROR,
+        'Invalid registration data',
         validatedData.error.flatten().fieldErrors
       );
     }
@@ -49,15 +50,20 @@ export async function registerUserAction(formData: Record<string, unknown>) {
         email,
         password: hashedPassword,
       },
-      select: { id: true, name: true, email: true } // Don't return password
+      select: { id: true, name: true, email: true }
     });
+
+    await recordAuthAudit({
+      userId: user.id,
+      action: 'ACCOUNT_REGISTERED',
+      metadata: { email: user.email },
+    })
 
     return createSuccess(user);
   } catch (error) {
     if (error instanceof AppError) {
       return createError(error.code as ErrorCode, error.message);
     }
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to register');
+    return createError(AppErrors.INTERNAL_ERROR, 'An unexpected error occurred.');
   }
 }

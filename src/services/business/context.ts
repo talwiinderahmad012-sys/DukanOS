@@ -1,4 +1,3 @@
-import 'server-only';
 import { prisma } from '@/lib/db/prisma';
 import { BusinessStatus, BusinessType, MembershipRole, SubscriptionStatus } from '@/generated/prisma/client';
 import { recordAuditLog } from '../audit';

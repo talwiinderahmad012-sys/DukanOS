@@ -26,6 +26,7 @@ import {
   changeUserPassword,
   updateUserProfile,
 } from '@/services/settings/security';
+import { recordAuthAudit } from '@/services/audit';
 import { exportBusinessData } from '@/services/settings/export';
 import { getSystemDiagnostics } from '@/services/settings/system-health';
 import { createError, createSuccess, AppErrors } from '@/lib/utils/api-response';
@@ -242,10 +243,16 @@ export async function changePasswordAction(payload: {
   try {
     const user = await requireAuthenticatedUser();
     const result = await changeUserPassword(user.id, payload.currentPassword, payload.newPassword);
+
+    await recordAuthAudit({
+      userId: user.id,
+      action: 'PASSWORD_CHANGED',
+      metadata: { email: user.email },
+    })
+
     return createSuccess(result);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to change password');
+    return createError(AppErrors.INTERNAL_ERROR, 'Failed to change password');
   }
 }
 

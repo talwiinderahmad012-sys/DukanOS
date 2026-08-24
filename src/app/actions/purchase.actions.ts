@@ -31,8 +31,7 @@ export async function createPurchaseAction(businessId: string, payload: unknown)
 
     return createSuccess(purchase);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to create purchase');
+    return createError(AppErrors.INTERNAL_ERROR, 'Failed to create purchase');
   }
 }
 

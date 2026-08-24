@@ -29,7 +29,7 @@ export async function createPayrollPeriodAction(businessId: string, rawData: unk
     });
     return createSuccess(res);
   } catch (error: any) {
-    return createError(AppErrors.INTERNAL_ERROR, error.message);
+    return createError(AppErrors.INTERNAL_ERROR, error.message || 'Failed to create payroll period');
   }
 }
 
@@ -39,7 +39,7 @@ export async function generateSalariesAction(businessId: string, payrollId: stri
     const res = await generateSalariesForPayroll(businessId, payrollId, session.user.id);
     return createSuccess(res);
   } catch (error: any) {
-    return createError(AppErrors.INTERNAL_ERROR, error.message);
+    return createError(AppErrors.INTERNAL_ERROR, error.message || 'Failed to generate salaries');
   }
 }
 
@@ -49,7 +49,7 @@ export async function finalizePayrollAction(businessId: string, payrollId: strin
     const res = await finalizePayroll(businessId, payrollId, session.user.id);
     return createSuccess(res);
   } catch (error: any) {
-    return createError(AppErrors.INTERNAL_ERROR, error.message);
+    return createError(AppErrors.INTERNAL_ERROR, error.message || 'Failed to finalize payroll');
   }
 }
 
@@ -71,7 +71,7 @@ export async function markPayrollPaidAction(businessId: string, rawData: unknown
     );
     return createSuccess(res);
   } catch (error: any) {
-    return createError(AppErrors.INTERNAL_ERROR, error.message);
+    return createError(AppErrors.INTERNAL_ERROR, error.message || 'Failed to mark payroll as paid');
   }
 }
 
@@ -88,7 +88,7 @@ export async function cancelPayrollAction(businessId: string, rawData: unknown) 
     const res = await cancelPayroll(businessId, validated.data.payrollId, session.user.id, validated.data.reason ?? null);
     return createSuccess(res);
   } catch (error: any) {
-    return createError(AppErrors.INTERNAL_ERROR, error.message);
+    return createError(AppErrors.INTERNAL_ERROR, error.message || 'Failed to cancel payroll');
   }
 }
 
@@ -102,6 +102,6 @@ export async function recordSalaryPaymentAction(businessId: string, salaryId: st
     });
     return createSuccess(res);
   } catch (error: any) {
-    return createError(AppErrors.INTERNAL_ERROR, error.message);
+    return createError(AppErrors.INTERNAL_ERROR, error.message || 'Failed to record salary payment');
   }
 }

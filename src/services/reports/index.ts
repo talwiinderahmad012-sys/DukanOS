@@ -8,6 +8,8 @@ import {
   getYearlyRange,
   calculateGrowth,
   GrowthResult,
+  getHourInTimezone,
+  dateFromTimezoneParts,
 } from '@/lib/utils/date-utils';
 
 export type ReportFinancialSummary = {
@@ -29,8 +31,7 @@ export async function getDailyReport(
   const current = getDailyRange(dateInput, timezone);
   
   // Previous Day Range for Comparison
-  const prevDate = new Date(current.start);
-  prevDate.setDate(prevDate.getDate() - 1);
+  const prevDate = new Date(current.start.getTime() - 24 * 60 * 60 * 1000);
   const previous = getDailyRange(prevDate, timezone);
 
   const [
@@ -158,7 +159,7 @@ export async function getDailyReport(
   }
 
   for (const sale of sales) {
-    const saleHour = new Date(sale.saleDate).getHours();
+    const saleHour = getHourInTimezone(new Date(sale.saleDate), timezone);
     if (hourlyData[saleHour]) {
       hourlyData[saleHour].revenue += Number(sale.total);
       hourlyData[saleHour].orders += 1;
@@ -219,8 +220,7 @@ export async function getWeeklyReport(
   const current = getWeeklyRange(dateInput, timezone);
 
   // Previous week range
-  const prevMonday = new Date(current.start);
-  prevMonday.setDate(prevMonday.getDate() - 7);
+  const prevMonday = new Date(current.start.getTime() - 7 * 24 * 60 * 60 * 1000);
   const previous = getWeeklyRange(prevMonday, timezone);
 
   const [
@@ -310,10 +310,8 @@ export async function getWeeklyReport(
 
   // Day-by-Day breakdown
   const dayBreakdown = current.days.map((d) => {
-    const dayStart = new Date(d.date);
-    dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(d.date);
-    dayEnd.setHours(23, 59, 59, 999);
+    const dayStart = d.date;
+    const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
 
     const daySales = sales.filter(
       (s) => s.saleDate >= dayStart && s.saleDate <= dayEnd
@@ -465,8 +463,8 @@ export async function getMonthlyReport(
   // Daily Trend throughout the month
   const dailyData: { day: number; dateStr: string; revenue: number; profit: number; expenses: number }[] = [];
   for (let d = 1; d <= current.daysInMonth; d++) {
-    const dayStart = new Date(current.year, current.month - 1, d, 0, 0, 0, 0);
-    const dayEnd = new Date(current.year, current.month - 1, d, 23, 59, 59, 999);
+    const dayStart = dateFromTimezoneParts(current.year, current.month, d, 0, 0, 0, timezone);
+    const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
 
     const dSales = sales.filter((s) => s.saleDate >= dayStart && s.saleDate <= dayEnd);
     const dExpenses = expenses.filter((e) => e.date >= dayStart && e.date <= dayEnd);
@@ -608,11 +606,18 @@ export async function getYearlyReport(
   const prevExp = Number(prevExpenses._sum.amount || 0);
   const prevNetProfit = prevProfit - prevExp;
 
-  // 12-Month breakdown
+  // 12-Month breakdown. Month starts are computed once via the timezone-aware
+  // converter; each month's end is the next month's start minus 1ms — the exact
+  // same boundary the previous per-iteration dateFromTimezoneParts(y, m+1, 1)
+  // produced (Date.UTC(y, 12, 1) === Date.UTC(y+1, 0, 1)), with no behavior
+  // change for DST/leap-year edge cases.
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthStarts = Array.from({ length: monthNames.length + 1 }, (_, idx) =>
+    dateFromTimezoneParts(current.year, idx + 1, 1, 0, 0, 0, timezone)
+  );
   const monthlyData = monthNames.map((name, idx) => {
-    const monthStart = new Date(current.year, idx, 1, 0, 0, 0, 0);
-    const monthEnd = new Date(current.year, idx + 1, 0, 23, 59, 59, 999);
+    const monthStart = monthStarts[idx];
+    const monthEnd = new Date(monthStarts[idx + 1].getTime() - 1);
 
     const mSales = sales.filter((s) => s.saleDate >= monthStart && s.saleDate <= monthEnd);
     const mExpenses = expenses.filter((e) => e.date >= monthStart && e.date <= monthEnd);

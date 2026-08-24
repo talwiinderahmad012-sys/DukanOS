@@ -3,7 +3,6 @@
 import {
   getAllSyncQueue,
   updateSyncTransaction,
-  QueuedTransaction,
   SyncQueueStatus
 } from './db';
 import { createSaleAction } from '@/app/actions/sale.actions';
@@ -18,7 +17,7 @@ export type SyncResultSummary = {
 
 let isSyncing = false;
 
-export async function processSyncQueue(businessId: string): Promise<SyncResultSummary> {
+export async function processSyncQueue(businessId?: string): Promise<SyncResultSummary> {
   if (isSyncing || typeof window === 'undefined') {
     return { totalPending: 0, synced: 0, conflicts: 0, failed: 0 };
   }
@@ -47,12 +46,14 @@ export async function processSyncQueue(businessId: string): Promise<SyncResultSu
     summary.totalPending = pendingItems.length;
 
     logger.info('Sync started', {
-      businessId,
+      businessId: businessId ?? 'ALL',
       pendingCount: pendingItems.length,
       category: 'SYNC',
     });
 
     for (const item of pendingItems) {
+      const itemBusinessId = item.businessId || businessId || '';
+
       // 1. Mark as SYNCING
       await updateSyncTransaction(item.id, { status: 'SYNCING' });
       notifySyncStateChange();
@@ -64,7 +65,7 @@ export async function processSyncQueue(businessId: string): Promise<SyncResultSu
             clientTransactionId: item.id,
           };
 
-          const res = await createSaleAction(businessId, payloadWithIdempotency);
+          const res = await createSaleAction(itemBusinessId, payloadWithIdempotency);
 
           if (res.success && res.data) {
             const saleData = res.data as any;
@@ -77,7 +78,7 @@ export async function processSyncQueue(businessId: string): Promise<SyncResultSu
             summary.synced += 1;
 
             logger.info('Sync item completed', {
-              businessId,
+              businessId: itemBusinessId,
               transactionId: item.id,
               invoiceNumber: saleData.invoiceNumber,
               category: 'SYNC',
@@ -104,7 +105,7 @@ export async function processSyncQueue(businessId: string): Promise<SyncResultSu
               summary.conflicts += 1;
 
               logger.warn('Sync conflict detected', {
-                businessId,
+                businessId: itemBusinessId,
                 transactionId: item.id,
                 errorCode: res.errorCode,
                 reason: 'stock_conflict',
@@ -114,7 +115,7 @@ export async function processSyncQueue(businessId: string): Promise<SyncResultSu
               summary.failed += 1;
 
               logger.error('Sync item failed', {
-                businessId,
+                businessId: itemBusinessId,
                 transactionId: item.id,
                 errorCode: res.errorCode,
                 errorMessage: res.message,
@@ -125,7 +126,7 @@ export async function processSyncQueue(businessId: string): Promise<SyncResultSu
 
             if (newRetryCount > 3) {
               logger.warn('Sync item repeated failure', {
-                businessId,
+                businessId: itemBusinessId,
                 transactionId: item.id,
                 retryCount: newRetryCount,
                 status,
@@ -145,7 +146,7 @@ export async function processSyncQueue(businessId: string): Promise<SyncResultSu
         summary.failed += 1;
 
         logger.error('Sync item error', {
-          businessId,
+          businessId: itemBusinessId,
           transactionId: item.id,
           errorMessage: err.message,
           retryCount: newRetryCount,
@@ -154,7 +155,7 @@ export async function processSyncQueue(businessId: string): Promise<SyncResultSu
 
         if (newRetryCount > 3) {
           logger.warn('Sync item repeated failure', {
-            businessId,
+            businessId: itemBusinessId,
             transactionId: item.id,
             retryCount: newRetryCount,
             category: 'SYNC',
@@ -170,7 +171,7 @@ export async function processSyncQueue(businessId: string): Promise<SyncResultSu
   }
 
   logger.info('Sync completed', {
-    businessId,
+    businessId: businessId ?? 'ALL',
     totalPending: summary.totalPending,
     synced: summary.synced,
     conflicts: summary.conflicts,

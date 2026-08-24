@@ -62,9 +62,10 @@ export function PWAProvider({
       setNetworkStatus('RECONNECTING');
       setTimeout(() => {
         setNetworkStatus('ONLINE');
-        if (businessId) {
-          processSyncQueue(businessId);
-        }
+        // Sync every queued offline transaction. businessId is optional:
+        // queued records carry their own businessId, so auto-sync works even
+        // when the provider is mounted globally without one.
+        processSyncQueue(businessId);
       }, 1500);
     };
 

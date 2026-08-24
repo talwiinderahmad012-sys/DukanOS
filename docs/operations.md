@@ -36,6 +36,10 @@
 2. **Database outage**: Fail over to read replica if configured, or restore from latest backup.
 3. **Corrupted sync queue**: The offline sync queue is client-side (IndexedDB). Server-side recovery is automatic via `clientTransactionId` idempotency.
 4. **Data inconsistency**: Run `npx tsx src/scripts/test_step34_reliability.ts` to verify integrity.
+5. **Production deployment verification**: Run `npx tsx src/scripts/test_step38_production.ts` to execute the full production verification suite (101 checks covering environment, database, auth, financial integrity, Docker, and GitHub Actions).
+
+### Known Build Issue
+- `npm run build` may fail on Windows with `Next.js build worker exited with code: 3221226505` during static generation. This is a Node.js/Turbopack memory issue on Windows. Build on Linux CI or use `docker build` for production images.
 
 ### Handling Offline Sync Failures
 - Failed syncs are tracked in the browser's IndexedDB with status `FAILED` or `CONFLICT`.

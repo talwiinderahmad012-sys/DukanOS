@@ -6,7 +6,9 @@ import { Banknote, FileText, CheckCircle2, AlertCircle, Plus } from 'lucide-reac
 import { PayrollList } from './payroll-list';
 
 export default async function PayrollPage() {
-  const { business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+
+  if (membership.role !== 'OWNER') redirect('/dashboard');
 
   // Get active payrolls
   const payrolls = await prisma.payroll.findMany({

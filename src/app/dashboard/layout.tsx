@@ -1,5 +1,4 @@
-import { requireAuthenticatedUser } from '@/lib/auth/context';
-import { prisma } from '@/lib/db/prisma';
+import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -31,28 +30,21 @@ import {
   Bug
 } from 'lucide-react';
 import { signOut } from '@/lib/auth/auth';
+import { recordAuditLog } from '@/services/audit';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { NetworkStatusBadge } from '@/components/pwa/pwa-provider';
 import { NotificationBell } from '@/components/notifications/notification-bell';
 import LiveAnalyticsRefresher from '@/components/analytics/live-analytics-refresher';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireAuthenticatedUser().catch(() => redirect('/login'));
-
-  // Fetch user's business memberships
-  const memberships = await prisma.businessMembership.findMany({
-    where: { userId: user.id },
-    include: { business: true }
+  // Canonical active-business resolution (auth + membership lookup + active
+  // business cookie handling) lives in getActiveBusiness; the layout must not
+  // duplicate it. Unauthenticated -> /login; authenticated with no membership
+  // -> /onboarding (both matching prior behavior).
+  const { user, membership: activeMembership, business: activeBusiness } = await getActiveBusiness().catch((err) => {
+    if (err instanceof Error && err.message === 'NO_BUSINESS') redirect('/onboarding');
+    redirect('/login');
   });
-
-  // If user has no businesses, redirect to onboarding
-  if (memberships.length === 0) {
-    redirect('/onboarding');
-  }
-
-  // Determine active business (defaults to first for now)
-  const activeMembership = memberships[0];
-  const activeBusiness = activeMembership.business;
 
   const isOwner = activeMembership.role === 'OWNER';
   const isManager = activeMembership.role === 'MANAGER';
@@ -66,7 +58,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     { name: 'Sales Invoices', href: '/dashboard/sales', icon: Receipt },
     { name: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
     { name: 'Growth', href: '/dashboard/growth', icon: TrendingUp },
-    { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+    ...(isOwnerOrManager ? [{ name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 }] : []),
     { name: 'Advisor', href: '/dashboard/advisor', icon: Sparkles },
     { name: 'Remote Monitor', href: '/dashboard/monitoring', icon: Store },
     ...(isOwnerOrManager ? [{ name: 'CCTV Cameras', href: '/dashboard/cameras', icon: Camera }] : []),
@@ -126,7 +118,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <div className="p-4 border-t">
           <form action={async () => {
             'use server';
+            const userId = user.id;
             await signOut();
+            await recordAuditLog({
+              businessId: activeBusiness.id,
+              userId,
+              action: 'LOGOUT',
+              entityType: 'Auth',
+              entityId: userId,
+              metadata: { businessId: activeBusiness.id },
+            }).catch(() => {});
           }}>
             <button className="flex items-center gap-3 px-3 py-2 w-full text-gray-600 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors">
               <LogOut className="h-5 w-5" />

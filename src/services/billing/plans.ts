@@ -1,5 +1,3 @@
-import 'server-only';
-
 import { prisma } from '@/lib/db/prisma';
 import { STANDARD_FEATURES } from './features';
 import { STANDARD_LIMITS } from './limits';

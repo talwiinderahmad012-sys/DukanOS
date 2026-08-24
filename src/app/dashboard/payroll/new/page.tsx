@@ -3,7 +3,9 @@ import { redirect } from 'next/navigation';
 import { CreatePayrollForm } from './create-payroll-form';
 
 export default async function NewPayrollPage() {
-  const { business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+
+  if (membership.role !== 'OWNER') redirect('/dashboard');
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">

@@ -118,7 +118,7 @@ export async function archiveEmployeeAction(businessId: string, employeeId: stri
 
 export async function getEmployeeAction(businessId: string, employeeId: string) {
   try {
-    await requireBusinessAccess(businessId);
+    await requireBusinessAccess(businessId, [MembershipRole.OWNER, MembershipRole.MANAGER]);
     const data = await getEmployeeById(businessId, employeeId);
     return createSuccess(data);
   } catch (error) {

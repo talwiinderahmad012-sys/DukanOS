@@ -1,7 +1,5 @@
-import 'server-only';
-
 import { ErrorCodes, type ErrorCode } from '@/lib/errors/error-codes';
-import { AppError } from '@/lib/errors/app-error';
+import { AppError, sanitizeErrorMessage } from '@/lib/errors/app-error';
 
 export type ActionResponse<T = unknown> = {
   success: boolean;
@@ -22,7 +20,12 @@ export function createError(
   message: string,
   fieldErrors?: Record<string, string[]>
 ): ActionResponse {
-  return { success: false, errorCode, message, fieldErrors };
+  // Internal errors must never leak raw infrastructure details (SQL, Prisma,
+  // connection strings) to the client. Sanitize centrally so every server
+  // action catch-block is covered even when it forwards err.message.
+  const clientMessage =
+    errorCode === ErrorCodes.INTERNAL_ERROR ? sanitizeErrorMessage(message) : message;
+  return { success: false, errorCode, message: clientMessage, fieldErrors };
 }
 
 export function createErrorFromAppError(error: AppError): ActionResponse {

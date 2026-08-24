@@ -1,8 +1,44 @@
-import 'server-only';
-import { checkRateLimit, getRateLimitIdentifier } from './rate-limiter';
-import { createError } from '@/lib/utils/api-response';
-import { AppErrors } from '@/lib/utils/api-response';
 import { AppError, ErrorCodes } from '@/lib/errors';
+import {
+  getRateLimiterProvider,
+  getActiveMemoryStore,
+  RateLimitResult,
+} from './rate-limiter.service';
+
+export interface RateLimitOptions {
+  limit: number;
+  windowMs: number;
+  key?: string;
+}
+
+export interface RateLimitResultWithKey extends RateLimitResult {
+  key: string;
+}
+
+/**
+ * Check a rate limit through the central rate-limiter provider abstraction
+ * (`rate-limiter.service.ts`). This module owns no store of its own.
+ */
+export async function checkRateLimit(options: RateLimitOptions): Promise<RateLimitResultWithKey> {
+  const { limit, windowMs, key = 'global' } = options;
+  const provider = await getRateLimiterProvider();
+  const result = await provider.check(key, limit, windowMs);
+  return { ...result, key };
+}
+
+export function getRateLimitIdentifier(parts: string[]): string {
+  return parts.join('|');
+}
+
+/** Reset one key in the active memory-backed store (no-op for remote providers). */
+export function resetRateLimit(key: string): void {
+  getActiveMemoryStore()?.delete(key);
+}
+
+/** Clear the active memory-backed store (used by tests; no-op for remote providers). */
+export function clearAllRateLimits(): void {
+  getActiveMemoryStore()?.clear();
+}
 
 export const RATE_LIMITS = {
   LOGIN: { limit: 5, windowMs: 60_000 },
@@ -18,6 +54,12 @@ export const RATE_LIMITS = {
 
 export type RateLimitAction = keyof typeof RATE_LIMITS;
 
+/**
+ * Enforce a security-sensitive rate limit. Denials are raised as a structured
+ * AppError (code RATE_LIMITED, HTTP 429) so callers can branch on
+ * `error instanceof AppError` / `error.code` without string parsing. The error
+ * carries only safe metadata (action + retry hint) — never identifiers or secrets.
+ */
 export async function enforceRateLimit(
   action: RateLimitAction,
   identifier: string
@@ -27,20 +69,15 @@ export async function enforceRateLimit(
   const result = await checkRateLimit({ ...config, key });
 
   if (!result.allowed) {
-    const retryAfter = Math.ceil(result.retryAfterMs / 1000);
+    const retryAfterSeconds = Math.ceil(result.retryAfterMs / 1000);
     throw new AppError(
       ErrorCodes.RATE_LIMITED,
-      `Too many requests. Retry after ${retryAfter} seconds.`,
-      429
+      'Too many requests. Please try again later.',
+      429,
+      {
+        action,
+        retryAfterSeconds,
+      }
     );
   }
-}
-
-export function getClientIdentifier(
-  userAgent?: string,
-  forwardedFor?: string,
-  fallback?: string
-): string {
-  const id = forwardedFor || userAgent || fallback || 'unknown';
-  return id.slice(0, 256);
 }

@@ -105,7 +105,7 @@ export function SettingsHubView({
         {
           title: 'External Communications',
           desc: 'WhatsApp Cloud API, SMS, and Email integrations',
-          href: '/dashboard/settings/communications',
+          href: '/dashboard/communications',
           icon: MessageSquare,
           color: 'text-indigo-600 bg-indigo-50',
           ownerOnly: true,

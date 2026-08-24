@@ -1,6 +1,7 @@
 'use server';
 
 import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { assertOwnerOrManager } from '@/lib/auth/rbac';
 import {
   addFeedbackResponse,
   createFeedbackRecord,
@@ -60,7 +61,8 @@ export async function updateFeedbackStatusAction(
   opts: { notifyCustomer?: boolean; channel?: CommunicationChannel } = {}
 ) {
   try {
-    const { user, business } = await getActiveBusiness();
+    const { user, business, membership } = await getActiveBusiness();
+    assertOwnerOrManager(membership.role, 'Only owners and managers can manage feedback workflow.');
     await updateFeedbackStatus(business.id, user.id, feedbackId, status, opts);
     revalidatePath('/dashboard/feedback');
     return { success: true as const };
@@ -77,7 +79,8 @@ export async function updateFeedbackPriorityAction(
   priority: FeedbackPriority
 ) {
   try {
-    const { user, business } = await getActiveBusiness();
+    const { user, business, membership } = await getActiveBusiness();
+    assertOwnerOrManager(membership.role, 'Only owners and managers can manage feedback workflow.');
     await updateFeedbackPriority(business.id, user.id, feedbackId, priority);
     revalidatePath('/dashboard/feedback');
     return { success: true as const };
@@ -121,6 +124,10 @@ export async function addFeedbackResponseAction(
 ) {
   try {
     const { user, business, membership } = await getActiveBusiness();
+    // Customer-visible replies are a staff-only channel.
+    if (!isInternal) {
+      assertOwnerOrManager(membership.role, 'Only owners and managers can manage feedback workflow.');
+    }
     await addFeedbackResponse(
       business.id,
       user.id,

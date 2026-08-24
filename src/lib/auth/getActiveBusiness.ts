@@ -4,9 +4,13 @@ import { prisma } from '@/lib/db/prisma';
 
 export async function getActiveBusiness() {
   const user = await requireAuthenticatedUser();
+  // Deterministic ordering: the documented primary-membership rule is
+  // createdAt asc, id asc (see services/audit.ts). The fallback default
+  // membership must match it instead of relying on Prisma result order.
   const memberships = await prisma.businessMembership.findMany({
     where: { userId: user.id },
-    include: { business: true }
+    include: { business: true },
+    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
   });
 
   if (memberships.length === 0) {

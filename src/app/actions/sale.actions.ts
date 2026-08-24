@@ -5,6 +5,7 @@ import { saleSchema, saleFilterSchema, saleCancelSchema } from '@/lib/validation
 import { createSale, getSaleById, listSales, cancelSale } from '@/services/sales';
 import { createError, createSuccess, AppErrors } from '@/lib/utils/api-response';
 import { MembershipRole } from '@/generated/prisma/client';
+import { AppError, ErrorCodes } from '@/lib/errors';
 
 export async function createSaleAction(businessId: string, payload: unknown) {
   try {
@@ -33,13 +34,13 @@ export async function createSaleAction(businessId: string, payload: unknown) {
     return createSuccess(sale);
   } catch (error) {
     const err = error as Error;
-    if (err.message === AppErrors.INSUFFICIENT_STOCK) {
+    if (err instanceof AppError && err.code === ErrorCodes.INSUFFICIENT_STOCK) {
       return createError(
-        AppErrors.INSUFFICIENT_STOCK,
+        ErrorCodes.INSUFFICIENT_STOCK,
         'Not enough stock available for one or more items to complete this sale.'
       );
     }
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to create sale');
+    return createError(AppErrors.INTERNAL_ERROR, 'Failed to create sale');
   }
 }
 

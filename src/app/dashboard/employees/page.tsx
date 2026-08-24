@@ -58,12 +58,32 @@ export default async function EmployeesDirectoryPage({
           </p>
         </div>
 
-        <Link
-          href="/dashboard/employees/new"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
-        >
-          <UserPlus className="w-4 h-4" /> Add New Employee
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/dashboard/employees/attendance"
+            className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+          >
+            <Clock className="w-4 h-4" /> Attendance
+          </Link>
+          <Link
+            href="/dashboard/employees/leaves"
+            className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+          >
+            <Calendar className="w-4 h-4" /> Leaves
+          </Link>
+          <Link
+            href="/dashboard/employees/complaints"
+            className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+          >
+            <MessageSquareWarning className="w-4 h-4" /> Complaints
+          </Link>
+          <Link
+            href="/dashboard/employees/new"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+          >
+            <UserPlus className="w-4 h-4" /> Add New Employee
+          </Link>
+        </div>
       </div>
 
       {/* Top KPI Cards */}

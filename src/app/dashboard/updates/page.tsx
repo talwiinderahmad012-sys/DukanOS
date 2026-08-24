@@ -1,4 +1,6 @@
+import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { Sparkles, CheckCircle2, ArrowLeft, Rocket, Shield, ShoppingCart, Users } from 'lucide-react';
 import type { Metadata } from 'next';
 
@@ -7,7 +9,11 @@ export const metadata: Metadata = {
   description: 'Recent feature releases, improvements, and system updates for DukaanOS.',
 };
 
-export default function UpdatesPage() {
+export default async function UpdatesPage() {
+  const { membership } = await getActiveBusiness();
+
+  if (membership.role !== 'OWNER' && membership.role !== 'MANAGER') redirect('/dashboard');
+
   const updates = [
     {
       version: 'v1.0.0 — Official Public Release',

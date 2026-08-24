@@ -4,33 +4,22 @@ import { checkCameraHealth } from '@/services/cctv';
 import { generateAdvisorFindings } from '@/services/advisor';
 import { runScheduledReports } from '@/services/reports/scheduled';
 import { logger, createCorrelationIdFromRequest } from '@/lib/logging';
+import { authorizeCronRequest } from '@/lib/security/cron-auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
-  return handleCron(req);
-}
-
-export async function GET(req: NextRequest) {
+  // CRON_SECRET is required in every environment; a missing/invalid Bearer
+  // token never reaches the maintenance logic (see authorizeCronRequest).
+  const verdict = authorizeCronRequest(req);
+  if (!verdict.authorized) {
+    return NextResponse.json({ error: verdict.error }, { status: verdict.status });
+  }
   return handleCron(req);
 }
 
 async function handleCron(req: NextRequest) {
   const requestId = createCorrelationIdFromRequest(req);
-  const cronSecret = process.env.CRON_SECRET;
-  const authHeader = req.headers.get('authorization');
-  const querySecret = req.nextUrl.searchParams.get('secret');
-
-  if (cronSecret) {
-    const bearerToken = authHeader?.replace(/^Bearer\s+/i, '');
-    if (bearerToken !== cronSecret && querySecret !== cronSecret) {
-      logger.warn('Cron unauthorized access attempt', {
-        correlationId: requestId,
-        category: 'CRON',
-      });
-      return NextResponse.json({ error: 'Unauthorized: Invalid CRON_SECRET' }, { status: 401 });
-    }
-  }
 
   const results: Record<string, unknown> = {};
   const startTime = Date.now();
@@ -53,7 +42,7 @@ async function handleCron(req: NextRequest) {
       try {
         await checkCameraHealth(camera.businessId, camera.id);
         camerasChecked++;
-      } catch (err) {
+      } catch {
         logger.warn('Cron camera health check failed for camera', {
           correlationId: requestId,
           cameraId: camera.id,
@@ -69,7 +58,7 @@ async function handleCron(req: NextRequest) {
       try {
         await generateAdvisorFindings(business.id, business.timezone);
         advisorSweeps++;
-      } catch (err) {
+      } catch {
         logger.warn('Cron advisor sweep failed for business', {
           correlationId: requestId,
           businessId: business.id,
@@ -98,11 +87,11 @@ async function handleCron(req: NextRequest) {
       results,
       requestId,
     });
-  } catch (error: any) {
+  } catch (error) {
     logger.error('Cron maintenance run encountered an error', {
       correlationId: requestId,
       category: 'CRON',
-      error: error?.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
 
     return NextResponse.json(
