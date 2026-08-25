@@ -2,6 +2,10 @@ import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { prisma } from '@/lib/db/prisma';
 import { POSTerminal } from '@/components/pos/pos-terminal';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
+import { Receipt } from 'lucide-react';
+import { PageHeader } from '@/components/ui/page-header';
+import { buttonClasses } from '@/components/ui/button';
 
 export default async function POSPage() {
   const { business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
@@ -56,13 +60,17 @@ export default async function POSPage() {
   }));
 
   return (
-    <div className="max-w-7xl mx-auto space-y-4">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">POS Terminal</h1>
-          <p className="text-xs text-gray-500">Quick shop cashier desk, barcode sales & credit invoicing</p>
-        </div>
-      </div>
+    <div className="mx-auto max-w-7xl space-y-4">
+      <PageHeader
+        title="POS Terminal"
+        description="Fast checkout desk — barcode scanning, cash sales and credit (Udhaar) invoicing."
+        actions={
+          <Link href="/dashboard/sales" className={buttonClasses('outline', 'sm')}>
+            <Receipt className="h-3.5 w-3.5" aria-hidden="true" />
+            Sales Invoices
+          </Link>
+        }
+      />
 
       <POSTerminal
         businessId={business.id}

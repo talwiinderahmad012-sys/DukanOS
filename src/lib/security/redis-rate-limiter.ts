@@ -1,18 +1,15 @@
 import { RateLimitResult } from './rate-limiter.service';
 
+declare const __non_webpack_require__: ((id: string) => any) | undefined;
+
 export class RedisRateLimiter {
   private client: unknown;
   private ready: boolean = false;
 
   constructor(private readonly redisUrl: string) {
     try {
-      // ioredis is an optional peer dependency: only required when
-      // RATE_LIMIT_STRATEGY=redis is configured. Bundler-ignore markers keep
-      // Next.js from failing/warning on the unresolved optional module; at
-      // runtime a missing install throws here and FailClosedRateLimiter
-      // converts every check into a denial (fail closed).
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      this.client = require(/* webpackIgnore: true */ /* turbopackIgnore: true */ 'ioredis')(redisUrl);
+      const req = typeof __non_webpack_require__ !== 'undefined' ? __non_webpack_require__ : require;
+      this.client = req('ioredis')(redisUrl);
       this.ready = true;
     } catch {
       this.ready = false;

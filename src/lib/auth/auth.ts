@@ -32,9 +32,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string }
-        })
+        let user;
+        try {
+          user = await prisma.user.findUnique({
+            where: { email: credentials.email as string }
+          })
+        } catch (error) {
+          // Log the actual error safely on the server side
+          console.error("[AUTH] Database connection failed during authorize():", error instanceof Error ? error.message : "Unknown error");
+          // Throw a generic error to the client, preventing NextAuth from swallowing it as "CredentialsSignin"
+          throw new Error("ServiceUnavailable");
+        }
 
         if (!user || !user.password) {
           await recordAuthAudit({

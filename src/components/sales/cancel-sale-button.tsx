@@ -1,9 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Ban, AlertTriangle, X } from 'lucide-react';
+import { Ban } from 'lucide-react';
 import { cancelSaleAction } from '@/app/actions/sale.actions';
+import { Modal } from '@/components/ui/modal';
+import { Button, buttonClasses } from '@/components/ui/button';
+import { Alert } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/input';
 
 export function CancelSaleButton({
   businessId,
@@ -17,6 +22,7 @@ export function CancelSaleButton({
   isCancelled: boolean;
 }) {
   const router = useRouter();
+  const reasonId = useId();
   const [isOpen, setIsOpen] = useState(false);
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,11 +30,18 @@ export function CancelSaleButton({
 
   if (isCancelled) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-100 text-red-700 border border-red-200">
-        <Ban className="w-4 h-4 text-red-500" /> Cancelled Sale
-      </span>
+      <Badge tone="neutral" className="print:hidden">
+        <Ban className="h-3.5 w-3.5" aria-hidden="true" />
+        Cancelled Sale
+      </Badge>
     );
   }
+
+  const close = () => {
+    if (loading) return;
+    setIsOpen(false);
+    setError(null);
+  };
 
   const handleConfirmCancel = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,87 +76,64 @@ export function CancelSaleButton({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="px-3.5 py-2 text-xs font-semibold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors flex items-center gap-1.5 print:hidden"
+        className={buttonClasses('outline', 'md', 'text-danger border-danger/30 hover:bg-danger-soft hover:text-danger print:hidden')}
       >
-        <Ban className="w-4 h-4" /> Cancel Sale
+        <Ban className="h-4 w-4" aria-hidden="true" />
+        Cancel Sale
       </button>
 
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100 space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <div className="flex items-center gap-2 text-red-600 font-bold text-lg">
-                <AlertTriangle className="w-5 h-5" />
-                Cancel Sale Invoice
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className="text-gray-400 hover:text-gray-600 p-1 rounded-lg"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+      <Modal
+        open={isOpen}
+        onClose={close}
+        title="Cancel Sale Invoice"
+        description={
+          <>
+            Are you sure you want to cancel invoice{' '}
+            <span className="font-mono font-semibold text-gray-900">
+              {invoiceNumber || `#${saleId.slice(0, 8)}`}
+            </span>
+            ?
+          </>
+        }
+      >
+        <form onSubmit={handleConfirmCancel} className="space-y-4">
+          <Alert tone="warning" title="Reversal effects">
+            <ul className="list-inside list-disc space-y-0.5 text-xs">
+              <li>Sold items will be automatically returned to your stock.</li>
+              <li>Any unpaid Udhaar added to the customer will be reversed.</li>
+              <li>Previously collected cash is not automatically refunded.</li>
+            </ul>
+          </Alert>
 
-            <p className="text-sm text-gray-600">
-              Are you sure you want to cancel invoice{' '}
-              <span className="font-semibold text-gray-900 font-mono">
-                {invoiceNumber || `#${saleId.slice(0, 8)}`}
+          {error && <Alert tone="danger">{error}</Alert>}
+
+          <div className="space-y-1">
+            <label htmlFor={reasonId} className="block text-sm font-medium text-gray-700">
+              Reason for Cancellation
+              <span className="ml-0.5 text-red-500" aria-hidden="true">
+                *
               </span>
-              ?
-            </p>
-
-            <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-1">
-              <p className="font-semibold">Reversal Effects:</p>
-              <ul className="list-disc list-inside space-y-0.5 text-amber-800">
-                <li>Sold items will be automatically returned to your stock.</li>
-                <li>Any unpaid Udhaar added to customer will be reversed.</li>
-                <li>Previously collected cash is not automatically refunded.</li>
-              </ul>
-            </div>
-
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleConfirmCancel} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
-                  Reason for Cancellation <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  required
-                  rows={2}
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  placeholder="e.g. Customer returned items, billing error"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2.5 pt-2">
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Close
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
-                >
-                  {loading ? 'Restoring Stock...' : 'Confirm Cancellation'}
-                </button>
-              </div>
-            </form>
+            </label>
+            <Textarea
+              id={reasonId}
+              required
+              rows={2}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="e.g. Customer returned items, billing error"
+            />
           </div>
-        </div>
-      )}
+
+          <div className="flex justify-end gap-2 border-t border-border pt-4">
+            <Button variant="outline" type="button" disabled={loading} onClick={close}>
+              Close
+            </Button>
+            <Button variant="destructive" type="submit" loading={loading}>
+              {loading ? 'Restoring Stock…' : 'Confirm Cancellation'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </>
   );
 }
