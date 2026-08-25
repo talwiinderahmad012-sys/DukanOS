@@ -26,11 +26,12 @@ export type ReportFinancialSummary = {
 export async function getDailyReport(
   businessId: string,
   dateInput?: string | Date,
-  timezone: string = 'Asia/Karachi'
+  timezone: string = 'Asia/Karachi',
+  branchId?: string
 ) {
   const current = getDailyRange(dateInput, timezone);
-  
-  // Previous Day Range for Comparison
+  const branchFilter = branchId ? { branchId } : {};
+
   const prevDate = new Date(current.start.getTime() - 24 * 60 * 60 * 1000);
   const previous = getDailyRange(prevDate, timezone);
 
@@ -44,12 +45,12 @@ export async function getDailyReport(
     prevItemsAggregate,
     prevExpensesAggregate,
   ] = await Promise.all([
-    // Today's completed sales
     prisma.sale.findMany({
       where: {
         businessId,
         status: SaleStatus.COMPLETED,
         saleDate: { gte: current.start, lte: current.end },
+        ...branchFilter,
       },
       include: {
         items: {
@@ -61,26 +62,25 @@ export async function getDailyReport(
       },
       orderBy: { saleDate: 'desc' },
     }),
-    // Today's Gross Profit from completed sale items
     prisma.saleItem.aggregate({
       where: {
         sale: {
           businessId,
           status: SaleStatus.COMPLETED,
           saleDate: { gte: current.start, lte: current.end },
+          ...branchFilter,
         },
       },
       _sum: { lineProfit: true },
     }),
-    // Today's Expenses
     prisma.expense.aggregate({
       where: {
         businessId,
         date: { gte: current.start, lte: current.end },
+        ...branchFilter,
       },
       _sum: { amount: true },
     }),
-    // Today's Customer Payments received
     prisma.customerPayment.aggregate({
       where: {
         businessId,
@@ -88,41 +88,41 @@ export async function getDailyReport(
       },
       _sum: { amount: true },
     }),
-    // Today's Purchases
     prisma.purchase.aggregate({
       where: {
         businessId,
         status: PurchaseStatus.RECEIVED,
         purchaseDate: { gte: current.start, lte: current.end },
+        ...(branchId ? { branchId } : {}),
       },
       _sum: { total: true },
     }),
-    // Yesterday's Sales
     prisma.sale.aggregate({
       where: {
         businessId,
         status: SaleStatus.COMPLETED,
         saleDate: { gte: previous.start, lte: previous.end },
+        ...branchFilter,
       },
       _sum: { total: true },
       _count: { id: true },
     }),
-    // Yesterday's Profit
     prisma.saleItem.aggregate({
       where: {
         sale: {
           businessId,
           status: SaleStatus.COMPLETED,
           saleDate: { gte: previous.start, lte: previous.end },
+          ...branchFilter,
         },
       },
       _sum: { lineProfit: true },
     }),
-    // Yesterday's Expenses
     prisma.expense.aggregate({
       where: {
         businessId,
         date: { gte: previous.start, lte: previous.end },
+        ...branchFilter,
       },
       _sum: { amount: true },
     }),
@@ -215,11 +215,12 @@ export async function getDailyReport(
 export async function getWeeklyReport(
   businessId: string,
   dateInput?: string | Date,
-  timezone: string = 'Asia/Karachi'
+  timezone: string = 'Asia/Karachi',
+  branchId?: string
 ) {
   const current = getWeeklyRange(dateInput, timezone);
+  const branchFilter = branchId ? { branchId } : {};
 
-  // Previous week range
   const prevMonday = new Date(current.start.getTime() - 7 * 24 * 60 * 60 * 1000);
   const previous = getWeeklyRange(prevMonday, timezone);
 
@@ -237,6 +238,7 @@ export async function getWeeklyReport(
         businessId,
         status: SaleStatus.COMPLETED,
         saleDate: { gte: current.start, lte: current.end },
+        ...branchFilter,
       },
       include: {
         items: {
@@ -252,6 +254,7 @@ export async function getWeeklyReport(
           businessId,
           status: SaleStatus.COMPLETED,
           saleDate: { gte: current.start, lte: current.end },
+          ...branchFilter,
         },
       },
       _sum: { lineProfit: true },
@@ -260,6 +263,7 @@ export async function getWeeklyReport(
       where: {
         businessId,
         date: { gte: current.start, lte: current.end },
+        ...branchFilter,
       },
     }),
     prisma.customerPayment.aggregate({
@@ -274,6 +278,7 @@ export async function getWeeklyReport(
         businessId,
         status: SaleStatus.COMPLETED,
         saleDate: { gte: previous.start, lte: previous.end },
+        ...branchFilter,
       },
       _sum: { total: true },
       _count: { id: true },
@@ -284,6 +289,7 @@ export async function getWeeklyReport(
           businessId,
           status: SaleStatus.COMPLETED,
           saleDate: { gte: previous.start, lte: previous.end },
+          ...branchFilter,
         },
       },
       _sum: { lineProfit: true },
@@ -292,6 +298,7 @@ export async function getWeeklyReport(
       where: {
         businessId,
         date: { gte: previous.start, lte: previous.end },
+        ...branchFilter,
       },
       _sum: { amount: true },
     }),
@@ -364,11 +371,12 @@ export async function getMonthlyReport(
   businessId: string,
   yearInput?: number,
   monthInput?: number,
-  timezone: string = 'Asia/Karachi'
+  timezone: string = 'Asia/Karachi',
+  branchId?: string
 ) {
   const current = getMonthlyRange(yearInput, monthInput, timezone);
+  const branchFilter = branchId ? { branchId } : {};
 
-  // Previous month
   const prevMonth = current.month === 1 ? 12 : current.month - 1;
   const prevYear = current.month === 1 ? current.year - 1 : current.year;
   const previous = getMonthlyRange(prevYear, prevMonth, timezone);
@@ -387,6 +395,7 @@ export async function getMonthlyReport(
         businessId,
         status: SaleStatus.COMPLETED,
         saleDate: { gte: current.start, lte: current.end },
+        ...branchFilter,
       },
       include: {
         items: {
@@ -403,6 +412,7 @@ export async function getMonthlyReport(
           businessId,
           status: SaleStatus.COMPLETED,
           saleDate: { gte: current.start, lte: current.end },
+          ...branchFilter,
         },
       },
       _sum: { lineProfit: true },
@@ -411,6 +421,7 @@ export async function getMonthlyReport(
       where: {
         businessId,
         date: { gte: current.start, lte: current.end },
+        ...branchFilter,
       },
     }),
     prisma.purchase.aggregate({
@@ -418,6 +429,7 @@ export async function getMonthlyReport(
         businessId,
         status: PurchaseStatus.RECEIVED,
         purchaseDate: { gte: current.start, lte: current.end },
+        ...(branchId ? { branchId } : {}),
       },
       _sum: { total: true },
     }),
@@ -426,6 +438,7 @@ export async function getMonthlyReport(
         businessId,
         status: SaleStatus.COMPLETED,
         saleDate: { gte: previous.start, lte: previous.end },
+        ...branchFilter,
       },
       _sum: { total: true },
       _count: { id: true },
@@ -436,6 +449,7 @@ export async function getMonthlyReport(
           businessId,
           status: SaleStatus.COMPLETED,
           saleDate: { gte: previous.start, lte: previous.end },
+          ...branchFilter,
         },
       },
       _sum: { lineProfit: true },
@@ -444,6 +458,7 @@ export async function getMonthlyReport(
       where: {
         businessId,
         date: { gte: previous.start, lte: previous.end },
+        ...branchFilter,
       },
       _sum: { amount: true },
     }),
@@ -524,10 +539,12 @@ export async function getMonthlyReport(
 export async function getYearlyReport(
   businessId: string,
   yearInput?: number,
-  timezone: string = 'Asia/Karachi'
+  timezone: string = 'Asia/Karachi',
+  branchId?: string
 ) {
   const current = getYearlyRange(yearInput, timezone);
   const previous = getYearlyRange(current.year - 1, timezone);
+  const branchFilter = branchId ? { branchId } : {};
 
   const [sales, itemsAggregate, expenses, purchasesAggregate, prevSales, prevItemsAggregate, prevExpenses] = await Promise.all([
     prisma.sale.findMany({
@@ -535,6 +552,7 @@ export async function getYearlyReport(
         businessId,
         status: SaleStatus.COMPLETED,
         saleDate: { gte: current.start, lte: current.end },
+        ...branchFilter,
       },
       select: {
         total: true,
@@ -548,6 +566,7 @@ export async function getYearlyReport(
           businessId,
           status: SaleStatus.COMPLETED,
           saleDate: { gte: current.start, lte: current.end },
+          ...branchFilter,
         },
       },
       _sum: { lineProfit: true },
@@ -556,6 +575,7 @@ export async function getYearlyReport(
       where: {
         businessId,
         date: { gte: current.start, lte: current.end },
+        ...branchFilter,
       },
       select: { amount: true, date: true },
     }),
@@ -564,6 +584,7 @@ export async function getYearlyReport(
         businessId,
         status: PurchaseStatus.RECEIVED,
         purchaseDate: { gte: current.start, lte: current.end },
+        ...(branchId ? { branchId } : {}),
       },
       _sum: { total: true },
     }),
@@ -572,6 +593,7 @@ export async function getYearlyReport(
         businessId,
         status: SaleStatus.COMPLETED,
         saleDate: { gte: previous.start, lte: previous.end },
+        ...branchFilter,
       },
       _sum: { total: true },
       _count: { id: true },
@@ -582,6 +604,7 @@ export async function getYearlyReport(
           businessId,
           status: SaleStatus.COMPLETED,
           saleDate: { gte: previous.start, lte: previous.end },
+          ...branchFilter,
         },
       },
       _sum: { lineProfit: true },
@@ -590,6 +613,7 @@ export async function getYearlyReport(
       where: {
         businessId,
         date: { gte: previous.start, lte: previous.end },
+        ...branchFilter,
       },
       _sum: { amount: true },
     }),

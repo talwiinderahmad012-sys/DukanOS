@@ -2,6 +2,7 @@
 
 import { requireBusinessAccess } from '@/lib/auth/context';
 import { MembershipRole } from '@/generated/prisma/client';
+import { prisma } from '@/lib/db/prisma';
 import { createError, createSuccess, AppErrors, type ActionResponse } from '@/lib/utils/api-response';
 import {
   getDailyReport,
@@ -19,6 +20,7 @@ import {
   generateAdvisorFindings,
   syncAdvisorNotifications,
 } from '@/services/advisor';
+import { AppError, ErrorCodes } from '@/lib/errors';
 
 const REPORT_PERMITTED_ROLES: MembershipRole[] = [
   MembershipRole.OWNER,
@@ -27,51 +29,64 @@ const REPORT_PERMITTED_ROLES: MembershipRole[] = [
 
 const PAYROLL_PERMITTED_ROLES: MembershipRole[] = [MembershipRole.OWNER];
 
-export async function getDailyReportAction(businessId: string, dateInput?: string) {
+export async function getDailyReportAction(businessId: string, dateInput?: string, branchId?: string) {
   try {
     const { business } = await requireBusinessAccess(businessId, REPORT_PERMITTED_ROLES);
-    const report = await getDailyReport(businessId, dateInput, business.timezone);
+    if (branchId) {
+      const branch = await prisma.branch.findFirst({ where: { id: branchId, businessId }, select: { id: true } });
+      if (!branch) throw new AppError(ErrorCodes.BUSINESS_ACCESS_DENIED, 'Invalid branch for this business', 403);
+    }
+    const report = await getDailyReport(businessId, dateInput, business.timezone, branchId || undefined);
     return createSuccess(report);
-  } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to fetch daily report');
+  } catch {
+    return createError(AppErrors.INTERNAL_ERROR, 'Failed to fetch daily report');
   }
 }
 
-export async function getWeeklyReportAction(businessId: string, dateInput?: string) {
+export async function getWeeklyReportAction(businessId: string, dateInput?: string, branchId?: string) {
   try {
     const { business } = await requireBusinessAccess(businessId, REPORT_PERMITTED_ROLES);
-    const report = await getWeeklyReport(businessId, dateInput, business.timezone);
+    if (branchId) {
+      const branch = await prisma.branch.findFirst({ where: { id: branchId, businessId }, select: { id: true } });
+      if (!branch) throw new AppError(ErrorCodes.BUSINESS_ACCESS_DENIED, 'Invalid branch for this business', 403);
+    }
+    const report = await getWeeklyReport(businessId, dateInput, business.timezone, branchId || undefined);
     return createSuccess(report);
-  } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to fetch weekly report');
+  } catch {
+    return createError(AppErrors.INTERNAL_ERROR, 'Failed to fetch weekly report');
   }
 }
 
 export async function getMonthlyReportAction(
   businessId: string,
   year?: number,
-  month?: number
+  month?: number,
+  branchId?: string
 ) {
   try {
     const { business } = await requireBusinessAccess(businessId, REPORT_PERMITTED_ROLES);
-    const report = await getMonthlyReport(businessId, year, month, business.timezone);
+    if (branchId) {
+      const branch = await prisma.branch.findFirst({ where: { id: branchId, businessId }, select: { id: true } });
+      if (!branch) throw new AppError(ErrorCodes.BUSINESS_ACCESS_DENIED, 'Invalid branch for this business', 403);
+    }
+    const report = await getMonthlyReport(businessId, year, month, business.timezone, branchId || undefined);
     return createSuccess(report);
-  } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to fetch monthly report');
+  } catch {
+    return createError(AppErrors.INTERNAL_ERROR, 'Failed to fetch monthly report');
   }
 }
 
-export async function getYearlyReportAction(businessId: string, year?: number) {
+export async function getYearlyReportAction(businessId: string, year?: number, branchId?: string) {
   try {
     const { business } = await requireBusinessAccess(businessId, REPORT_PERMITTED_ROLES);
-    const report = await getYearlyReport(businessId, year, business.timezone);
+    if (branchId) {
+      const branch = await prisma.branch.findFirst({ where: { id: branchId, businessId }, select: { id: true } });
+      if (!branch) throw new AppError(ErrorCodes.BUSINESS_ACCESS_DENIED, 'Invalid branch for this business', 403);
+    }
+    const report = await getYearlyReport(businessId, year, business.timezone, branchId || undefined);
     return createSuccess(report);
-  } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to fetch yearly report');
+  } catch {
+    return createError(AppErrors.INTERNAL_ERROR, 'Failed to fetch yearly report');
   }
 }
 

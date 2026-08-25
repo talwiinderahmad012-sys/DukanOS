@@ -3,6 +3,34 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  --page: #f9fafb;
+  --surface: #ffffff;
+  --muted: #6b7280;
+  --muted-strong: #374151;
+  --border-color: #e5e7eb;
+  --border-strong: #d1d5db;
+
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-soft: #eff6ff;
+  --on-primary: #ffffff;
+  --focus-ring: #3b82f6;
+
+  --success: #059669;
+  --success-hover: #047857;
+  --success-soft: #ecfdf5;
+
+  --warning: #d97706;
+  --warning-hover: #b45309;
+  --warning-soft: #fffbeb;
+
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --danger-soft: #fef2f2;
+
+  --info: #2563eb;
+  --info-soft: #eff6ff;
 }
 
 @theme inline {
@@ -10,12 +38,55 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
+  --color-muted-strong: var(--muted-strong);
+  --color-border: var(--border-color);
+  --color-border-strong: var(--border-strong);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-on-primary: var(--on-primary);
+  --color-focus-ring: var(--focus-ring);
+
+  --color-success: var(--success);
+  --color-success-hover: var(--success-hover);
+  --color-success-soft: var(--success-soft);
+
+  --color-warning: var(--warning);
+  --color-warning-hover: var(--warning-hover);
+  --color-warning-soft: var(--warning-soft);
+
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-danger-soft: var(--danger-soft);
+
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+}
+
+@theme {
+  --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-elevated: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-modal: 0 20px 25px -5px rgb(0 0 0 / 0.12), 0 8px 10px -6px rgb(0 0 0 / 0.08);
+
+  --radius-card: 0.75rem;
+  --radius-input: 0.5rem;
+  --radius-dialog: 1rem;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+:where(a, button, [role="button"], summary):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 @media print {

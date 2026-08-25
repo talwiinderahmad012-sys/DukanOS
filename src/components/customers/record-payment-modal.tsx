@@ -1,183 +1,230 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { DollarSign, X, CheckCircle2 } from 'lucide-react';
+import { Banknote } from 'lucide-react';
 import { recordCustomerPaymentAction } from '@/app/actions/customer.actions';
+import { Modal } from '@/components/ui/modal';
+import { Button, IconButton, type ButtonSize, type ButtonVariant } from '@/components/ui/button';
+import { Alert } from '@/components/ui/alert';
+import { Field, Input, Select } from '@/components/ui/input';
+
+const fmt = (n: number) => `Rs. ${n.toLocaleString()}`;
 
 export function RecordPaymentModal({
   businessId,
   customerId,
   customerName,
   currentOutstanding,
+  iconOnly = false,
+  variant = 'success',
+  size = 'md',
+  label = 'Record Payment',
 }: {
   businessId: string;
   customerId: string;
   customerName: string;
   currentOutstanding: number;
+  iconOnly?: boolean;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  label?: string;
 }) {
   const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
-  const [amount, setAmount] = useState<string>('');
-  const [method, setMethod] = useState<string>('CASH');
-  const [notes, setNotes] = useState<string>('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const idPrefix = useId();
+  const fieldId = (name: string) => `${idPrefix}-${name}`;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [amount, setAmount] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const parsedAmount = Number(amount);
+  const amountValid = Number.isFinite(parsedAmount) && parsedAmount > 0;
+  const exceedsOutstanding =
+    amountValid && currentOutstanding > 0 && parsedAmount > currentOutstanding;
+
+  function open() {
+    setAmount('');
+    setError('');
+    setIsOpen(true);
+  }
+
+  function close() {
+    if (loading) return;
+    setIsOpen(false);
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const parsedAmount = parseFloat(amount);
-    if (!parsedAmount || parsedAmount <= 0) {
-      setError('Please enter a valid payment amount greater than 0.');
+
+    if (!amountValid) {
+      setError('Enter a payment amount greater than 0.');
       return;
     }
 
     setLoading(true);
-    setError(null);
+    setError('');
+
+    const formData = new FormData(e.currentTarget);
 
     try {
       const res = await recordCustomerPaymentAction(businessId, {
         customerId,
         amount: parsedAmount,
-        method,
-        notes: notes.trim() || undefined,
+        method: formData.get('method') as string,
+        notes: ((formData.get('notes') as string) || '').trim() || undefined,
       });
 
       if (!res.success) {
-        setError(res.message || 'Failed to record customer payment.');
+        const fieldError = res.fieldErrors
+          ? Object.values(res.fieldErrors).flat().find(Boolean)
+          : undefined;
+        setError(res.message || fieldError || 'Failed to record customer payment.');
         setLoading(false);
         return;
       }
 
       setIsOpen(false);
-      setAmount('');
-      setNotes('');
       router.refresh();
-    } catch (err) {
-      const e = err as Error;
-      setError(e.message || 'An unexpected error occurred.');
+    } catch {
+      setError('An unexpected error occurred.');
       setLoading(false);
     }
-  };
+  }
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        className="px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
-      >
-        <DollarSign className="w-4 h-4" /> Receive Debt Payment
-      </button>
-
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100 space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <h3 className="font-bold text-gray-900 text-lg flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-green-600" />
-                Receive Payment from {customerName}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className="text-gray-400 hover:text-gray-600 p-1"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs flex justify-between items-center">
-              <span className="text-gray-500 font-medium">Current Outstanding Udhaar:</span>
-              <span className="text-base font-bold text-orange-600">
-                Rs. {currentOutstanding.toLocaleString()}
-              </span>
-            </div>
-
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">
-                  Payment Amount (PKR) <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">Rs.</span>
-                  <input
-                    required
-                    type="number"
-                    min="1"
-                    step="0.01"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    placeholder="e.g. 5000"
-                    className="w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg text-base font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-                {currentOutstanding > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setAmount(currentOutstanding.toString())}
-                    className="text-xs text-blue-600 hover:underline mt-1 inline-block"
-                  >
-                    Set Full Balance (Rs. {currentOutstanding.toLocaleString()})
-                  </button>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">
-                  Payment Method
-                </label>
-                <select
-                  value={method}
-                  onChange={(e) => setMethod(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
-                >
-                  <option value="CASH">Cash</option>
-                  <option value="BANK_TRANSFER">Bank Transfer / Online</option>
-                  <option value="MOBILE_WALLET">EasyPaisa / JazzCash / Mobile Wallet</option>
-                  <option value="CARD">Card</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">
-                  Notes / Receipt Memo
-                </label>
-                <input
-                  type="text"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Optional memo (e.g. Received via Bank Transfer)"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-3 border-t">
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-sm transition-colors disabled:opacity-50 flex items-center gap-1.5"
-                >
-                  {loading ? 'Recording...' : 'Confirm Payment'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {iconOnly ? (
+        <IconButton
+          size={size}
+          variant={variant}
+          aria-label={`Record payment from ${customerName}`}
+          title="Record payment"
+          onClick={open}
+        >
+          <Banknote className={size === 'lg' ? 'h-5 w-5' : 'h-4 w-4'} aria-hidden="true" />
+        </IconButton>
+      ) : (
+        <Button size={size} variant={variant} onClick={open}>
+          <Banknote className="h-4 w-4" aria-hidden="true" />
+          {label}
+        </Button>
       )}
+
+      <Modal
+        open={isOpen}
+        onClose={close}
+        title="Record Payment"
+        description={`Receive a udhaar payment from ${customerName}.`}
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setIsOpen(false)} disabled={loading}>
+              Cancel
+            </Button>
+            <Button type="submit" form="record-payment-form" variant="success" loading={loading}>
+              Confirm Payment
+            </Button>
+          </>
+        }
+      >
+        <form id="record-payment-form" onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <Alert tone="danger" title="Could not record payment">
+              {error}
+            </Alert>
+          )}
+
+          <div className="flex items-center justify-between gap-3 rounded-card border border-border bg-gray-50 p-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted">
+                Current Outstanding
+              </p>
+              <p className="text-xs text-muted">Total udhaar due from this customer</p>
+            </div>
+            <p
+              className={
+                currentOutstanding > 0
+                  ? 'text-lg font-bold text-warning'
+                  : 'text-lg font-bold text-success'
+              }
+            >
+              {fmt(currentOutstanding)}
+            </p>
+          </div>
+
+          {currentOutstanding <= 0 && (
+            <Alert tone="info">
+              This customer has no outstanding udhaar right now. You can still record a payment if
+              they are paying in advance.
+            </Alert>
+          )}
+
+          <Field
+            label="Payment Amount"
+            htmlFor={fieldId('amount')}
+            required
+            error={!amountValid && amount !== '' ? 'Amount must be greater than 0.' : undefined}
+          >
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                Rs.
+              </span>
+              <Input
+                id={fieldId('amount')}
+                name="amount"
+                type="number"
+                min="1"
+                step="0.01"
+                required
+                autoFocus
+                inputMode="decimal"
+                placeholder="e.g. 5000"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                invalid={!amountValid && amount !== ''}
+                className="pl-11"
+              />
+            </div>
+          </Field>
+
+          {currentOutstanding > 0 && (
+            <button
+              type="button"
+              onClick={() => setAmount(String(currentOutstanding))}
+              className="text-sm font-semibold text-primary hover:text-primary-hover"
+            >
+              Set full balance ({fmt(currentOutstanding)})
+            </button>
+          )}
+
+          {exceedsOutstanding && (
+            <Alert tone="warning">
+              This amount exceeds the current outstanding balance of {fmt(currentOutstanding)}.
+            </Alert>
+          )}
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Payment Method" htmlFor={fieldId('method')}>
+              <Select id={fieldId('method')} name="method" defaultValue="CASH">
+                <option value="CASH">Cash</option>
+                <option value="BANK_TRANSFER">Bank Transfer / Online</option>
+                <option value="MOBILE_WALLET">EasyPaisa / JazzCash / Mobile Wallet</option>
+                <option value="CARD">Card</option>
+              </Select>
+            </Field>
+
+            <Field label="Notes" htmlFor={fieldId('notes')}>
+              <Input
+                id={fieldId('notes')}
+                name="notes"
+                maxLength={500}
+                placeholder="Optional memo"
+              />
+            </Field>
+          </div>
+        </form>
+      </Modal>
     </>
   );
 }

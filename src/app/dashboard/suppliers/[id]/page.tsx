@@ -2,25 +2,38 @@ import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { getSupplierWithPurchases } from '@/services/suppliers';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { 
-  ChevronRight, 
-  Truck, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  Receipt, 
-  DollarSign, 
-  Calendar, 
-  Plus, 
-  FileText 
+import {
+  ChevronRight,
+  Truck,
+  Phone,
+  Mail,
+  MapPin,
+  Receipt,
+  DollarSign,
+  Calendar,
+  Plus,
+  FileText,
 } from 'lucide-react';
+import { PageHeader } from '@/components/ui/page-header';
+import { Card } from '@/components/ui/card';
+import { Badge, type BadgeTone } from '@/components/ui/badge';
+import { buttonClasses } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Table, TableWrap, TableHead, Th, Tr, Td } from '@/components/ui/table';
+import { cn } from '@/components/ui/cn';
+import { SupplierManageButtons } from '@/components/suppliers/supplier-actions';
+
+const fmt = (n: number) => `Rs. ${n.toLocaleString()}`;
+
+const formatDate = (date: Date) =>
+  date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 
 export default async function SupplierDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
   const { id } = await params;
 
   const data = await getSupplierWithPurchases(business.id, id);
@@ -29,179 +42,195 @@ export default async function SupplierDetailPage({
   }
 
   const { supplier, summary, purchases } = data;
+  const canManage = membership.role === 'OWNER' || membership.role === 'MANAGER';
+
+  const kpis = [
+    {
+      label: 'Total Volume',
+      value: fmt(summary.totalSpend),
+      sub: `${summary.totalPurchases} lifetime invoices`,
+      Icon: DollarSign,
+      iconWrap: 'bg-blue-50 text-blue-600',
+      valueClass: 'text-gray-900',
+    },
+    {
+      label: 'Total Cleared',
+      value: fmt(summary.totalPaid),
+      sub: 'Paid to vendor',
+      Icon: Receipt,
+      iconWrap: 'bg-green-50 text-green-600',
+      valueClass: 'text-green-600',
+    },
+    {
+      label: 'Balance Due',
+      value: fmt(summary.remainingDue),
+      sub: 'Payable / Credit',
+      Icon: Receipt,
+      iconWrap: 'bg-orange-50 text-orange-600',
+      valueClass: summary.remainingDue > 0 ? 'text-orange-600' : 'text-gray-900',
+    },
+    {
+      label: 'Last Purchase',
+      value: summary.lastPurchaseDate ? formatDate(summary.lastPurchaseDate) : 'No purchases yet',
+      sub: ' ',
+      Icon: Calendar,
+      iconWrap: 'bg-gray-50 text-gray-500',
+      valueClass: 'text-gray-900',
+    },
+  ];
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6">
       {/* Breadcrumbs */}
-      <div className="flex items-center gap-2 text-sm text-gray-500">
-        <Link href="/dashboard/suppliers" className="hover:text-blue-600 transition-colors">
-          Suppliers
-        </Link>
-        <ChevronRight className="w-4 h-4 text-gray-400" />
-        <span className="text-gray-900 font-medium">{supplier.name}</span>
-      </div>
+      <nav aria-label="Breadcrumb">
+        <ol className="flex items-center gap-1.5 text-sm text-muted">
+          <li>
+            <Link href="/dashboard/suppliers" className="transition-colors hover:text-primary">
+              Suppliers
+            </Link>
+          </li>
+          <li aria-hidden="true">
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+          </li>
+          <li aria-current="page" className="font-medium text-gray-900">
+            {supplier.name}
+          </li>
+        </ol>
+      </nav>
 
-      {/* Supplier Profile Header Card */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-6">
-          <div className="flex items-center gap-4">
-            <div className="h-14 w-14 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center shrink-0">
-              <Truck className="w-7 h-7" />
-            </div>
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-gray-900">{supplier.name}</h1>
-                {supplier.isActive ? (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
-                    Active Vendor
-                  </span>
-                ) : (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
-                    Archived
-                  </span>
-                )}
+      <PageHeader
+        title={
+          <span className="flex flex-wrap items-center gap-3">
+            {supplier.name}
+            <Badge tone={supplier.isActive ? 'success' : 'neutral'}>
+              {supplier.isActive ? 'Active Vendor' : 'Archived'}
+            </Badge>
+          </span>
+        }
+        description="Vendor profile & procurement history."
+        actions={
+          <>
+            {canManage && (
+              <SupplierManageButtons
+                businessId={business.id}
+                supplier={{
+                  id: supplier.id,
+                  name: supplier.name,
+                  phone: supplier.phone,
+                  email: supplier.email,
+                  address: supplier.address,
+                  notes: supplier.notes,
+                  isActive: supplier.isActive,
+                }}
+                purchaseCount={summary.totalPurchases}
+              />
+            )}
+            <Link href="/dashboard/purchases/new" className={buttonClasses('primary', 'sm')}>
+              <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+              Record Purchase
+            </Link>
+          </>
+        }
+      />
+
+      {/* Supplier Profile Card */}
+      <Card padded>
+        <div className="flex items-start gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary-soft text-primary" aria-hidden="true">
+            <Truck className="h-7 w-7" />
+          </div>
+          <div className="grid flex-1 grid-cols-1 gap-4 text-sm sm:grid-cols-3">
+            <div className="flex items-start gap-2.5">
+              <Phone className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted">Phone</p>
+                <p className="truncate font-medium text-gray-900">{supplier.phone || 'Not provided'}</p>
               </div>
-              <p className="text-xs text-gray-400 mt-1">Vendor profile & procurement history</p>
             </div>
-          </div>
 
-          <Link
-            href={`/dashboard/purchases/new`}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
-          >
-            <Plus className="w-4 h-4" />
-            Record Purchase
-          </Link>
-        </div>
-
-        {/* Contact info grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-sm">
-          <div className="flex items-start gap-3">
-            <Phone className="w-4 h-4 text-gray-400 mt-0.5" />
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Phone</p>
-              <p className="font-medium text-gray-900">{supplier.phone || 'Not provided'}</p>
+            <div className="flex items-start gap-2.5">
+              <Mail className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted">Email</p>
+                <p className="truncate font-medium text-gray-900">{supplier.email || 'Not provided'}</p>
+              </div>
             </div>
-          </div>
 
-          <div className="flex items-start gap-3">
-            <Mail className="w-4 h-4 text-gray-400 mt-0.5" />
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</p>
-              <p className="font-medium text-gray-900">{supplier.email || 'Not provided'}</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Address</p>
-              <p className="font-medium text-gray-900">{supplier.address || 'Not provided'}</p>
+            <div className="flex items-start gap-2.5">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted">Address</p>
+                <p className="truncate font-medium text-gray-900">{supplier.address || 'Not provided'}</p>
+              </div>
             </div>
           </div>
         </div>
 
         {supplier.notes && (
-          <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 text-sm text-gray-700">
+          <div className="mt-5 rounded-xl border border-gray-100 bg-gray-50 p-4 text-sm text-gray-700">
             <span className="font-semibold text-gray-900">Notes: </span>
             {supplier.notes}
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Summary KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Volume</p>
-            <h3 className="text-2xl font-bold text-gray-900 mt-1">
-              Rs. {summary.totalSpend.toLocaleString()}
-            </h3>
-            <p className="text-xs text-gray-400 mt-0.5">{summary.totalPurchases} lifetime invoices</p>
-          </div>
-          <div className="h-10 w-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0">
-            <DollarSign className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Cleared</p>
-            <h3 className="text-2xl font-bold text-green-600 mt-1">
-              Rs. {summary.totalPaid.toLocaleString()}
-            </h3>
-            <p className="text-xs text-green-600/80 mt-0.5">Paid to vendor</p>
-          </div>
-          <div className="h-10 w-10 bg-green-50 text-green-600 rounded-lg flex items-center justify-center shrink-0">
-            <Receipt className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Balance Due</p>
-            <h3 className={`text-2xl font-bold mt-1 ${summary.remainingDue > 0 ? 'text-orange-600' : 'text-gray-900'}`}>
-              Rs. {summary.remainingDue.toLocaleString()}
-            </h3>
-            <p className="text-xs text-gray-400 mt-0.5">Payable / Credit</p>
-          </div>
-          <div className="h-10 w-10 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center shrink-0">
-            <Receipt className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Purchase</p>
-            <h3 className="text-sm font-bold text-gray-900 mt-2">
-              {summary.lastPurchaseDate
-                ? new Date(summary.lastPurchaseDate).toLocaleDateString(undefined, {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                  })
-                : 'No purchases yet'}
-            </h3>
-          </div>
-          <div className="h-10 w-10 bg-gray-50 text-gray-500 rounded-lg flex items-center justify-center shrink-0">
-            <Calendar className="w-5 h-5" />
-          </div>
-        </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {kpis.map((kpi) => (
+          <Card key={kpi.label} className="flex items-center justify-between p-5">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{kpi.label}</p>
+              <h3 className={cn('mt-1 truncate text-2xl font-bold', kpi.valueClass)}>{kpi.value}</h3>
+              {kpi.sub !== ' ' && <p className="mt-0.5 truncate text-xs text-muted">{kpi.sub}</p>}
+            </div>
+            <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-lg', kpi.iconWrap)} aria-hidden="true">
+              <kpi.Icon className="h-5 w-5" />
+            </div>
+          </Card>
+        ))}
       </div>
 
       {/* Supplier Purchase History Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <Receipt className="w-5 h-5 text-blue-600" />
+      <Card className="overflow-hidden">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+          <h2 className="flex items-center gap-2 text-base font-bold text-gray-900">
+            <Receipt className="h-5 w-5 text-primary" aria-hidden="true" />
             Purchase History
           </h2>
-          <span className="text-xs font-semibold px-3 py-1 bg-gray-100 rounded-full text-gray-700">
+          <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
             {purchases.length} {purchases.length === 1 ? 'Invoice' : 'Invoices'}
           </span>
         </div>
 
         {purchases.length === 0 ? (
-          <div className="p-12 text-center text-gray-500 text-sm">
-            No purchases have been recorded with this supplier yet.
-          </div>
+          <EmptyState
+            icon={FileText}
+            title="No purchases yet"
+            description="No purchases have been recorded with this supplier yet."
+            action={
+              <Link href="/dashboard/purchases/new" className={buttonClasses('primary', 'sm')}>
+                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                Record Purchase
+              </Link>
+            }
+          />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse whitespace-nowrap">
-              <thead>
-                <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b">
-                  <th className="px-6 py-3.5 font-medium">Invoice #</th>
-                  <th className="px-6 py-3.5 font-medium">Date</th>
-                  <th className="px-6 py-3.5 font-medium text-center">Items</th>
-                  <th className="px-6 py-3.5 font-medium text-right">Grand Total</th>
-                  <th className="px-6 py-3.5 font-medium text-right">Paid</th>
-                  <th className="px-6 py-3.5 font-medium text-right">Remaining</th>
-                  <th className="px-6 py-3.5 font-medium text-center">Payment Status</th>
-                  <th className="px-6 py-3.5 font-medium text-center">Status</th>
-                  <th className="px-6 py-3.5 font-medium text-right">Action</th>
+          <TableWrap>
+            <Table className="min-w-[720px] whitespace-nowrap">
+              <TableHead>
+                <tr>
+                  <Th>Invoice #</Th>
+                  <Th>Date</Th>
+                  <Th className="text-center">Items</Th>
+                  <Th className="text-right">Grand Total</Th>
+                  <Th className="text-right">Paid</Th>
+                  <Th className="text-right">Remaining</Th>
+                  <Th className="text-center">Payment Status</Th>
+                  <Th className="text-center">Status</Th>
+                  <Th className="text-right">Action</Th>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
+              </TableHead>
+              <tbody>
                 {purchases.map((purchase) => {
                   const total = Number(purchase.total);
                   const paid = Number(purchase.paidAmount);
@@ -211,82 +240,60 @@ export default async function SupplierDetailPage({
                   const isPartial = paid > 0 && paid < total;
                   const isCancelled = purchase.status === 'CANCELLED';
 
+                  const paymentBadge: { label: string; tone: BadgeTone } = isPaid
+                    ? { label: 'Paid', tone: 'success' }
+                    : isPartial
+                      ? { label: 'Partial', tone: 'warning' }
+                      : { label: 'Unpaid', tone: 'danger' };
+
                   return (
-                    <tr key={purchase.id} className="hover:bg-gray-50/60 transition-colors">
-                      <td className="px-6 py-4 font-mono font-medium text-gray-900">
+                    <Tr key={purchase.id}>
+                      <Td className="font-mono">
                         <Link
                           href={`/dashboard/purchases/${purchase.id}`}
-                          className="text-blue-600 hover:underline flex items-center gap-1.5"
+                          className="flex items-center gap-1.5 text-primary hover:underline"
                         >
-                          <FileText className="w-3.5 h-3.5 text-gray-400" />
+                          <FileText className="h-3.5 w-3.5 text-gray-400" aria-hidden="true" />
                           {purchase.invoiceNumber || `#${purchase.id.slice(0, 8)}`}
                         </Link>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {new Date(purchase.purchaseDate).toLocaleDateString(undefined, {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-center font-medium text-gray-700">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-xs">
+                      </Td>
+                      <Td className="text-gray-600">{formatDate(purchase.purchaseDate)}</Td>
+                      <Td className="text-center">
+                        <span className="inline-flex items-center rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
                           {purchase.items.length} {purchase.items.length === 1 ? 'item' : 'items'}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm font-bold text-gray-900 text-right">
-                        Rs. {total.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-green-600 font-medium text-right">
-                        Rs. {paid.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-right">
-                        <span className={remaining > 0 ? 'text-orange-600 font-medium' : 'text-gray-400'}>
-                          Rs. {remaining.toLocaleString()}
+                      </Td>
+                      <Td className="text-right font-bold text-gray-900">{fmt(total)}</Td>
+                      <Td className="text-right font-medium text-green-600">{fmt(paid)}</Td>
+                      <Td className="text-right">
+                        <span className={remaining > 0 ? 'font-medium text-orange-600' : 'text-gray-400'}>
+                          {fmt(remaining)}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        {isPaid ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
-                            Paid
-                          </span>
-                        ) : isPartial ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200">
-                            Partial
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
-                            Unpaid
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        {isCancelled ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                            Cancelled
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                            Received
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-right text-sm">
+                      </Td>
+                      <Td className="text-center">
+                        <Badge tone={paymentBadge.tone}>{paymentBadge.label}</Badge>
+                      </Td>
+                      <Td className="text-center">
+                        <Badge tone={isCancelled ? 'neutral' : 'info'}>
+                          {isCancelled ? 'Cancelled' : 'Received'}
+                        </Badge>
+                      </Td>
+                      <Td className="text-right">
                         <Link
                           href={`/dashboard/purchases/${purchase.id}`}
-                          className="text-blue-600 hover:text-blue-800 font-medium"
+                          className="font-medium text-primary transition-colors hover:text-primary-hover"
                         >
                           View Details &rarr;
                         </Link>
-                      </td>
-                    </tr>
+                      </Td>
+                    </Tr>
                   );
                 })}
               </tbody>
-            </table>
-          </div>
+            </Table>
+          </TableWrap>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

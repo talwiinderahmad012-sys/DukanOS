@@ -6,23 +6,28 @@ import {
   ChevronRight, 
   TrendingUp, 
   TrendingDown, 
-  DollarSign, 
+  DollarSign,
   Calendar
 } from 'lucide-react';
 import { SimpleBarChart } from '@/components/charts/bar-chart';
+import { prisma } from '@/lib/db/prisma';
 
 export default async function YearlyReportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ year?: string }>;
+  searchParams: Promise<{ year?: string; branchId?: string }>;
 }) {
   const { business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
   const params = await searchParams;
 
   const now = new Date();
   const year = Number(params.year) || now.getFullYear();
+  const branchId = params.branchId;
 
-  const report = await getYearlyReport(business.id, year, business.timezone);
+  const [report, branches] = await Promise.all([
+    getYearlyReport(business.id, year, business.timezone, branchId || undefined),
+    prisma.branch.findMany({ where: { businessId: business.id }, select: { id: true, name: true } }),
+  ]);
   const { summary, growth, monthlyData } = report;
 
   const chartData = monthlyData.map((m) => ({
@@ -45,6 +50,16 @@ export default async function YearlyReportPage({
         </div>
 
         <form method="GET" className="flex items-center gap-2">
+          <select
+            name="branchId"
+            defaultValue={branchId || 'ALL'}
+            className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="ALL">All Branches</option>
+            {branches.map((b) => (
+              <option key={b.id} value={b.id}>{b.name}</option>
+            ))}
+          </select>
           <input
             type="number"
             name="year"
@@ -53,6 +68,7 @@ export default async function YearlyReportPage({
             max="2030"
             className="w-28 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          {branchId && <input type="hidden" name="branchId" value={branchId} />}
           <button
             type="submit"
             className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors"

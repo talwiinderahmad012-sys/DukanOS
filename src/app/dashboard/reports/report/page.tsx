@@ -1,6 +1,7 @@
 import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { getBusinessReportAction } from '@/app/actions/report.actions';
 import { PrintableReport } from '@/components/reports/printable-report';
+import { ExportButton } from '@/components/analytics/export-button';
 import { prisma } from '@/lib/db/prisma';
 import { redirect } from 'next/navigation';
 import { notFound } from 'next/navigation';
@@ -51,13 +52,16 @@ export default async function ReportViewPage({ searchParams }: { searchParams: P
             </p>
           </div>
         </div>
-        <button
-          onClick={() => window.print()}
-          className="flex items-center gap-1.5 px-4 py-2 bg-gray-900 text-white text-xs font-semibold rounded-lg hover:bg-gray-800 transition-colors"
-        >
-          <Printer className="w-4 h-4" />
-          Print / PDF
-        </button>
+        <div className="flex items-center gap-2">
+          <ExportButton data={report.rows} filename={`${report.type.toLowerCase()}-report`} label="Export CSV" />
+          <button
+            onClick={() => window.print()}
+            className="flex items-center gap-1.5 px-4 py-2 bg-gray-900 text-white text-xs font-semibold rounded-lg hover:bg-gray-800 transition-colors"
+          >
+            <Printer className="w-4 h-4" />
+            Print / PDF
+          </button>
+        </div>
       </div>
 
       <PrintableReport

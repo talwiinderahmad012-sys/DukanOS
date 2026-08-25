@@ -15,17 +15,22 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { SimpleBarChart } from '@/components/charts/bar-chart';
+import { prisma } from '@/lib/db/prisma';
 
 export default async function DailyReportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ date?: string }>;
+  searchParams: Promise<{ date?: string; branchId?: string }>;
 }) {
   const { business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
   const params = await searchParams;
   const dateInput = params.date;
+  const branchId = params.branchId;
 
-  const report = await getDailyReport(business.id, dateInput, business.timezone);
+  const [report, branches] = await Promise.all([
+    getDailyReport(business.id, dateInput, business.timezone, branchId || undefined),
+    prisma.branch.findMany({ where: { businessId: business.id }, select: { id: true, name: true } }),
+  ]);
   const { summary, growth, hourlyData, topProductsToday, sales, date } = report;
 
   // Filter hourlyData to show non-zero hours or 8 AM to 11 PM range
@@ -49,12 +54,23 @@ export default async function DailyReportPage({
         </div>
 
         <form method="GET" className="flex items-center gap-2">
+          <select
+            name="branchId"
+            defaultValue={branchId || 'ALL'}
+            className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="ALL">All Branches</option>
+            {branches.map((b) => (
+              <option key={b.id} value={b.id}>{b.name}</option>
+            ))}
+          </select>
           <input
             type="date"
             name="date"
             defaultValue={date}
             className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          {branchId && <input type="hidden" name="branchId" value={branchId} />}
           <button
             type="submit"
             className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors"

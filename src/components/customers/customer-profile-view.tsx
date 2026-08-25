@@ -2,50 +2,210 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { 
-  User, 
-  ShoppingCart, 
-  DollarSign, 
-  Clock, 
-  FileText, 
-  CreditCard, 
-  Star, 
-  Package, 
-  TrendingUp, 
-  Activity, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  CheckCircle2, 
-  AlertCircle,
-  Calendar,
-  Share2,
+import {
+  Phone,
+  Mail,
+  MapPin,
+  FileText,
+  Package,
+  Star,
+  Activity,
+  ShoppingCart,
+  Pencil,
   Copy,
-  Plus
+  Plus,
+  Check,
+  ArrowUpRight,
+  ArrowDownLeft,
+  Banknote,
 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Badge, type BadgeTone } from '@/components/ui/badge';
+import { Button, buttonClasses } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Table, TableWrap, TableHead, Th, Tr, Td } from '@/components/ui/table';
+import { Alert } from '@/components/ui/alert';
+import { cn } from '@/components/ui/cn';
 import { RecordPaymentModal } from './record-payment-modal';
+import { CustomerEditDialog, type CustomerEditableData } from './customer-edit-dialog';
 import { generateFeedbackInviteAction } from '@/app/actions/feedback.actions';
+
+const fmt = (n: number) => `Rs. ${Math.round(Number(n || 0)).toLocaleString()}`;
+
+const fmtDate = (d: Date | string | null) =>
+  d
+    ? new Date(d).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+    : '—';
+
+const fmtDateTime = (d: Date | string) =>
+  new Date(d).toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+export type SerializableCustomer = CustomerEditableData & {
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type LedgerRow = {
+  id: string;
+  date: Date;
+  type: 'CREDIT_SALE' | 'PAYMENT' | 'SALE_CANCELLED';
+  description: string;
+  debit: number;
+  credit: number;
+  runningBalance: number;
+  referenceId?: string | null;
+};
+
+export type SaleRow = {
+  id: string;
+  invoiceNumber: string;
+  saleDate: Date;
+  status: 'COMPLETED' | 'CANCELLED' | 'REFUNDED';
+  total: number;
+  paidAmount: number;
+  itemCount: number;
+};
+
+export type PaymentRow = {
+  id: string;
+  date: Date;
+  amount: number;
+  method: string;
+  notes: string | null;
+};
+
+export type FeedbackRow = {
+  id: string;
+  rating: number;
+  category: string;
+  status: string;
+  message: string;
+  resolutionNote: string | null;
+  createdAt: Date;
+};
+
+export type AuditRow = {
+  id: string;
+  action: string;
+  metadata: string | null;
+  createdAt: Date;
+};
+
+export type TopProductRow = {
+  productId: string;
+  name: string;
+  unit: string;
+  totalQuantity: number;
+  orderCount: number;
+  totalSpend: number;
+};
+
+export type InsightsView = {
+  totalPurchases: number;
+  totalSpent: number;
+  averageOrderValue: number;
+  purchaseFrequencyDays: number | null;
+  daysActive: number;
+  topProducts: TopProductRow[];
+  feedbackCount: number;
+  averageRating: number | null;
+};
+
+export type CustomerViewData = {
+  customer: SerializableCustomer;
+  summary: {
+    totalSalesCount: number;
+    totalSpend: number;
+    totalPaid: number;
+    outstanding: number;
+    lastPurchaseDate: Date | null;
+  };
+  sales: SaleRow[];
+  payments: PaymentRow[];
+  ledger: LedgerRow[];
+  feedbacks: FeedbackRow[];
+};
+
+const STATUS_BADGE: Record<CustomerEditableData['status'], { label: string; tone: BadgeTone }> = {
+  ACTIVE: { label: 'Active', tone: 'success' },
+  INACTIVE: { label: 'Inactive', tone: 'warning' },
+  ARCHIVED: { label: 'Archived', tone: 'neutral' },
+};
+
+const LEDGER_TYPE: Record<LedgerRow['type'], { label: string; tone: BadgeTone }> = {
+  CREDIT_SALE: { label: 'Udhaar / Credit Sale', tone: 'warning' },
+  PAYMENT: { label: 'Payment Received', tone: 'success' },
+  SALE_CANCELLED: { label: 'Sale Reversal', tone: 'neutral' },
+};
+
+const PAYMENT_METHOD_LABEL: Record<string, string> = {
+  CASH: 'Cash',
+  CARD: 'Card',
+  BANK_TRANSFER: 'Bank Transfer',
+  MOBILE_WALLET: 'Mobile Wallet',
+  CREDIT: 'Credit',
+};
+
+const SALE_STATUS: Record<SaleRow['status'], { label: string; tone: BadgeTone }> = {
+  COMPLETED: { label: 'Completed', tone: 'success' },
+  CANCELLED: { label: 'Cancelled', tone: 'neutral' },
+  REFUNDED: { label: 'Refunded', tone: 'danger' },
+};
+
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('');
+}
+
+type TabKey = 'purchases' | 'payments' | 'insights' | 'feedback' | 'activity';
 
 export function CustomerProfileView({
   businessId,
-  customerData,
+  data,
   insights,
   auditLogs,
-  isOwnerOrManager,
+  canManage,
+  canPay,
 }: {
   businessId: string;
-  customerData: any;
-  insights: any;
-  auditLogs: any[];
-  isOwnerOrManager: boolean;
+  data: CustomerViewData;
+  insights: InsightsView;
+  auditLogs: AuditRow[];
+  canManage: boolean;
+  canPay: boolean;
 }) {
-  const { customer, summary, ledger, sales } = customerData;
-  const [activeTab, setActiveTab] = useState<'overview' | 'purchases' | 'ledger' | 'feedback' | 'activity'>('overview');
+  const { customer, summary, sales, payments, ledger, feedbacks } = data;
+  const [activeTab, setActiveTab] = useState<TabKey>('purchases');
+  const [editOpen, setEditOpen] = useState(false);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [generating, setGenerating] = useState(false);
 
-  const handleGenerateFeedbackInvite = async () => {
+  const status = STATUS_BADGE[customer.status] ?? STATUS_BADGE.ACTIVE;
+  const outstanding = Number(summary.outstanding || 0);
+  const totalPaid = Number(summary.totalPaid || 0);
+  const totalSpend = Number(summary.totalSpend || 0);
+
+  const hasCreditHistory = ledger.some((entry) => entry.type !== 'PAYMENT');
+  const udhaarState =
+    outstanding > 0
+      ? { label: 'Outstanding', tone: 'warning' as BadgeTone }
+      : hasCreditHistory
+        ? { label: 'Settled', tone: 'info' as BadgeTone }
+        : { label: 'Clear', tone: 'success' as BadgeTone };
+
+  async function handleGenerateFeedbackInvite() {
     setGenerating(true);
     const res = await generateFeedbackInviteAction(businessId, { customerId: customer.id });
     if (res.success && res.data) {
@@ -54,487 +214,626 @@ export function CustomerProfileView({
       setInviteLink(`${origin}/feedback/${invite.token}`);
     }
     setGenerating(false);
-  };
+  }
 
-  const copyLink = (text: string) => {
+  function copyLink(text: string) {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
+  }
 
-  const tabs = [
-    { id: 'overview', label: 'Overview & Insights', icon: User },
-    { id: 'purchases', label: `Purchases (${sales.length})`, icon: ShoppingCart },
-    { id: 'ledger', label: 'Khata Ledger', icon: FileText },
-    { id: 'feedback', label: `Feedback (${customer.feedbacks?.length || 0})`, icon: Star },
-    { id: 'activity', label: 'Activity & Audit', icon: Activity },
+  const tabs: { key: TabKey; label: string; icon: typeof Package }[] = [
+    { key: 'purchases', label: `Purchases (${sales.length})`, icon: ShoppingCart },
+    { key: 'payments', label: `Payments (${payments.length})`, icon: Banknote },
+    { key: 'insights', label: 'Insights', icon: Package },
+    { key: 'feedback', label: `Feedback (${feedbacks.length})`, icon: Star },
+    { key: 'activity', label: 'Activity', icon: Activity },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Customer Header Card */}
-      <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      {/* Customer header */}
+      <Card padded className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-start gap-4">
-          <div className="h-14 w-14 bg-blue-100 text-blue-700 font-black text-xl rounded-2xl flex items-center justify-center shrink-0">
-            {customer.name.slice(0, 2).toUpperCase()}
+          <div
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-card bg-primary-soft text-lg font-bold text-primary"
+            aria-hidden="true"
+          >
+            {initials(customer.name) || 'C'}
           </div>
-
-          <div className="space-y-1">
+          <div className="min-w-0 space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold text-gray-900">{customer.name}</h1>
-              <span
-                className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                  customer.status === 'ACTIVE'
-                    ? 'bg-green-100 text-green-800'
-                    : customer.status === 'INACTIVE'
-                    ? 'bg-amber-100 text-amber-800'
-                    : 'bg-gray-100 text-gray-700'
-                }`}
-              >
-                {customer.status || 'ACTIVE'}
-              </span>
+              <h1 className="text-xl font-bold text-gray-900">{customer.name}</h1>
+              <Badge tone={status.tone}>{status.label}</Badge>
+              <Badge tone={udhaarState.tone}>{udhaarState.label}</Badge>
             </div>
-
-            <div className="flex flex-wrap gap-4 text-xs text-gray-500 pt-0.5">
+            <dl className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
               {customer.phone && (
-                <span className="flex items-center gap-1">
-                  <Phone className="w-3.5 h-3.5 text-gray-400" /> {customer.phone}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <Phone className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>{customer.phone}</span>
+                </div>
               )}
               {customer.email && (
-                <span className="flex items-center gap-1">
-                  <Mail className="w-3.5 h-3.5 text-gray-400" /> {customer.email}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <Mail className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span className="break-all">{customer.email}</span>
+                </div>
               )}
               {customer.address && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-gray-400" /> {customer.address}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span>{customer.address}</span>
+                </div>
               )}
-              <span>• Customer since {new Date(customer.createdAt).toLocaleDateString()}</span>
-            </div>
+              <div>Customer since {fmtDate(customer.createdAt)}</div>
+            </dl>
+            {customer.notes && <p className="max-w-xl text-sm text-gray-600">{customer.notes}</p>}
           </div>
         </div>
 
-        {/* Outstanding & Quick Action */}
-        <div className="flex items-center gap-4 shrink-0">
-          <div className="bg-gray-50 border border-gray-200 p-4 rounded-2xl text-left md:text-right min-w-[170px]">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block">
-              Outstanding Khata
-            </span>
-            <h2 className={`text-2xl font-bold mt-1 ${summary.outstanding > 0 ? 'text-orange-600' : 'text-green-600'}`}>
-              Rs. {summary.outstanding.toLocaleString()}
-            </h2>
-            <p className="text-xs text-gray-400 mt-0.5">
-              {summary.outstanding > 0 ? 'Payment pending' : 'All accounts cleared'}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <div className="rounded-card border border-border bg-gray-50 px-4 py-3 sm:text-right">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">
+              Outstanding Udhaar
+            </p>
+            <p
+              className={cn(
+                'text-2xl font-bold leading-tight',
+                outstanding > 0 ? 'text-warning' : 'text-success',
+              )}
+            >
+              {fmt(outstanding)}
+            </p>
+            <p className="text-xs text-muted">
+              {outstanding > 0 ? 'Payment pending' : 'All clear'}
             </p>
           </div>
-
-          <RecordPaymentModal
-            businessId={businessId}
-            customerId={customer.id}
-            customerName={customer.name}
-            currentOutstanding={summary.outstanding}
-          />
-        </div>
-      </div>
-
-      {/* Tabs Bar */}
-      <div className="flex items-center gap-1 border-b border-gray-200 overflow-x-auto pb-px">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-2.5 text-xs font-semibold flex items-center gap-1.5 border-b-2 transition-all whitespace-nowrap ${
-                isActive
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Tab 1: Overview & Factual Insights */}
-      {activeTab === 'overview' && (
-        <div className="space-y-6">
-          {/* Insights KPI Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
-              <span className="text-xs font-semibold text-gray-500 uppercase">Lifetime Spend</span>
-              <h3 className="text-2xl font-bold text-gray-900 mt-1">
-                Rs. {insights.totalSpent.toLocaleString()}
-              </h3>
-              <span className="text-[11px] text-gray-400">{insights.totalPurchases} completed purchases</span>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
-              <span className="text-xs font-semibold text-blue-700 uppercase">Average Order Value (AOV)</span>
-              <h3 className="text-2xl font-bold text-blue-700 mt-1">
-                Rs. {insights.averageOrderValue.toLocaleString()}
-              </h3>
-              <span className="text-[11px] text-blue-500">Per purchase average</span>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
-              <span className="text-xs font-semibold text-purple-700 uppercase">Purchase Frequency</span>
-              <h3 className="text-2xl font-bold text-purple-700 mt-1">
-                {insights.purchaseFrequencyDays ? `Every ${insights.purchaseFrequencyDays} days` : '—'}
-              </h3>
-              <span className="text-[11px] text-purple-500">
-                {insights.daysActive > 0 ? `${insights.daysActive} days active history` : 'New customer'}
-              </span>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
-              <span className="text-xs font-semibold text-amber-700 uppercase">Customer Rating</span>
-              <div className="flex items-center gap-1.5 mt-1">
-                <h3 className="text-2xl font-bold text-amber-800">
-                  {insights.averageRating ? `${insights.averageRating}` : '—'}
-                </h3>
-                {insights.averageRating && <Star className="w-5 h-5 fill-amber-400 text-amber-400" />}
-              </div>
-              <span className="text-[11px] text-amber-600">{insights.feedbackCount} reviews given</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Top Purchased Products */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4">
-              <h3 className="font-bold text-gray-900 text-sm border-b pb-3 flex items-center gap-2">
-                <Package className="w-4 h-4 text-blue-600" /> Favorite / Top Purchased Products
-              </h3>
-
-              {insights.topProducts.length === 0 ? (
-                <div className="py-8 text-center text-gray-400 text-xs">No completed purchase history yet.</div>
-              ) : (
-                <div className="divide-y divide-gray-100 space-y-2">
-                  {insights.topProducts.map((prod: any, idx: number) => (
-                    <div key={prod.productId} className="pt-2 flex justify-between items-center text-xs">
-                      <div className="space-y-0.5">
-                        <span className="font-bold text-gray-900">
-                          {idx + 1}. {prod.name}
-                        </span>
-                        <span className="text-[11px] text-gray-400 block">
-                          Ordered in {prod.orderCount} {prod.orderCount === 1 ? 'sale' : 'sales'}
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <span className="font-bold text-gray-900 block">
-                          {prod.totalQuantity} {prod.unit}
-                        </span>
-                        <span className="text-[11px] text-green-700 font-medium">
-                          Rs. {prod.totalSpend.toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Customer Engagement & Feedback Quick Action */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4 flex flex-col justify-between">
-              <div className="space-y-3">
-                <h3 className="font-bold text-gray-900 text-sm border-b pb-3 flex items-center gap-2">
-                  <Star className="w-4 h-4 text-amber-500" /> Customer Engagement & Loyalty
-                </h3>
-
-                <p className="text-xs text-gray-600 leading-relaxed">
-                  Send a personalized, secure feedback link to this customer to collect direct ratings on product quality, pricing, and service.
-                </p>
-
-                {inviteLink ? (
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-2">
-                    <span className="text-xs font-bold text-blue-900 block">Secure Feedback Link:</span>
-                    <p className="text-xs font-mono text-blue-800 break-all">{inviteLink}</p>
-                    <button
-                      onClick={() => copyLink(inviteLink)}
-                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1"
-                    >
-                      <Copy className="w-3.5 h-3.5" /> {copied ? 'Copied to Clipboard!' : 'Copy Link'}
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={handleGenerateFeedbackInvite}
-                    disabled={generating}
-                    className="px-4 py-2 bg-gray-900 hover:bg-black text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
-                  >
-                    <Plus className="w-4 h-4" /> {generating ? 'Generating Link...' : 'Generate Customer Feedback Link'}
-                  </button>
-                )}
-              </div>
-
-              {customer.notes && (
-                <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-600 mt-2">
-                  <span className="font-bold text-gray-800 block mb-1">Customer Profile Notes:</span>
-                  {customer.notes}
-                </div>
-              )}
-            </div>
+          <div className="flex items-center gap-2">
+            {canManage && (
+              <Button variant="outline" onClick={() => setEditOpen(true)}>
+                <Pencil className="h-4 w-4" aria-hidden="true" />
+                Edit
+              </Button>
+            )}
+            {canPay && (
+              <RecordPaymentModal
+                businessId={businessId}
+                customerId={customer.id}
+                customerName={customer.name}
+                currentOutstanding={outstanding}
+              />
+            )}
           </div>
         </div>
+      </Card>
+
+      {editOpen && (
+        <CustomerEditDialog
+          businessId={businessId}
+          customer={customer}
+          onClose={() => setEditOpen(false)}
+        />
       )}
 
-      {/* Tab 2: Purchases */}
-      {activeTab === 'purchases' && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden space-y-4">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-bold text-gray-900">Purchase Invoices History</h3>
-            <p className="text-xs text-gray-500 mt-0.5">All sales invoices generated for this customer.</p>
-          </div>
-
-          {sales.length === 0 ? (
-            <div className="py-8 text-center text-gray-400 text-sm">No sales invoices found.</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse whitespace-nowrap text-sm">
-                <thead>
-                  <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b">
-                    <th className="px-6 py-3.5 font-medium">Invoice #</th>
-                    <th className="px-6 py-3.5 font-medium">Date</th>
-                    <th className="px-6 py-3.5 font-medium">Items</th>
-                    <th className="px-6 py-3.5 font-medium text-right">Grand Total</th>
-                    <th className="px-6 py-3.5 font-medium text-right">Paid</th>
-                    <th className="px-6 py-3.5 font-medium text-right">Due Balance</th>
-                    <th className="px-6 py-3.5 font-medium text-center">Status</th>
-                    <th className="px-6 py-3.5 font-medium text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {sales.map((sale: any) => {
-                    const saleTotal = Number(sale.total);
-                    const salePaid = Number(sale.paidAmount);
-                    const saleDue = Math.max(0, saleTotal - salePaid);
-
-                    return (
-                      <tr key={sale.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-6 py-3.5 font-mono font-medium text-blue-600">
-                          <Link href={`/dashboard/sales/${sale.id}`} className="hover:underline">
-                            {sale.invoiceNumber}
-                          </Link>
-                        </td>
-                        <td className="px-6 py-3.5 text-gray-500 text-xs">
-                          {new Date(sale.saleDate).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-3.5 text-xs text-gray-700">
-                          {sale.items.length} items
-                        </td>
-                        <td className="px-6 py-3.5 text-right font-semibold text-gray-900">
-                          Rs. {saleTotal.toLocaleString()}
-                        </td>
-                        <td className="px-6 py-3.5 text-right font-medium text-green-600">
-                          Rs. {salePaid.toLocaleString()}
-                        </td>
-                        <td className="px-6 py-3.5 text-right font-bold text-orange-600">
-                          {saleDue > 0 ? `Rs. ${saleDue.toLocaleString()}` : '-'}
-                        </td>
-                        <td className="px-6 py-3.5 text-center text-xs font-semibold">
-                          {sale.status === 'COMPLETED' ? (
-                            <span className="text-green-600 bg-green-50 px-2 py-0.5 rounded-full">Completed</span>
-                          ) : (
-                            <span className="text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">Cancelled</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-3.5 text-right text-xs">
-                          <Link href={`/dashboard/sales/${sale.id}`} className="text-blue-600 hover:underline font-medium">
-                            View Invoice &rarr;
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Tab 3: Ledger */}
-      {activeTab === 'ledger' && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden space-y-4">
-          <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+      {/* Financial summary */}
+      <Card className="overflow-hidden">
+        <div className="grid grid-cols-2 gap-px bg-border lg:grid-cols-4">
+          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">Total Sales</p>
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Unified Customer Credit Ledger (Khata)</h3>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Complete audit trail of credit purchases, payments received, and running balance.
+              <p className="text-2xl font-bold leading-tight text-gray-900">{fmt(totalSpend)}</p>
+              <p className="mt-1 text-xs text-muted">
+                across {summary.totalSalesCount} completed {summary.totalSalesCount === 1 ? 'sale' : 'sales'}
               </p>
             </div>
           </div>
-
-          {ledger.length === 0 ? (
-            <div className="py-12 text-center text-gray-400 text-sm">
-              No credit transactions or payments recorded for this customer yet.
+          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">Total Paid</p>
+            <div>
+              <p className="text-2xl font-bold leading-tight text-success">{fmt(totalPaid)}</p>
+              <p className="mt-1 text-xs text-muted">advance + payments received</p>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse whitespace-nowrap text-sm">
-                <thead>
-                  <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b">
-                    <th className="px-6 py-3.5 font-medium">Date</th>
-                    <th className="px-6 py-3.5 font-medium">Transaction Type</th>
-                    <th className="px-6 py-3.5 font-medium">Description</th>
-                    <th className="px-6 py-3.5 font-medium text-right text-orange-600">+ Debit (Debt)</th>
-                    <th className="px-6 py-3.5 font-medium text-right text-green-600">- Credit (Paid)</th>
-                    <th className="px-6 py-3.5 font-medium text-right font-bold text-gray-900">Running Balance</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {ledger.map((entry: any) => (
-                    <tr key={entry.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-3.5 text-gray-500 text-xs">
-                        {new Date(entry.date).toLocaleDateString(undefined, {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </td>
-                      <td className="px-6 py-3.5">
-                        {entry.type === 'CREDIT_SALE' && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-orange-50 text-orange-700">
-                            Credit Sale
-                          </span>
-                        )}
-                        {entry.type === 'PAYMENT' && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-50 text-green-700">
-                            Payment Received
-                          </span>
-                        )}
-                        {entry.type === 'SALE_CANCELLED' && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-700">
-                            Sale Reversal
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-3.5 text-gray-700">
-                        {entry.referenceId && entry.type.startsWith('CREDIT_SALE') ? (
-                          <Link 
-                            href={`/dashboard/sales/${entry.referenceId}`}
-                            className="text-blue-600 hover:underline flex items-center gap-1 font-medium"
-                          >
-                            <FileText className="w-3.5 h-3.5 text-gray-400" />
-                            {entry.description}
-                          </Link>
-                        ) : (
-                          <span>{entry.description}</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-3.5 text-right font-medium text-orange-600">
-                        {entry.debit > 0 ? `Rs. ${entry.debit.toLocaleString()}` : '-'}
-                      </td>
-                      <td className="px-6 py-3.5 text-right font-medium text-green-600">
-                        {entry.credit > 0 ? `Rs. ${entry.credit.toLocaleString()}` : '-'}
-                      </td>
-                      <td className="px-6 py-3.5 text-right font-bold text-gray-900 font-mono">
-                        Rs. {entry.runningBalance.toLocaleString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Tab 4: Feedback */}
-      {activeTab === 'feedback' && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4">
-          <div className="flex justify-between items-center border-b pb-3">
-            <h3 className="font-bold text-gray-900 text-sm">Customer Feedback & Reviews</h3>
-            <button
-              onClick={handleGenerateFeedbackInvite}
-              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1"
-            >
-              <Plus className="w-3.5 h-3.5" /> Request Review
-            </button>
           </div>
-
-          {customer.feedbacks?.length === 0 ? (
-            <div className="py-12 text-center text-gray-400 text-xs">No feedback submitted by this customer yet.</div>
-          ) : (
-            <div className="divide-y divide-gray-100 space-y-3">
-              {customer.feedbacks.map((f: any) => (
-                <div key={f.id} className="pt-3 space-y-2">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
-                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                        <span className="text-xs font-bold text-amber-900">{f.rating}.0</span>
-                      </div>
-                      <span className="text-xs font-bold text-gray-900">{f.category}</span>
-                    </div>
-
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        f.status === 'RESOLVED'
-                          ? 'bg-green-100 text-green-800'
-                          : f.status === 'REVIEWING'
-                          ? 'bg-amber-100 text-amber-800'
-                          : 'bg-blue-100 text-blue-800'
-                      }`}
-                    >
-                      {f.status}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-gray-700 leading-relaxed italic">
-                    "{f.message}"
-                  </p>
-
-                  {f.resolutionNote && (
-                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-950">
-                      <span className="font-bold block">Resolution:</span>
-                      {f.resolutionNote}
-                    </div>
-                  )}
-
-                  <span className="text-[10px] text-gray-400 block pt-1">
-                    Submitted on {new Date(f.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-              ))}
+          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">Outstanding Udhaar</p>
+            <div>
+              <p
+                className={cn(
+                  'text-2xl font-bold leading-tight',
+                  outstanding > 0 ? 'text-warning' : 'text-gray-900',
+                )}
+              >
+                {fmt(outstanding)}
+              </p>
+              <p className="mt-1 text-xs text-muted">
+                <Badge tone={udhaarState.tone}>{udhaarState.label}</Badge>
+              </p>
             </div>
-          )}
+          </div>
+          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">Payments Received</p>
+            <div>
+              <p className="text-2xl font-bold leading-tight text-gray-900">{payments.length}</p>
+              <p className="mt-1 text-xs text-muted">
+                last {payments[0] ? fmtDate(payments[0].date) : 'none'}
+              </p>
+            </div>
+          </div>
         </div>
-      )}
+      </Card>
 
-      {/* Tab 5: Activity & Audit Trail */}
-      {activeTab === 'activity' && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4">
-          <h3 className="font-bold text-gray-900 text-sm border-b pb-3">Audit Trail History</h3>
+      {/* Udhaar ledger — always visible, the primary section */}
+      <Card>
+        <div className="flex flex-col gap-2 border-b border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-base font-bold text-gray-900">Udhaar Ledger (Khata)</h2>
+            <p className="text-sm text-muted">
+              Credit sales add to the balance, payments reduce it. Running balance shown for each entry.
+            </p>
+          </div>
+          <div className="text-left sm:text-right">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">Running Balance</p>
+            <p
+              className={cn(
+                'text-xl font-bold leading-tight',
+                outstanding > 0 ? 'text-warning' : 'text-success',
+              )}
+            >
+              {fmt(outstanding)}
+            </p>
+          </div>
+        </div>
 
-          {auditLogs.length === 0 ? (
-            <div className="py-12 text-center text-gray-400 text-xs">No audit events recorded for this customer.</div>
+        {ledger.length === 0 ? (
+          <EmptyState
+            icon={FileText}
+            title="No udhaar or payments yet"
+            description="Credit sales and received payments will appear here as a running ledger."
+            compact
+          />
+        ) : (
+          <>
+            {/* Desktop / tablet ledger table */}
+            <TableWrap className="hidden md:block">
+              <Table className="min-w-[680px]">
+                <TableHead>
+                  <tr>
+                    <Th>Date</Th>
+                    <Th>Transaction</Th>
+                    <Th>Type</Th>
+                    <Th className="text-right text-warning">Debit (Udhaar)</Th>
+                    <Th className="text-right text-success">Credit (Paid)</Th>
+                    <Th className="text-right">Balance</Th>
+                  </tr>
+                </TableHead>
+                <tbody>
+                  {ledger.map((entry) => {
+                    const type = LEDGER_TYPE[entry.type];
+                    const linksToSale = Boolean(entry.referenceId) && entry.type !== 'PAYMENT';
+                    return (
+                      <Tr key={entry.id}>
+                        <Td className="whitespace-nowrap text-xs text-muted">{fmtDateTime(entry.date)}</Td>
+                        <Td className="max-w-[300px]">
+                          {linksToSale ? (
+                            <Link
+                              href={`/dashboard/sales/${entry.referenceId}`}
+                              className="flex items-center gap-1 font-medium text-gray-800 hover:text-primary"
+                            >
+                              <span className="truncate">{entry.description}</span>
+                              <ArrowUpRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                            </Link>
+                          ) : (
+                            <span className="block truncate text-gray-800">{entry.description}</span>
+                          )}
+                        </Td>
+                        <Td>
+                          <Badge tone={type.tone}>{type.label}</Badge>
+                        </Td>
+                        <Td className="text-right font-medium text-warning">
+                          {entry.debit > 0 ? fmt(entry.debit) : '—'}
+                        </Td>
+                        <Td className="text-right font-medium text-success">
+                          {entry.credit > 0 ? fmt(entry.credit) : '—'}
+                        </Td>
+                        <Td
+                          className={cn(
+                            'text-right font-mono font-semibold',
+                            entry.runningBalance > 0 ? 'text-warning' : 'text-success',
+                          )}
+                        >
+                          {fmt(entry.runningBalance)}
+                        </Td>
+                      </Tr>
+                    );
+                  })}
+                </tbody>
+              </Table>
+            </TableWrap>
+
+            {/* Mobile ledger cards */}
+            <ul className="divide-y divide-border md:hidden">
+              {ledger.map((entry) => {
+                const type = LEDGER_TYPE[entry.type];
+                const linksToSale = Boolean(entry.referenceId) && entry.type !== 'PAYMENT';
+                return (
+                  <li key={entry.id} className="space-y-2 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <Badge tone={type.tone}>{type.label}</Badge>
+                      <span className="text-xs text-muted">{fmtDateTime(entry.date)}</span>
+                    </div>
+                    {linksToSale ? (
+                      <Link
+                        href={`/dashboard/sales/${entry.referenceId}`}
+                        className="flex items-center gap-1 text-sm font-medium text-gray-800"
+                      >
+                        <span className="break-words">{entry.description}</span>
+                        <ArrowUpRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                      </Link>
+                    ) : (
+                      <p className="break-words text-sm text-gray-800">{entry.description}</p>
+                    )}
+                    <div className="flex items-center justify-between gap-3 rounded-input bg-gray-50 px-3 py-2">
+                      <span className="flex items-center gap-1.5 text-sm">
+                        {entry.debit > 0 ? (
+                          <>
+                            <ArrowDownLeft className="h-4 w-4 text-warning" aria-hidden="true" />
+                            <span className="font-semibold text-warning">+ {fmt(entry.debit)}</span>
+                          </>
+                        ) : (
+                          <>
+                            <ArrowUpRight className="h-4 w-4 text-success" aria-hidden="true" />
+                            <span className="font-semibold text-success">− {fmt(entry.credit)}</span>
+                          </>
+                        )}
+                      </span>
+                      <span className="text-right">
+                        <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted">
+                          Balance
+                        </span>
+                        <span
+                          className={cn(
+                            'font-mono text-sm font-semibold',
+                            entry.runningBalance > 0 ? 'text-warning' : 'text-success',
+                          )}
+                        >
+                          {fmt(entry.runningBalance)}
+                        </span>
+                      </span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
+      </Card>
+
+      {/* Secondary tabs */}
+      <Card>
+        <nav aria-label="Customer sections" className="overflow-x-auto border-b border-border px-2">
+          <ul className="inline-flex min-w-full items-center gap-1 sm:min-w-0">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const active = activeTab === tab.key;
+              return (
+                <li key={tab.key} className="flex-1 sm:flex-initial">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab(tab.key)}
+                    aria-current={active ? 'true' : undefined}
+                    className={cn(
+                      'flex h-11 w-full items-center justify-center gap-1.5 whitespace-nowrap border-b-2 px-3 text-sm font-semibold transition-colors',
+                      active
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-gray-500 hover:text-gray-900',
+                    )}
+                  >
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                    {tab.label}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        {/* Purchases */}
+        {activeTab === 'purchases' &&
+          (sales.length === 0 ? (
+            <EmptyState
+              icon={ShoppingCart}
+              title="No purchases yet"
+              description="Sales created for this customer will show up here."
+              compact
+            />
           ) : (
-            <div className="divide-y divide-gray-100">
-              {auditLogs.map((log: any) => (
-                <div key={log.id} className="py-3 flex justify-between items-center text-xs">
-                  <div>
-                    <span className="font-mono font-bold text-gray-900">{log.action}</span>
-                    <p className="text-gray-500 text-[11px] mt-0.5">
-                      {log.metadata ? JSON.stringify(JSON.parse(log.metadata)) : '—'}
+            <>
+              <TableWrap className="hidden md:block">
+                <Table className="min-w-[720px]">
+                  <TableHead>
+                    <tr>
+                      <Th>Invoice</Th>
+                      <Th>Date</Th>
+                      <Th>Items</Th>
+                      <Th className="text-right">Total</Th>
+                      <Th className="text-right">Paid</Th>
+                      <Th className="text-right">Due</Th>
+                      <Th>Status</Th>
+                    </tr>
+                  </TableHead>
+                  <tbody>
+                    {sales.map((sale) => {
+                      const saleTotal = Number(sale.total || 0);
+                      const salePaid = Number(sale.paidAmount || 0);
+                      const saleDue = Math.max(0, saleTotal - salePaid);
+                      return (
+                        <Tr key={sale.id}>
+                          <Td>
+                            <Link
+                              href={`/dashboard/sales/${sale.id}`}
+                              className="font-mono font-medium text-primary hover:text-primary-hover"
+                            >
+                              {sale.invoiceNumber}
+                            </Link>
+                          </Td>
+                          <Td className="whitespace-nowrap text-xs text-muted">{fmtDate(sale.saleDate)}</Td>
+                          <Td className="text-xs text-gray-700">
+                            {sale.itemCount} {sale.itemCount === 1 ? 'item' : 'items'}
+                          </Td>
+                          <Td className="text-right font-semibold text-gray-900">{fmt(saleTotal)}</Td>
+                          <Td className="text-right font-medium text-success">{fmt(salePaid)}</Td>
+                          <Td className="text-right font-semibold text-warning">
+                            {saleDue > 0 ? fmt(saleDue) : '—'}
+                          </Td>
+                          <Td>
+                            <Badge tone={SALE_STATUS[sale.status].tone}>
+                              {SALE_STATUS[sale.status].label}
+                            </Badge>
+                          </Td>
+                        </Tr>
+                      );
+                    })}
+                  </tbody>
+                </Table>
+              </TableWrap>
+
+              <ul className="divide-y divide-border md:hidden">
+                {sales.map((sale) => {
+                  const saleTotal = Number(sale.total || 0);
+                  const salePaid = Number(sale.paidAmount || 0);
+                  const saleDue = Math.max(0, saleTotal - salePaid);
+                  return (
+                    <li key={sale.id} className="space-y-2 p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <Link
+                          href={`/dashboard/sales/${sale.id}`}
+                          className="font-mono text-sm font-medium text-primary"
+                        >
+                          {sale.invoiceNumber}
+                        </Link>
+                        <Badge tone={SALE_STATUS[sale.status].tone}>
+                          {SALE_STATUS[sale.status].label}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted">
+                        {fmtDate(sale.saleDate)} · {sale.itemCount} {sale.itemCount === 1 ? 'item' : 'items'}
+                      </p>
+                      <div className="flex items-center justify-between gap-3 rounded-input bg-gray-50 px-3 py-2 text-sm">
+                        <span>
+                          Total <span className="font-semibold text-gray-900">{fmt(saleTotal)}</span>
+                        </span>
+                        <span className={cn('font-semibold', saleDue > 0 ? 'text-warning' : 'text-success')}>
+                          {saleDue > 0 ? `Due ${fmt(saleDue)}` : 'Paid in full'}
+                        </span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          ))}
+
+        {/* Payments */}
+        {activeTab === 'payments' &&
+          (payments.length === 0 ? (
+            <EmptyState
+              icon={Banknote}
+              title="No payments recorded"
+              description={
+                canPay
+                  ? 'Record a payment from this customer to reduce their outstanding udhaar.'
+                  : 'Payments recorded for this customer will appear here.'
+              }
+              action={
+                canPay ? (
+                  <RecordPaymentModal
+                    businessId={businessId}
+                    customerId={customer.id}
+                    customerName={customer.name}
+                    currentOutstanding={outstanding}
+                  />
+                ) : undefined
+              }
+              compact
+            />
+          ) : (
+            <ul className="divide-y divide-border">
+              {payments.map((payment) => (
+                <li key={payment.id} className="flex items-center justify-between gap-3 p-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-gray-900">
+                      {PAYMENT_METHOD_LABEL[payment.method] ?? payment.method}
+                    </p>
+                    <p className="truncate text-xs text-muted">
+                      {fmtDateTime(payment.date)}
+                      {payment.notes ? ` · ${payment.notes}` : ''}
                     </p>
                   </div>
-                  <span className="text-gray-400 font-mono text-[11px]">
-                    {new Date(log.createdAt).toLocaleString()}
+                  <span className="flex shrink-0 items-center gap-1 font-semibold text-success">
+                    <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                    {fmt(payment.amount)}
                   </span>
-                </div>
+                </li>
               ))}
+            </ul>
+          ))}
+
+        {/* Insights */}
+        {activeTab === 'insights' && (
+          <div className="space-y-6 p-5">
+            <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-card border border-border bg-gray-50 p-3">
+                <dt className="text-xs font-semibold uppercase tracking-wider text-muted">Avg Order Value</dt>
+                <dd className="mt-1 text-lg font-bold text-gray-900">{fmt(insights.averageOrderValue)}</dd>
+              </div>
+              <div className="rounded-card border border-border bg-gray-50 p-3">
+                <dt className="text-xs font-semibold uppercase tracking-wider text-muted">Purchase Frequency</dt>
+                <dd className="mt-1 text-lg font-bold text-gray-900">
+                  {insights.purchaseFrequencyDays != null
+                    ? `Every ${insights.purchaseFrequencyDays}d`
+                    : '—'}
+                </dd>
+              </div>
+              <div className="rounded-card border border-border bg-gray-50 p-3">
+                <dt className="text-xs font-semibold uppercase tracking-wider text-muted">Days Active</dt>
+                <dd className="mt-1 text-lg font-bold text-gray-900">{insights.daysActive}</dd>
+              </div>
+              <div className="rounded-card border border-border bg-gray-50 p-3">
+                <dt className="text-xs font-semibold uppercase tracking-wider text-muted">Customer Rating</dt>
+                <dd className="mt-1 flex items-center gap-1 text-lg font-bold text-gray-900">
+                  {insights.averageRating != null ? insights.averageRating.toFixed(1) : '—'}
+                  {insights.averageRating != null && (
+                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden="true" />
+                  )}
+                </dd>
+              </div>
+            </dl>
+
+            <div>
+              <h3 className="text-sm font-bold text-gray-900">Top Purchased Products</h3>
+              {insights.topProducts.length === 0 ? (
+                <p className="mt-3 text-sm text-muted">No completed purchase history yet.</p>
+              ) : (
+                <ul className="mt-3 divide-y divide-border rounded-card border border-border">
+                  {insights.topProducts.map((prod, idx) => (
+                    <li key={prod.productId} className="flex items-center justify-between gap-3 p-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-gray-900">
+                          {idx + 1}. {prod.name}
+                        </p>
+                        <p className="text-xs text-muted">
+                          in {prod.orderCount} {prod.orderCount === 1 ? 'sale' : 'sales'}
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="text-sm font-semibold text-gray-900">
+                          {prod.totalQuantity} {prod.unit}
+                        </p>
+                        <p className="text-xs text-success">{fmt(prod.totalSpend)}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+
+        {/* Feedback */}
+        {activeTab === 'feedback' && (
+          <div className="space-y-4 p-5">
+            <div className="flex flex-col gap-3 rounded-card border border-border bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-gray-700">
+                Generate a secure feedback link to collect ratings from this customer.
+              </p>
+              {inviteLink ? (
+                <button
+                  type="button"
+                  onClick={() => copyLink(inviteLink)}
+                  className={buttonClasses('outline', 'sm', 'shrink-0')}
+                >
+                  {copied ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <Copy className="h-3.5 w-3.5" aria-hidden="true" />}
+                  {copied ? 'Copied' : 'Copy Link'}
+                </button>
+              ) : (
+                <Button size="sm" onClick={handleGenerateFeedbackInvite} loading={generating}>
+                  {!generating && <Plus className="h-3.5 w-3.5" aria-hidden="true" />}
+                  Generate Feedback Link
+                </Button>
+              )}
+            </div>
+
+            {inviteLink && (
+              <p className="break-all rounded-input border border-border bg-white p-3 font-mono text-xs text-gray-700">
+                {inviteLink}
+              </p>
+            )}
+
+            {feedbacks.length === 0 ? (
+              <EmptyState
+                icon={Star}
+                title="No feedback yet"
+                description="Feedback submitted by this customer will appear here."
+                compact
+              />
+            ) : (
+              <ul className="space-y-3">
+                {feedbacks.map((f) => (
+                  <li key={f.id} className="space-y-2 rounded-card border border-border p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <Badge tone="warning" className="bg-amber-50 text-amber-700 border-amber-200">
+                          <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden="true" />
+                          {f.rating}.0
+                        </Badge>
+                        <span className="text-sm font-semibold text-gray-900">{f.category}</span>
+                      </div>
+                      <Badge
+                        tone={
+                          f.status === 'RESOLVED' ? 'success' : f.status === 'REVIEWING' ? 'warning' : 'info'
+                        }
+                      >
+                        {f.status}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-700">“{f.message}”</p>
+                    {f.resolutionNote && (
+                      <Alert tone="success" title="Resolution">
+                        {f.resolutionNote}
+                      </Alert>
+                    )}
+                    <p className="text-xs text-muted">Submitted {fmtDate(f.createdAt)}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
+        {/* Activity */}
+        {activeTab === 'activity' &&
+          (auditLogs.length === 0 ? (
+            <EmptyState
+              icon={Activity}
+              title="No activity recorded"
+              description="Audit events for this customer will appear here."
+              compact
+            />
+          ) : (
+            <ul className="divide-y divide-border">
+              {auditLogs.map((log) => (
+                <li key={log.id} className="flex flex-col gap-1 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="font-mono text-sm font-semibold text-gray-900">{log.action}</p>
+                    {log.metadata && <p className="break-words text-xs text-muted">{log.metadata}</p>}
+                  </div>
+                  <span className="shrink-0 font-mono text-xs text-muted">{fmtDateTime(log.createdAt)}</span>
+                </li>
+              ))}
+            </ul>
+          ))}
+      </Card>
     </div>
   );
 }

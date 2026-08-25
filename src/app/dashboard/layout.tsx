@@ -1,37 +1,11 @@
 import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  LayoutDashboard, 
-  ShoppingCart, 
-  Package, 
-  Users, 
-  TrendingUp,
-  Receipt,
-  Bell,
-  Settings,
-  LogOut,
-  Store,
-  Layers,
-  Truck,
-  ClipboardList,
-  BarChart3,
-  Sparkles,
-  UserCheck,
-  User,
-  Star,
-  MessageSquare,
-  Activity,
-  RefreshCw,
-  Camera,
-  Banknote,
-  ShieldCheck,
-  Rocket,
-  Bug
-} from 'lucide-react';
+import { LogOut, Store, Settings } from 'lucide-react';
 import { signOut } from '@/lib/auth/auth';
 import { recordAuditLog } from '@/services/audit';
 import { MobileNav } from '@/components/layout/mobile-nav';
+import { DashboardNavSections } from '@/components/layout/nav-sections';
 import { NetworkStatusBadge } from '@/components/pwa/pwa-provider';
 import { NotificationBell } from '@/components/notifications/notification-bell';
 import LiveAnalyticsRefresher from '@/components/analytics/live-analytics-refresher';
@@ -46,92 +20,79 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/login');
   });
 
-  const isOwner = activeMembership.role === 'OWNER';
-  const isManager = activeMembership.role === 'MANAGER';
-  const isOwnerOrManager = isOwner || isManager;
+  async function logoutAction() {
+    'use server';
+    const userId = user.id;
+    await signOut();
+    await recordAuditLog({
+      businessId: activeBusiness.id,
+      userId,
+      action: 'LOGOUT',
+      entityType: 'Auth',
+      entityId: userId,
+      metadata: { businessId: activeBusiness.id },
+    }).catch(() => {});
+  }
 
-  const navigation = [
-    { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'My Workspace', href: '/dashboard/me', icon: User },
-    { name: 'POS Terminal', href: '/dashboard/pos', icon: ShoppingCart },
-    { name: 'Offline Sync', href: '/dashboard/sync', icon: RefreshCw },
-    { name: 'Sales Invoices', href: '/dashboard/sales', icon: Receipt },
-    { name: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
-    { name: 'Growth', href: '/dashboard/growth', icon: TrendingUp },
-    ...(isOwnerOrManager ? [{ name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 }] : []),
-    { name: 'Advisor', href: '/dashboard/advisor', icon: Sparkles },
-    { name: 'Remote Monitor', href: '/dashboard/monitoring', icon: Store },
-    ...(isOwnerOrManager ? [{ name: 'CCTV Cameras', href: '/dashboard/cameras', icon: Camera }] : []),
-    { name: 'Communications', href: '/dashboard/communications', icon: MessageSquare },
-    { name: 'Activity Stream', href: '/dashboard/activity', icon: Activity },
-    { name: 'Feedback', href: '/dashboard/feedback', icon: Star },
-    { name: 'Customers (Udhaar)', href: '/dashboard/customers', icon: Users },
-    { name: 'Staff (Employees)', href: '/dashboard/employees', icon: UserCheck },
-    ...(isOwner ? [{ name: 'Payroll', href: '/dashboard/payroll', icon: Banknote }] : []),
-    { name: 'Products', href: '/dashboard/products', icon: Package },
-    { name: 'Categories', href: '/dashboard/categories', icon: Layers },
-    { name: 'Suppliers', href: '/dashboard/suppliers', icon: Truck },
-    { name: 'Inventory', href: '/dashboard/inventory', icon: ClipboardList },
-    { name: 'Purchases', href: '/dashboard/purchases', icon: Receipt },
-    ...(isOwnerOrManager ? [{ name: 'Product Insights', href: '/dashboard/product-insights', icon: Sparkles }] : []),
-    ...(isOwnerOrManager ? [{ name: 'System Updates', href: '/dashboard/updates', icon: Rocket }] : []),
-    ...(isOwner ? [{ name: 'Platform Support', href: '/dashboard/product-feedback', icon: Bug }] : []),
-    ...(isOwnerOrManager ? [{ name: 'Settings Hub', href: '/dashboard/settings', icon: Settings }] : []),
-    ...(isOwner ? [{ name: 'System Health', href: '/dashboard/system', icon: ShieldCheck }] : []),
-  ];
+  const userLabel = user.name?.trim() || user.email || 'User';
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
-      
+
       {/* Mobile Header & Nav */}
-      <MobileNav 
-        businessName={activeBusiness.name} 
-        role={activeMembership.role} 
+      <MobileNav
+        businessName={activeBusiness.name}
+        role={activeMembership.role}
+        businessId={activeBusiness.id}
+        userName={userLabel}
+        logoutAction={logoutAction}
       />
 
       {/* Sidebar (Desktop) */}
-      <aside className="hidden md:flex flex-col w-64 bg-white border-r min-h-screen">
-        <div className="p-6 flex items-center gap-3 border-b">
-          <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
+      <aside className="hidden md:sticky md:top-0 md:flex md:h-screen w-64 shrink-0 flex-col border-r border-border bg-surface">
+        {/* Business context */}
+        <div className="flex items-center gap-3 border-b border-border px-4 py-4">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary" aria-hidden="true">
             <Store className="h-4 w-4 text-white" />
           </div>
-          <div className="overflow-hidden">
-            <h2 className="font-bold text-gray-900 text-sm truncate">{activeBusiness.name}</h2>
-            <p className="text-xs text-gray-400 font-medium capitalize">{activeMembership.role.toLowerCase()}</p>
+          <div className="min-w-0">
+            <h2 className="truncate text-sm font-bold text-gray-900" title={activeBusiness.name}>
+              {activeBusiness.name}
+            </h2>
+            <p className="truncate text-xs font-medium capitalize text-muted">
+              {activeMembership.role.toLowerCase()}
+            </p>
           </div>
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {navigation.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className="flex items-center gap-3 px-3 py-2 text-gray-600 rounded-lg hover:bg-gray-50 hover:text-blue-600 transition-colors"
-            >
-              <item.icon className="h-5 w-5" />
-              <span className="font-medium text-sm">{item.name}</span>
-            </Link>
-          ))}
-        </nav>
+        <DashboardNavSections role={activeMembership.role} />
 
-        <div className="p-4 border-t">
-          <form action={async () => {
-            'use server';
-            const userId = user.id;
-            await signOut();
-            await recordAuditLog({
-              businessId: activeBusiness.id,
-              userId,
-              action: 'LOGOUT',
-              entityType: 'Auth',
-              entityId: userId,
-              metadata: { businessId: activeBusiness.id },
-            }).catch(() => {});
-          }}>
-            <button className="flex items-center gap-3 px-3 py-2 w-full text-gray-600 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors">
-              <LogOut className="h-5 w-5" />
-              <span className="font-medium text-sm">Sign out</span>
+        {/* User account area */}
+        <div className="border-t border-border p-3">
+          <div className="flex items-center gap-3 px-2 py-1.5">
+            <div
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-sm font-bold text-primary"
+              aria-hidden="true"
+            >
+              {user.name?.charAt(0)?.toUpperCase() || 'U'}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-gray-900" title={userLabel}>
+                {userLabel}
+              </p>
+              <p className="truncate text-xs font-medium capitalize text-muted">
+                {activeMembership.role.toLowerCase()}
+              </p>
+            </div>
+          </div>
+          <form action={logoutAction} className="mt-1">
+            <button
+              type="submit"
+              className="group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-danger-soft hover:text-danger"
+            >
+              <LogOut className="h-5 w-5 shrink-0 text-gray-400 transition-colors group-hover:text-danger" aria-hidden="true" />
+              <span>Sign out</span>
             </button>
           </form>
         </div>
@@ -140,23 +101,29 @@ export default async function DashboardLayout({ children }: { children: React.Re
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-h-screen max-w-full overflow-hidden">
         {/* Top Header */}
-        <header className="hidden md:flex bg-white border-b h-16 items-center justify-between px-8 shrink-0">
+        <header className="hidden md:flex bg-surface border-b border-border h-16 items-center justify-between px-6 shrink-0">
           <div className="flex items-center gap-3">
             <NetworkStatusBadge />
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <NotificationBell businessId={activeBusiness.id} />
             <Link
               href="/dashboard/settings/notifications"
-              className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-50 transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-600"
               title="Notification Settings"
+              aria-label="Notification settings"
             >
-              <Settings className="h-5 w-5" />
+              <Settings className="h-5 w-5" aria-hidden="true" />
             </Link>
-            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm shrink-0">
-              {user.name?.charAt(0) || 'U'}
-            </div>
+            <Link
+              href="/dashboard/me"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft text-sm font-bold text-primary transition-colors hover:bg-blue-100"
+              title="My Workspace"
+              aria-label={`My Workspace (${userLabel})`}
+            >
+              <span aria-hidden="true">{user.name?.charAt(0)?.toUpperCase() || 'U'}</span>
+            </Link>
           </div>
         </header>
 

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db/prisma';
 import { NotificationSeverity, SaleStatus } from '@/generated/prisma/client';
 import { getMonthlyReport, getTopSellingProducts, getSlowMovingProducts } from '@/services/reports';
 import { getMonthlyRange } from '@/lib/utils/date-utils';
+import { getFeedbackTrendAnalysis } from '@/services/feedback-management';
 
 export type AdvisorFinding = {
   id: string;
@@ -15,6 +16,7 @@ export type AdvisorFinding = {
     | 'PROFIT_DECLINE'
     | 'CREDIT_RISK'
     | 'EXPENSE_SPIKE'
+    | 'FEEDBACK_SURGE'
     | 'GROWTH_OPPORTUNITY';
   severity: 'CRITICAL' | 'WARNING' | 'OPPORTUNITY' | 'INFO';
   title: string;
@@ -233,6 +235,26 @@ export async function generateAdvisorFindings(
         createdAt: now,
       });
     }
+  }
+
+  // --- RULE 9: Feedback Complaint Surge ---
+  try {
+    const feedbackTrend = await getFeedbackTrendAnalysis(businessId);
+    if (feedbackTrend.surge) {
+      findings.push({
+        id: `feedback-surge-${periodKey}`,
+        type: 'FEEDBACK_SURGE',
+        severity: 'WARNING',
+        title: 'Customer Complaint Surge Detected',
+        message: `Complaints increased ${feedbackTrend.complaintGrowth}% this month (${feedbackTrend.currentMonth.complaints} vs ${feedbackTrend.previousMonth.complaints} last month).`,
+        recommendation: 'Review recent customer complaints, address recurring issues, and improve service quality.',
+        metric: `${feedbackTrend.complaintGrowth}% growth`,
+        relatedEntity: 'FEEDBACK',
+        createdAt: now,
+      });
+    }
+  } catch {
+    // feedback trend analysis must not break advisor findings
   }
 
   // --- COMPUTE BUSINESS HEALTH SCORE (0..100) ---

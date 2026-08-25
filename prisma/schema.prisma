@@ -383,6 +383,8 @@ model Expense {
   createdBy     String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  cancelledAt   DateTime?
+  cancelledBy   String?
   branch        Branch?       @relation(fields: [branchId], references: [id])
   business      Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
 

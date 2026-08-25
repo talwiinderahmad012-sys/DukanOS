@@ -12,11 +12,12 @@ import {
   ShoppingBag
 } from 'lucide-react';
 import { SimpleBarChart } from '@/components/charts/bar-chart';
+import { prisma } from '@/lib/db/prisma';
 
 export default async function MonthlyReportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ year?: string; month?: string }>;
+  searchParams: Promise<{ year?: string; month?: string; branchId?: string }>;
 }) {
   const { business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
   const params = await searchParams;
@@ -24,10 +25,12 @@ export default async function MonthlyReportPage({
   const now = new Date();
   const year = Number(params.year) || now.getFullYear();
   const month = Number(params.month) || now.getMonth() + 1;
+  const branchId = params.branchId;
 
-  const [monthlyData, topProducts] = await Promise.all([
-    getMonthlyReport(business.id, year, month, business.timezone),
+  const [monthlyData, topProducts, branches] = await Promise.all([
+    getMonthlyReport(business.id, year, month, business.timezone, branchId || undefined),
     getTopSellingProducts(business.id, { limit: 5 }),
+    prisma.branch.findMany({ where: { businessId: business.id }, select: { id: true, name: true } }),
   ]);
 
   const { summary, growth, dailyData, expenseCategories, monthName } = monthlyData;
@@ -68,6 +71,16 @@ export default async function MonthlyReportPage({
 
         <form method="GET" className="flex items-center gap-2">
           <select
+            name="branchId"
+            defaultValue={branchId || 'ALL'}
+            className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="ALL">All Branches</option>
+            {branches.map((b) => (
+              <option key={b.id} value={b.id}>{b.name}</option>
+            ))}
+          </select>
+          <select
             name="month"
             defaultValue={month}
             className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -87,6 +100,7 @@ export default async function MonthlyReportPage({
             max="2030"
             className="w-24 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          {branchId && <input type="hidden" name="branchId" value={branchId} />}
 
           <button
             type="submit"

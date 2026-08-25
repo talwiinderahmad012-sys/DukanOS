@@ -3,23 +3,33 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createProductAction } from '@/app/actions/product.actions';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert } from '@/components/ui/alert';
+import { Field, Input, Select, Textarea } from '@/components/ui/input';
+import { cn } from '@/components/ui/cn';
 
-export function ProductForm({ 
-  businessId, 
-  categories 
-}: { 
+export function ProductForm({
+  businessId,
+  categories,
+}: {
   businessId: string;
-  categories: { id: string, name: string }[] 
+  categories: { id: string; name: string }[];
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const [purchasePrice, setPurchasePrice] = useState<number>(0);
   const [sellingPrice, setSellingPrice] = useState<number>(0);
 
   const profit = sellingPrice - purchasePrice;
-  const margin = purchasePrice > 0 ? ((profit / purchasePrice) * 100).toFixed(1) : (sellingPrice > 0 ? 100 : 0);
+  const margin =
+    purchasePrice > 0
+      ? ((profit / purchasePrice) * 100).toFixed(1)
+      : sellingPrice > 0
+        ? '100.0'
+        : '0.0';
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -27,12 +37,13 @@ export function ProductForm({
     setError('');
 
     const formData = new FormData(e.currentTarget);
-    
+
     const payload = {
       name: formData.get('name') as string,
-      sku: formData.get('sku') as string || null,
-      barcode: formData.get('barcode') as string || null,
-      categoryId: formData.get('categoryId') as string || null,
+      sku: (formData.get('sku') as string) || null,
+      barcode: (formData.get('barcode') as string) || null,
+      description: (formData.get('description') as string) || null,
+      categoryId: (formData.get('categoryId') as string) || null,
       unit: formData.get('unit') as string,
       purchasePrice: Number(formData.get('purchasePrice')),
       sellingPrice: Number(formData.get('sellingPrice')),
@@ -41,141 +52,196 @@ export function ProductForm({
 
     try {
       const res = await createProductAction(businessId, payload);
-      
+
       if (!res.success) {
-        setError(res.message || 'Failed to create product');
+        const fieldError = res.fieldErrors
+          ? Object.values(res.fieldErrors).flat().find(Boolean)
+          : undefined;
+        setError(res.message || fieldError || 'Failed to create product');
         setLoading(false);
         return;
       }
 
       router.push('/dashboard/products');
       router.refresh();
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred.');
       setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-8">
-      {error && (
-        <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>
-      )}
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <h3 className="font-semibold text-gray-900 border-b pb-2">Basic Info</h3>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
-            <input required name="name" type="text" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" />
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">SKU</label>
-              <input name="sku" type="text" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm" placeholder="e.g. ITEM-001" />
+    <form onSubmit={handleSubmit}>
+      <Card className="overflow-hidden">
+        <div className="divide-y divide-border">
+          {error && (
+            <div className="p-5 pb-0">
+              <Alert tone="danger" title="Could not save product">
+                {error}
+              </Alert>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Barcode</label>
-              <input name="barcode" type="text" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm" />
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-              <select name="categoryId" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                <option value="">No Category</option>
-                {categories.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
-              <input name="unit" type="text" defaultValue="pcs" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-          </div>
-        </div>
-        
-        <div className="space-y-4">
-          <h3 className="font-semibold text-gray-900 border-b pb-2">Pricing & Inventory</h3>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Purchase Price</label>
-              <div className="relative">
-                <span className="absolute left-3 top-2 text-gray-500">Rs.</span>
-                <input 
-                  required 
-                  name="purchasePrice" 
-                  type="number" 
-                  min="0"
-                  step="0.01"
-                  value={purchasePrice}
-                  onChange={(e) => setPurchasePrice(Number(e.target.value))}
-                  className="w-full pl-10 pr-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" 
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Selling Price</label>
-              <div className="relative">
-                <span className="absolute left-3 top-2 text-gray-500">Rs.</span>
-                <input 
-                  required 
-                  name="sellingPrice" 
-                  type="number" 
-                  min="0"
-                  step="0.01"
-                  value={sellingPrice}
-                  onChange={(e) => setSellingPrice(Number(e.target.value))}
-                  className="w-full pl-10 pr-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" 
-                />
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-gray-50 p-4 rounded-lg flex items-center justify-between border border-gray-100">
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Expected Profit</p>
-              <p className={`text-lg font-bold ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                Rs. {profit.toLocaleString()}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Margin</p>
-              <p className={`text-lg font-bold ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {margin}%
-              </p>
-            </div>
-          </div>
+          )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Stock Threshold</label>
-            <input name="minStockThreshold" type="number" defaultValue="5" min="0" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" />
-            <p className="text-xs text-gray-500 mt-1">You will be alerted when stock falls below this level.</p>
-          </div>
+          <section className="space-y-4 p-5" aria-labelledby="product-section-basic">
+            <div>
+              <h2 id="product-section-basic" className="text-sm font-bold text-gray-900">
+                Basic Information
+              </h2>
+              <p className="text-xs text-muted">Name and identifiers used on invoices and barcode scans.</p>
+            </div>
+
+            <Field label="Product Name" htmlFor="product-name" required>
+              <Input id="product-name" name="name" required maxLength={100} placeholder="e.g. Nestle Pure Life 1.5L" />
+            </Field>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field label="SKU" htmlFor="product-sku">
+                <Input
+                  id="product-sku"
+                  name="sku"
+                  maxLength={50}
+                  placeholder="e.g. ITEM-001"
+                  className="font-mono"
+                />
+              </Field>
+              <Field label="Barcode" htmlFor="product-barcode">
+                <Input
+                  id="product-barcode"
+                  name="barcode"
+                  maxLength={50}
+                  placeholder="e.g. 8901234567890"
+                  className="font-mono"
+                />
+              </Field>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field label="Category" htmlFor="product-category">
+                <Select id="product-category" name="categoryId" defaultValue="">
+                  <option value="">No Category</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field label="Unit" htmlFor="product-unit" required hint="e.g. pcs, kg, box">
+                <Input id="product-unit" name="unit" required defaultValue="pcs" maxLength={20} />
+              </Field>
+            </div>
+
+            <Field label="Description" htmlFor="product-description">
+              <Textarea
+                id="product-description"
+                name="description"
+                maxLength={500}
+                rows={2}
+                placeholder="Optional notes about this product"
+              />
+            </Field>
+          </section>
+
+          <section className="space-y-4 p-5" aria-labelledby="product-section-pricing">
+            <div>
+              <h2 id="product-section-pricing" className="text-sm font-bold text-gray-900">
+                Pricing
+              </h2>
+              <p className="text-xs text-muted">Cost price you pay suppliers and the price customers pay.</p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field label="Purchase Price" htmlFor="product-purchase-price" required>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                    Rs.
+                  </span>
+                  <Input
+                    id="product-purchase-price"
+                    name="purchasePrice"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    required
+                    value={purchasePrice}
+                    onChange={(e) => setPurchasePrice(Number(e.target.value))}
+                    className="pl-11"
+                  />
+                </div>
+              </Field>
+              <Field label="Selling Price" htmlFor="product-selling-price" required>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                    Rs.
+                  </span>
+                  <Input
+                    id="product-selling-price"
+                    name="sellingPrice"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    required
+                    value={sellingPrice}
+                    onChange={(e) => setSellingPrice(Number(e.target.value))}
+                    className="pl-11"
+                  />
+                </div>
+              </Field>
+            </div>
+
+            <div className="flex items-center justify-between rounded-card border border-border bg-gray-50 p-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted">Expected Profit</p>
+                <p className={cn('text-lg font-bold', profit >= 0 ? 'text-success' : 'text-danger')}>
+                  Rs. {profit.toLocaleString()}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted">Margin</p>
+                <p className={cn('text-lg font-bold', profit >= 0 ? 'text-success' : 'text-danger')}>
+                  {margin}%
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section className="space-y-4 p-5" aria-labelledby="product-section-inventory">
+            <div>
+              <h2 id="product-section-inventory" className="text-sm font-bold text-gray-900">
+                Inventory
+              </h2>
+              <p className="text-xs text-muted">
+                New products start at 0 stock. Record opening stock from the Inventory page after saving.
+              </p>
+            </div>
+
+            <Field
+              label="Minimum Stock Threshold"
+              htmlFor="product-min-stock"
+              hint="You will be alerted when stock falls below this level."
+            >
+              <Input
+                id="product-min-stock"
+                name="minStockThreshold"
+                type="number"
+                min="0"
+                step="1"
+                required
+                defaultValue="5"
+              />
+            </Field>
+          </section>
         </div>
-      </div>
-      
-      <div className="border-t pt-6 flex justify-end gap-4">
-        <button 
-          type="button" 
-          onClick={() => router.back()}
-          className="px-6 py-2 text-gray-700 font-medium hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          Cancel
-        </button>
-        <button 
-          type="submit" 
-          disabled={loading}
-          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
-        >
-          {loading ? 'Saving...' : 'Save Product'}
-        </button>
-      </div>
+
+        <div className="flex justify-end gap-2 border-t border-border bg-gray-50/50 px-5 py-4">
+          <Button variant="outline" onClick={() => router.back()} disabled={loading}>
+            Cancel
+          </Button>
+          <Button type="submit" loading={loading}>
+            {loading ? 'Saving…' : 'Save Product'}
+          </Button>
+        </div>
+      </Card>
     </form>
   );
 }
