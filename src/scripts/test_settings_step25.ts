@@ -1,9 +1,20 @@
-import { PrismaClient } from '@/generated/prisma/client';
-import { getOrCreateBusinessSettings, updateBusinessProfile, deactivateBranch, createBranch, updateInvoiceDisplaySettings, getNextInvoiceNumber, updateInventorySettings, updateSalesSettings } from '@/services/settings/business-settings';
+export {};
 
-const prisma = new PrismaClient({} as any);
+require('dotenv').config();
 
-async function run() {
+const Module = require('module');
+const origRequire = Module.prototype.require;
+Module.prototype.require = function (id: string, ...args: any[]) {
+  if (id === 'server-only') {
+    return {};
+  }
+  return origRequire.apply(this, [id, ...args]);
+};
+
+async function main() {
+  const { prisma } = await import('@/lib/db/prisma');
+  const { getOrCreateBusinessSettings, updateBusinessProfile, deactivateBranch, createBranch, updateInvoiceDisplaySettings, getNextInvoiceNumber, updateInventorySettings, updateSalesSettings } = await import('@/services/settings/business-settings');
+
   const business = await prisma.business.findFirst();
   if (!business) return console.log('No business found');
   
@@ -29,4 +40,4 @@ async function run() {
   process.exit(0);
 }
 
-run();
+main();

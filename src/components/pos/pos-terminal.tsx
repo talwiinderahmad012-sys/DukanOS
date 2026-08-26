@@ -62,6 +62,15 @@ export type CartItem = {
   discount: number;
 };
 
+type CompletedSale = {
+  id: string;
+  invoiceNumber: string;
+  total: number | string;
+  paidAmount: number | string;
+  isOffline?: boolean;
+  [key: string]: unknown;
+};
+
 const fmt = (n: number) => `Rs. ${n.toLocaleString()}`;
 
 export function POSTerminal({
@@ -112,7 +121,7 @@ export function POSTerminal({
   // Checkout State
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [completedSale, setCompletedSale] = useState<any | null>(null);
+  const [completedSale, setCompletedSale] = useState<CompletedSale | null>(null);
 
   // Mobile View Tab ('products' | 'cart' | 'checkout')
   const [mobileTab, setMobileTab] = useState<'products' | 'cart' | 'checkout'>('products');
@@ -414,7 +423,7 @@ export function POSTerminal({
         return;
       }
 
-      setCompletedSale(res.data);
+      setCompletedSale(res.data as CompletedSale);
       handleClearCart();
       router.refresh();
     } catch (err) {

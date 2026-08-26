@@ -1,10 +1,23 @@
-import { prisma } from '@/lib/db/prisma';
-import { CommunicationChannel } from '@/generated/prisma/client';
+export {};
 
-const createTemplate = async (_businessId: string, _type: string, data: Record<string, unknown>) => ({ id: 'stub-template', ...data });
-const sendTemplatedMessage = async (data: Record<string, unknown>) => ({ id: 'stub-msg', status: 'SENT', ...data });
+require('dotenv').config();
 
-async function runTests() {
+const Module = require('module');
+const origRequire = Module.prototype.require;
+Module.prototype.require = function (id: string, ...args: any[]) {
+  if (id === 'server-only') {
+    return {};
+  }
+  return origRequire.apply(this, [id, ...args]);
+};
+
+async function main() {
+  const { prisma } = await import('@/lib/db/prisma');
+  const { CommunicationChannel } = await import('@/generated/prisma/client');
+
+  const createTemplate = async (_businessId: string, _type: string, data: Record<string, unknown>) => ({ id: 'stub-template', ...data });
+  const sendTemplatedMessage = async (data: Record<string, unknown>) => ({ id: 'stub-msg', status: 'SENT', ...data });
+
   console.log('--- RUNNING COMMUNICATION TESTS ---');
   
   const business = await prisma.business.findFirst({
@@ -16,15 +29,14 @@ async function runTests() {
     process.exit(1);
   }
 
-  // 1. Setup Mock Provider
+  const uniqueId = `test-prov-${Date.now()}`;
   await prisma.communicationProviderConfig.upsert({
     where: { businessId_channel: { businessId: business.id, channel: CommunicationChannel.WHATSAPP } },
     update: { isEnabled: true, provider: 'MOCK', config: '{}' },
-    create: { businessId: business.id, channel: CommunicationChannel.WHATSAPP, provider: 'MOCK', isEnabled: true, id: 'test-prov-id', updatedAt: new Date() },
+    create: { businessId: business.id, channel: CommunicationChannel.WHATSAPP, provider: 'MOCK', isEnabled: true, id: uniqueId, updatedAt: new Date() },
   });
   console.log('✅ Mock Provider configured');
 
-  // 2. Setup Template
   const template = await createTemplate(business.id, 'system', {
     name: 'Customer Receipt',
     type: 'RECEIPT',
@@ -33,7 +45,6 @@ async function runTests() {
   });
   console.log('✅ Template created');
 
-  // 3. Send Templated Message
   const idempotencyKey = `test-receipt-${Date.now()}`;
   const msg = await sendTemplatedMessage({
     businessId: business.id,
@@ -56,7 +67,6 @@ async function runTests() {
     throw new Error(`Expected SENT or DELIVERED, got ${msg.status}`);
   }
 
-  // 4. Test Idempotency
   const msg2 = await sendTemplatedMessage({
     businessId: business.id,
     recipient: '03001234567',
@@ -80,7 +90,7 @@ async function runTests() {
   console.log('ALL TESTS PASSED.');
 }
 
-runTests().catch(e => {
+main().catch(e => {
   console.error(e);
   process.exit(1);
 });

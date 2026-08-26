@@ -7,12 +7,12 @@ const path = require('path');
 
 // Stub 'server-only' for standalone node execution
 const Module = require('module');
-const origRequire = Module.prototype.require;
-Module.prototype.require = function (id: string, ...args: any[]) {
+const originalRequire = Module.prototype.require;
+Module.prototype.require = function (id: string) {
   if (id === 'server-only') {
     return {};
   }
-  return origRequire.apply(this, [id, ...args]);
+  return originalRequire.apply(this, arguments);
 };
 
 async function runTests() {
@@ -167,7 +167,21 @@ async function runTests() {
   if (pAfterConflict?.currentStock !== 1) {
     throw new Error(`Stock corrupted after conflict: ${pAfterConflict?.currentStock}`);
   }
-  console.log('✓ Test 3 Passed: Stale offline transaction rejected as INSUFFICIENT_STOCK conflict without corrupting inventory.');
+  // --- TEST 4: Authentication & Sign-In Route Service Worker Bypass ---
+  console.log('\n--- Running Test 4: Auth & Sign-In Route Service Worker Bypass ---');
+  if (!swContent.includes("url.pathname.startsWith('/login')")) {
+    throw new Error('Regression: public/sw.js must explicitly exclude /login from offline fallback interception.');
+  }
+  if (!swContent.includes("url.pathname.startsWith('/register')")) {
+    throw new Error('Regression: public/sw.js must explicitly exclude /register from offline fallback interception.');
+  }
+  if (!swContent.includes("url.pathname.startsWith('/api/')") || !swContent.includes("url.pathname.includes('/auth/')")) {
+    throw new Error('Regression: public/sw.js must bypass dynamic API and NextAuth endpoints.');
+  }
+  if (!swContent.includes("window.addEventListener('online'")) {
+    throw new Error('Regression: public/sw.js offline fallback must include online reconnect auto-reload handler.');
+  }
+  console.log('✓ Test 4 Passed: Auth entry routes (/login, /register, /api/auth) strictly bypass SW offline interception.');
 
   console.log('\n🎉 ALL STEP 13 PWA, OFFLINE & SYNCHRONIZATION TESTS PASSED SUCCESSFULLY!\n');
 }
