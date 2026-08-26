@@ -40,19 +40,27 @@ export default async function NewPurchasePage() {
   }));
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      {/* Breadcrumb Navigation */}
-      <div className="flex items-center gap-2 text-sm text-gray-500">
-        <Link href="/dashboard/purchases" className="hover:text-blue-600 transition-colors">
-          Purchases
-        </Link>
-        <ChevronRight className="w-4 h-4 text-gray-400" />
-        <span className="text-gray-900 font-medium">New Purchase Invoice</span>
-      </div>
+    <div className="mx-auto max-w-5xl space-y-6">
+      {/* Breadcrumb navigation */}
+      <nav aria-label="Breadcrumb">
+        <ol className="flex items-center gap-1.5 text-sm text-muted">
+          <li>
+            <Link href="/dashboard/purchases" className="transition-colors hover:text-primary">
+              Purchases
+            </Link>
+          </li>
+          <li aria-hidden="true">
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+          </li>
+          <li aria-current="page" className="font-medium text-gray-900">
+            New Purchase Invoice
+          </li>
+        </ol>
+      </nav>
 
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Record New Purchase</h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <p className="mt-1 text-sm text-muted">
           Receive stock from a supplier, update unit costs, and record invoice details.
         </p>
       </div>

@@ -50,7 +50,7 @@ export default async function SupplierDetailPage({
       value: fmt(summary.totalSpend),
       sub: `${summary.totalPurchases} lifetime invoices`,
       Icon: DollarSign,
-      iconWrap: 'bg-blue-50 text-blue-600',
+      iconWrap: 'bg-primary-soft text-primary',
       valueClass: 'text-gray-900',
     },
     {
@@ -58,16 +58,16 @@ export default async function SupplierDetailPage({
       value: fmt(summary.totalPaid),
       sub: 'Paid to vendor',
       Icon: Receipt,
-      iconWrap: 'bg-green-50 text-green-600',
-      valueClass: 'text-green-600',
+      iconWrap: 'bg-success-soft text-success',
+      valueClass: 'text-success',
     },
     {
       label: 'Balance Due',
       value: fmt(summary.remainingDue),
       sub: 'Payable / Credit',
       Icon: Receipt,
-      iconWrap: 'bg-orange-50 text-orange-600',
-      valueClass: summary.remainingDue > 0 ? 'text-orange-600' : 'text-gray-900',
+      iconWrap: 'bg-warning-soft text-warning',
+      valueClass: summary.remainingDue > 0 ? 'text-warning' : 'text-gray-900',
     },
     {
       label: 'Last Purchase',
@@ -263,10 +263,10 @@ export default async function SupplierDetailPage({
                           {purchase.items.length} {purchase.items.length === 1 ? 'item' : 'items'}
                         </span>
                       </Td>
-                      <Td className="text-right font-bold text-gray-900">{fmt(total)}</Td>
-                      <Td className="text-right font-medium text-green-600">{fmt(paid)}</Td>
+                      <Td className="text-right font-medium text-gray-900">{fmt(total)}</Td>
+                      <Td className="text-right font-medium text-success">{fmt(paid)}</Td>
                       <Td className="text-right">
-                        <span className={remaining > 0 ? 'font-medium text-orange-600' : 'text-gray-400'}>
+                        <span className={remaining > 0 ? 'font-semibold text-warning' : 'text-muted'}>
                           {fmt(remaining)}
                         </span>
                       </Td>

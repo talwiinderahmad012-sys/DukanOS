@@ -1,21 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  Plus, 
-  Trash2, 
-  Search, 
-  Receipt, 
-  DollarSign, 
-  Truck, 
-  Calendar, 
-  AlertCircle, 
-  Check, 
-  Layers
-} from 'lucide-react';
+import { Search, Trash2 } from 'lucide-react';
 import { createPurchaseAction } from '@/app/actions/purchase.actions';
 import Link from 'next/link';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Badge, type BadgeTone } from '@/components/ui/badge';
+import { Button, buttonClasses, IconButton } from '@/components/ui/button';
+import { Alert } from '@/components/ui/alert';
+import { Field, Input, Select, inputClasses } from '@/components/ui/input';
+import { cn } from '@/components/ui/cn';
 
 export type SupplierOption = {
   id: string;
@@ -44,6 +39,8 @@ export type LineItem = {
   lineTotal: number;
 };
 
+const fmt = (n: number) => `Rs. ${n.toLocaleString()}`;
+
 export function PurchaseForm({
   businessId,
   suppliers,
@@ -54,6 +51,8 @@ export function PurchaseForm({
   initialProducts: ProductOption[];
 }) {
   const router = useRouter();
+  const idPrefix = useId();
+  const fieldId = (name: string) => `${idPrefix}-${name}`;
 
   // Form State
   const [supplierId, setSupplierId] = useState<string>('');
@@ -155,6 +154,13 @@ export function PurchaseForm({
       ? 'PARTIAL'
       : 'UNPAID';
 
+  const paymentBadge: { label: string; tone: BadgeTone } =
+    paymentState === 'PAID'
+      ? { label: 'Fully Paid', tone: 'success' }
+      : paymentState === 'PARTIAL'
+      ? { label: 'Partially Paid (Credit)', tone: 'warning' }
+      : { label: 'Unpaid / Full Credit', tone: 'danger' };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -201,33 +207,29 @@ export function PurchaseForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-6" aria-label="Record new purchase">
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-start gap-3 text-sm">
-          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold">Unable to process purchase</p>
-            <p>{error}</p>
-          </div>
-        </div>
+        <Alert tone="danger" title="Unable to process purchase">
+          {error}
+        </Alert>
       )}
 
-      {/* 1. Header Information */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-6">
-        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2 border-b pb-3">
-          <Receipt className="w-5 h-5 text-blue-600" />
-          Purchase Details
-        </h2>
+      {/* 1. Supplier & purchase information */}
+      <Card padded>
+        <div className="mb-5 border-b border-border pb-3">
+          <h2 className="text-base font-bold text-gray-900">Supplier & Purchase Information</h2>
+          <p className="text-xs text-muted">Who supplied the stock and when it was received.</p>
+        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-1.5">
-              <Truck className="w-4 h-4 text-gray-400" /> Supplier / Vendor
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-1">
+            <label htmlFor={fieldId('supplierId')} className="block text-sm font-medium text-gray-700">
+              Supplier / Vendor
             </label>
-            <select
+            <Select
+              id={fieldId('supplierId')}
               value={supplierId}
               onChange={(e) => setSupplierId(e.target.value)}
-              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">-- Direct / Cash Vendor (No Profile) --</option>
               {suppliers.map((s) => (
@@ -235,69 +237,66 @@ export function PurchaseForm({
                   {s.name} {s.phone ? `(${s.phone})` : ''}
                 </option>
               ))}
-            </select>
-            <p className="text-xs text-gray-400 mt-1">
-              Select an existing supplier to track payment history.
-            </p>
+            </Select>
+            <p className="text-xs text-muted">Select an existing supplier to track payment history.</p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-1.5">
-              <Receipt className="w-4 h-4 text-gray-400" /> Invoice / Bill Number
-            </label>
-            <input
+          <Field
+            label="Invoice / Bill Number"
+            htmlFor={fieldId('invoiceNumber')}
+            hint="Supplier bill or internal memo ID."
+          >
+            <Input
+              id={fieldId('invoiceNumber')}
               type="text"
               value={invoiceNumber}
               onChange={(e) => setInvoiceNumber(e.target.value)}
               placeholder="e.g. INV-9042"
-              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <p className="text-xs text-gray-400 mt-1">Supplier bill or internal memo ID.</p>
-          </div>
+          </Field>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-1.5">
-              <Calendar className="w-4 h-4 text-gray-400" /> Purchase Date
-            </label>
-            <input
+          <Field label="Purchase Date" htmlFor={fieldId('purchaseDate')}>
+            <Input
+              id={fieldId('purchaseDate')}
               type="date"
               value={purchaseDate}
               onChange={(e) => setPurchaseDate(e.target.value)}
-              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </Field>
+        </div>
+
+        <div className="mt-4">
+          <Field label="Purchase Notes / Remarks" htmlFor={fieldId('notes')}>
+            <Input
+              id={fieldId('notes')}
+              type="text"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Optional remarks (e.g., delivered via cargo, payment terms)"
+            />
+          </Field>
+        </div>
+      </Card>
+
+      {/* 2. Product line items */}
+      <Card>
+        <CardHeader className="flex-row items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <CardTitle>Purchased Products</CardTitle>
+            <CardDescription>Search your catalog and add products received in this purchase.</CardDescription>
           </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Purchase Notes / Remarks
-          </label>
-          <input
-            type="text"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Optional remarks (e.g., delivered via cargo, payment terms)"
-            className="w-full px-3.5 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-      </div>
-
-      {/* 2. Product Line Items Builder */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-3">
-          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <Layers className="w-5 h-5 text-blue-600" />
-            Purchased Products
-          </h2>
-          <span className="text-xs font-semibold px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full">
+          <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
             {items.length} {items.length === 1 ? 'Line Item' : 'Line Items'}
           </span>
-        </div>
+        </CardHeader>
 
-        {/* Product Selector / Search Bar */}
-        <div className="relative">
+        <CardContent className="space-y-4">
+          {/* Product selector / search */}
           <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search
+              className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+              aria-hidden="true"
+            />
             <input
               type="text"
               value={productSearch}
@@ -306,273 +305,254 @@ export function PurchaseForm({
                 setProductSearch(e.target.value);
                 setIsSearchingProduct(true);
               }}
-              placeholder="Search product by name, SKU, or barcode to add line item..."
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Search product by name, SKU, or barcode to add line item…"
+              aria-label="Search products to add to this purchase"
+              className={inputClasses(false, 'pl-10')}
             />
+
+            {/* Autocomplete dropdown */}
+            {isSearchingProduct && (
+              <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-64 divide-y divide-gray-100 overflow-y-auto rounded-card border border-border bg-white shadow-elevated">
+                {filteredProducts.length === 0 ? (
+                  <div className="p-4 text-center text-sm text-gray-500">No matching products found.</div>
+                ) : (
+                  filteredProducts.slice(0, 10).map((prod) => (
+                    <button
+                      key={prod.id}
+                      type="button"
+                      onClick={() => handleAddProduct(prod)}
+                      aria-label={`Add ${prod.name} to purchase`}
+                      className="flex w-full items-center justify-between gap-3 p-3 text-left transition-colors hover:bg-primary-soft"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-gray-900">{prod.name}</p>
+                        <p className="truncate font-mono text-xs text-muted">
+                          SKU: {prod.sku || '-'} | Stock: {prod.currentStock} {prod.unit}
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="text-sm font-bold text-primary">{fmt(Number(prod.purchasePrice))}</p>
+                        <span className="text-xs font-medium text-success">+ Add Item</span>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Autocomplete Dropdown */}
-          {isSearchingProduct && (
-            <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-64 overflow-y-auto z-20 divide-y divide-gray-100">
-              {filteredProducts.length === 0 ? (
-                <div className="p-4 text-center text-sm text-gray-500">
-                  No matching products found.
-                </div>
-              ) : (
-                filteredProducts.slice(0, 10).map((prod) => (
-                  <button
-                    key={prod.id}
-                    type="button"
-                    onClick={() => handleAddProduct(prod)}
-                    className="w-full p-3 text-left hover:bg-blue-50 flex items-center justify-between transition-colors"
-                  >
-                    <div>
-                      <p className="font-semibold text-gray-900 text-sm">{prod.name}</p>
-                      <p className="text-xs text-gray-400 font-mono">
-                        SKU: {prod.sku || '-'} | Stock: {prod.currentStock} {prod.unit}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-blue-600">
-                        Rs. {Number(prod.purchasePrice).toLocaleString()}
-                      </p>
-                      <span className="text-xs text-green-600 font-medium">+ Add Item</span>
-                    </div>
-                  </button>
-                ))
-              )}
+          {/* Line items table */}
+          {items.length === 0 ? (
+            <div className="rounded-card border-2 border-dashed border-border p-8 text-center">
+              <p className="mb-2 text-sm text-gray-500">No products added to this purchase yet.</p>
+              <p className="text-xs text-muted">Search above or select from your catalog to record purchased stock.</p>
             </div>
-          )}
-        </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-[640px] w-full border-collapse text-left text-sm">
+                <thead>
+                  <tr className="border-y border-border bg-gray-50 text-xs uppercase tracking-wider text-gray-500">
+                    <th className="px-4 py-3 font-medium">Product</th>
+                    <th className="w-32 px-4 py-3 font-medium">Quantity</th>
+                    <th className="w-36 px-4 py-3 font-medium">Unit Cost (PKR)</th>
+                    <th className="w-28 px-4 py-3 font-medium">Discount</th>
+                    <th className="w-36 px-4 py-3 text-right font-medium">Line Total</th>
+                    <th className="w-14 px-4 py-3">
+                      <span className="sr-only">Remove</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {items.map((item, index) => (
+                    <tr key={item.productId}>
+                      <td className="px-4 py-3">
+                        <p className="text-sm font-semibold text-gray-900">{item.productName}</p>
+                        {item.sku && <p className="font-mono text-xs text-muted">SKU: {item.sku}</p>}
+                      </td>
 
-        {/* Line Items Table */}
-        {items.length === 0 ? (
-          <div className="p-8 border-2 border-dashed border-gray-200 rounded-xl text-center">
-            <p className="text-gray-500 text-sm mb-2">No products added to this purchase yet.</p>
-            <p className="text-xs text-gray-400">
-              Search above or select from your catalog to record purchased stock.
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-y">
-                  <th className="px-4 py-3 font-medium">Product</th>
-                  <th className="px-4 py-3 font-medium w-32">Quantity</th>
-                  <th className="px-4 py-3 font-medium w-36">Unit Cost (PKR)</th>
-                  <th className="px-4 py-3 font-medium w-28">Discount</th>
-                  <th className="px-4 py-3 font-medium text-right w-36">Line Total</th>
-                  <th className="px-4 py-3 text-center w-12"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {items.map((item, index) => (
-                  <tr key={item.productId} className="hover:bg-gray-50/50">
-                    <td className="px-4 py-3">
-                      <p className="font-semibold text-gray-900 text-sm">{item.productName}</p>
-                      {item.sku && (
-                        <p className="text-xs text-gray-400 font-mono">SKU: {item.sku}</p>
-                      )}
-                    </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="number"
+                            min="1"
+                            required
+                            value={item.quantity}
+                            onChange={(e) =>
+                              handleUpdateItem(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))
+                            }
+                            aria-label={`Quantity for ${item.productName}`}
+                            className={inputClasses(false, 'w-20 font-medium')}
+                          />
+                          <span className="text-xs text-gray-500">{item.unit}</span>
+                        </div>
+                      </td>
 
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1.5">
+                      <td className="px-4 py-3">
                         <input
                           type="number"
-                          min="1"
+                          min="0"
+                          step="0.01"
                           required
-                          value={item.quantity}
+                          value={item.purchasePrice}
                           onChange={(e) =>
-                            handleUpdateItem(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))
+                            handleUpdateItem(
+                              index,
+                              'purchasePrice',
+                              Math.max(0, parseFloat(e.target.value) || 0)
+                            )
                           }
-                          className="w-20 px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                          aria-label={`Unit cost for ${item.productName}`}
+                          className={inputClasses(false, 'w-28 font-medium')}
                         />
-                        <span className="text-xs text-gray-500">{item.unit}</span>
-                      </div>
-                    </td>
+                      </td>
 
-                    <td className="px-4 py-3">
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        required
-                        value={item.purchasePrice}
-                        onChange={(e) =>
-                          handleUpdateItem(
-                            index,
-                            'purchasePrice',
-                            Math.max(0, parseFloat(e.target.value) || 0)
-                          )
-                        }
-                        className="w-28 px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-                      />
-                    </td>
+                      <td className="px-4 py-3">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={item.discount}
+                          onChange={(e) =>
+                            handleUpdateItem(
+                              index,
+                              'discount',
+                              Math.max(0, parseFloat(e.target.value) || 0)
+                            )
+                          }
+                          aria-label={`Line discount for ${item.productName}`}
+                          className={inputClasses(false, 'w-20')}
+                        />
+                      </td>
 
-                    <td className="px-4 py-3">
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={item.discount}
-                        onChange={(e) =>
-                          handleUpdateItem(
-                            index,
-                            'discount',
-                            Math.max(0, parseFloat(e.target.value) || 0)
-                          )
-                        }
-                        className="w-20 px-2 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </td>
+                      <td className="px-4 py-3 text-right text-sm font-bold text-gray-900">
+                        {fmt(item.lineTotal)}
+                      </td>
 
-                    <td className="px-4 py-3 text-right font-bold text-gray-900 text-sm">
-                      Rs. {item.lineTotal.toLocaleString()}
-                    </td>
+                      <td className="px-4 py-3 text-center">
+                        <IconButton
+                          aria-label={`Remove ${item.productName} from purchase`}
+                          title="Remove product"
+                          onClick={() => handleRemoveItem(index)}
+                          className="h-9 w-9 text-gray-500 hover:bg-danger-soft hover:text-danger"
+                        >
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
+                        </IconButton>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-                    <td className="px-4 py-3 text-center">
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveItem(index)}
-                        className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
-                        title="Remove product"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* 3. Payment & summary */}
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+        {/* Payment input card */}
+        <Card padded>
+          <div className="mb-4 border-b border-border pb-3">
+            <h3 className="text-base font-bold text-gray-900">Payment Terms & Status</h3>
+            <p className="text-xs text-muted">How much was paid to the supplier on receipt.</p>
           </div>
-        )}
-      </div>
 
-      {/* 3. Financial Summary & Payment Box */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        {/* Payment Input Card */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-4">
-          <h3 className="text-base font-bold text-gray-900 flex items-center gap-2 border-b pb-2">
-            <DollarSign className="w-5 h-5 text-green-600" />
-            Payment Terms & Status
-          </h3>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-1">
+              <label htmlFor={fieldId('paidAmount')} className="block text-sm font-medium text-gray-700">
                 Amount Paid (Cash / Transfer)
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">Rs.</span>
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                  Rs.
+                </span>
                 <input
                   type="number"
                   min="0"
                   step="0.01"
                   value={paidAmount}
                   onChange={(e) => setPaidAmount(Math.max(0, parseFloat(e.target.value) || 0))}
-                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="Amount paid"
+                  className={inputClasses(false, 'pl-9 font-semibold')}
                 />
               </div>
-              <p className="text-xs text-gray-400 mt-1">Amount paid directly upon receipt.</p>
+              <p className="text-xs text-muted">Amount paid directly upon receipt.</p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+            <div className="space-y-1">
+              <label htmlFor={fieldId('globalDiscount')} className="block text-sm font-medium text-gray-700">
                 Overall Invoice Discount
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">Rs.</span>
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                  Rs.
+                </span>
                 <input
                   type="number"
                   min="0"
                   step="0.01"
                   value={globalDiscount}
                   onChange={(e) => setGlobalDiscount(Math.max(0, parseFloat(e.target.value) || 0))}
-                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="Overall invoice discount"
+                  className={inputClasses(false, 'pl-9')}
                 />
               </div>
-              <p className="text-xs text-gray-400 mt-1">Supplier concession or promo deduction.</p>
+              <p className="text-xs text-muted">Supplier concession or promo deduction.</p>
             </div>
           </div>
 
-          <div className="p-3 bg-gray-50 rounded-lg flex items-center justify-between border border-gray-200">
-            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-input border border-border bg-gray-50 p-3">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-600">
               Computed Payment Status
             </span>
-            {paymentState === 'PAID' ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
-                <Check className="w-3.5 h-3.5" /> Fully Paid
-              </span>
-            ) : paymentState === 'PARTIAL' ? (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-800">
-                Partially Paid (Credit)
-              </span>
-            ) : (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800">
-                Unpaid / Full Credit
-              </span>
-            )}
+            <Badge tone={paymentBadge.tone}>{paymentBadge.label}</Badge>
           </div>
-        </div>
+        </Card>
 
-        {/* Totals Summary */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-4">
-          <h3 className="text-base font-bold text-gray-900 border-b pb-2">
-            Invoice Summary
-          </h3>
+        {/* Invoice summary */}
+        <Card padded>
+          <div className="mb-4 border-b border-border pb-3">
+            <h3 className="text-base font-bold text-gray-900">Invoice Summary</h3>
+            <p className="text-xs text-muted">Totals update live as you edit line items.</p>
+          </div>
 
-          <div className="space-y-2.5 text-sm">
-            <div className="flex justify-between text-gray-600">
-              <span>Subtotal ({items.length} items)</span>
-              <span className="font-semibold text-gray-900">Rs. {subtotal.toLocaleString()}</span>
+          <dl className="space-y-2.5 text-sm">
+            <div className="flex items-center justify-between text-gray-600">
+              <dt>Subtotal ({items.length} {items.length === 1 ? 'item' : 'items'})</dt>
+              <dd className="font-semibold text-gray-900">{fmt(subtotal)}</dd>
             </div>
 
             {globalDiscount > 0 && (
-              <div className="flex justify-between text-green-600">
-                <span>Discount</span>
-                <span className="font-semibold">- Rs. {globalDiscount.toLocaleString()}</span>
+              <div className="flex items-center justify-between text-success">
+                <dt>Discount</dt>
+                <dd className="font-semibold">- {fmt(globalDiscount)}</dd>
               </div>
             )}
 
-            <div className="border-t pt-2.5 flex justify-between text-base font-bold text-gray-900">
-              <span>Grand Total</span>
-              <span className="text-blue-600">Rs. {grandTotal.toLocaleString()}</span>
+            <div className="flex items-center justify-between border-t border-border pt-2.5 text-base font-bold text-gray-900">
+              <dt>Grand Total</dt>
+              <dd className="text-primary">{fmt(grandTotal)}</dd>
             </div>
 
-            <div className="flex justify-between text-gray-600 text-sm">
-              <span>Paid Now</span>
-              <span className="font-medium text-green-600">Rs. {paidAmount.toLocaleString()}</span>
+            <div className="flex items-center justify-between text-gray-600">
+              <dt>Paid Now</dt>
+              <dd className="font-medium text-success">{fmt(paidAmount)}</dd>
             </div>
 
-            <div className="border-t pt-2 flex justify-between text-base font-bold">
-              <span>Remaining Balance (Due)</span>
-              <span className={remaining > 0 ? 'text-orange-600' : 'text-gray-900'}>
-                Rs. {remaining.toLocaleString()}
-              </span>
+            <div className="flex items-center justify-between border-t border-border pt-2 text-base font-bold">
+              <dt>Remaining Balance (Due)</dt>
+              <dd className={cn(remaining > 0 ? 'text-warning' : 'text-gray-900')}>{fmt(remaining)}</dd>
             </div>
-          </div>
+          </dl>
 
-          <div className="pt-4 border-t flex flex-col sm:flex-row gap-3 justify-end">
-            <Link
-              href="/dashboard/purchases"
-              className="px-5 py-2.5 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium text-center transition-colors"
-            >
+          <div className="mt-5 flex flex-col justify-end gap-3 border-t border-border pt-4 sm:flex-row">
+            <Link href="/dashboard/purchases" className={buttonClasses('outline', 'md')}>
               Cancel
             </Link>
-            <button
-              type="submit"
-              disabled={loading || items.length === 0}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <span>Recording Purchase & Stock...</span>
-              ) : (
-                <span>Confirm & Record Purchase</span>
-              )}
-            </button>
+            <Button type="submit" size="md" loading={loading} disabled={loading || items.length === 0}>
+              {loading ? 'Recording Purchase & Stock…' : 'Confirm & Record Purchase'}
+            </Button>
           </div>
-        </div>
+        </Card>
       </div>
     </form>
   );

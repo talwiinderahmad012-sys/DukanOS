@@ -3,12 +3,27 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { adjustStockAction } from '@/app/actions/inventory.actions';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Alert } from '@/components/ui/alert';
+import { Field, Select, Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/components/ui/cn';
 
-export function InventoryAdjustmentForm({ businessId, productId, currentStock }: { businessId: string, productId: string, currentStock: number }) {
+export function InventoryAdjustmentForm({
+  businessId,
+  productId,
+  currentStock,
+  unit = 'pcs',
+}: {
+  businessId: string;
+  productId: string;
+  currentStock: number;
+  unit?: string;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const [adjustmentType, setAdjustmentType] = useState('add');
   const [quantity, setQuantity] = useState(0);
 
@@ -16,6 +31,7 @@ export function InventoryAdjustmentForm({ businessId, productId, currentStock }:
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const form = e.currentTarget;
     setLoading(true);
     setError('');
 
@@ -25,7 +41,7 @@ export function InventoryAdjustmentForm({ businessId, productId, currentStock }:
       return;
     }
 
-    const formData = new FormData(e.currentTarget);
+    const formData = new FormData(form);
     const payload = {
       productId,
       newStock,
@@ -39,71 +55,91 @@ export function InventoryAdjustmentForm({ businessId, productId, currentStock }:
         setLoading(false);
         return;
       }
-      
+
       setQuantity(0);
-      e.currentTarget.reset();
+      form.reset();
       router.refresh();
       setLoading(false);
-    } catch (err) {
+    } catch {
       setError('Unexpected error occurred');
       setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
-      <h3 className="font-semibold text-gray-900 border-b pb-2">Adjust Stock</h3>
-      
-      {error && <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
+    <Card>
+      <CardHeader>
+        <CardTitle>Adjust Stock</CardTitle>
+        <CardDescription>Manually correct the stock level for this product.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4" aria-label="Adjust stock for this product">
+          <Alert tone="warning" title="This changes live inventory">
+            The adjustment updates stock immediately and writes a permanent movement record. It cannot be undone.
+          </Alert>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Action</label>
-          <select 
-            value={adjustmentType} 
-            onChange={(e) => setAdjustmentType(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+          {error && <Alert tone="danger">{error}</Alert>}
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Action" htmlFor="adjustment-action">
+              <Select
+                id="adjustment-action"
+                value={adjustmentType}
+                onChange={(e) => setAdjustmentType(e.target.value)}
+              >
+                <option value="add">Add Stock (+)</option>
+                <option value="subtract">Reduce Stock (−)</option>
+              </Select>
+            </Field>
+            <Field label={`Quantity (${unit})`} htmlFor="adjustment-quantity">
+              <Input
+                id="adjustment-quantity"
+                type="number"
+                min="1"
+                step="1"
+                inputMode="numeric"
+                required
+                value={quantity || ''}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+                placeholder="0"
+              />
+            </Field>
+          </div>
+
+          <Field label="Reason" htmlFor="adjustment-reason" required>
+            <Select id="adjustment-reason" name="reason" required defaultValue="Opening Stock">
+              <option value="Opening Stock">Opening Stock</option>
+              <option value="Correction">Correction</option>
+              <option value="Damage">Damage</option>
+              <option value="Loss">Loss</option>
+              <option value="Other">Other</option>
+            </Select>
+          </Field>
+
+          <div
+            className="flex items-center justify-between rounded-input border border-border bg-gray-50 px-4 py-3"
+            aria-live="polite"
           >
-            <option value="add">Add Stock (+)</option>
-            <option value="subtract">Reduce Stock (-)</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-          <input 
-            type="number" 
-            min="1" 
-            required 
-            value={quantity || ''}
-            onChange={(e) => setQuantity(Number(e.target.value))}
-            className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" 
-          />
-        </div>
-      </div>
+            <span className="text-sm font-medium text-gray-600">
+              Resulting Stock ({currentStock} {adjustmentType === 'add' ? '+' : '−'} {quantity})
+            </span>
+            <span className={cn('text-lg font-bold tabular-nums', newStock < 0 ? 'text-danger' : 'text-gray-900')}>
+              {newStock} {unit}
+            </span>
+          </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Reason</label>
-        <select name="reason" required className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="Opening Stock">Opening Stock</option>
-          <option value="Correction">Correction</option>
-          <option value="Damage">Damage</option>
-          <option value="Loss">Loss</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
-
-      <div className="bg-gray-50 p-4 rounded-lg flex items-center justify-between">
-        <span className="text-sm text-gray-600">Resulting Stock:</span>
-        <span className={`font-bold text-lg ${newStock < 0 ? 'text-red-600' : 'text-gray-900'}`}>{newStock}</span>
-      </div>
-
-      <button 
-        type="submit" 
-        disabled={loading || quantity <= 0 || newStock < 0}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg transition-colors disabled:opacity-50"
-      >
-        {loading ? 'Adjusting...' : 'Confirm Adjustment'}
-      </button>
-    </form>
+          <Button
+            type="submit"
+            variant="primary"
+            size="md"
+            loading={loading}
+            disabled={quantity <= 0 || newStock < 0}
+            className="w-full"
+          >
+            {loading ? 'Adjusting…' : 'Confirm Adjustment'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
