@@ -4,10 +4,13 @@ import Link from 'next/link';
 import { LogOut, Store, Settings } from 'lucide-react';
 import { signOut } from '@/lib/auth/auth';
 import { recordAuditLog } from '@/services/audit';
+import { SidebarUserFooter } from '@/components/layout/sidebar-user-footer';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { DashboardNavSections } from '@/components/layout/nav-sections';
 import { NetworkStatusBadge } from '@/components/pwa/pwa-provider';
 import { NotificationBell } from '@/components/notifications/notification-bell';
+import { LanguageToggle } from '@/components/layout/language-toggle';
+import { ThemeToggle } from '@/components/theme/theme-toggle';
 import LiveAnalyticsRefresher from '@/components/analytics/live-analytics-refresher';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -37,7 +40,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const userLabel = user.name?.trim() || user.email || 'User';
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-page transition-colors duration-200 flex flex-col md:flex-row">
 
       {/* Mobile Header & Nav */}
       <MobileNav
@@ -69,33 +72,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <DashboardNavSections role={activeMembership.role} />
 
         {/* User account area */}
-        <div className="border-t border-border p-3">
-          <div className="flex items-center gap-3 px-2 py-1.5">
-            <div
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-sm font-bold text-primary"
-              aria-hidden="true"
-            >
-              {user.name?.charAt(0)?.toUpperCase() || 'U'}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-gray-900" title={userLabel}>
-                {userLabel}
-              </p>
-              <p className="truncate text-xs font-medium capitalize text-muted">
-                {activeMembership.role.toLowerCase()}
-              </p>
-            </div>
-          </div>
-          <form action={logoutAction} className="mt-1">
-            <button
-              type="submit"
-              className="group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-danger-soft hover:text-danger"
-            >
-              <LogOut className="h-5 w-5 shrink-0 text-gray-400 transition-colors group-hover:text-danger" aria-hidden="true" />
-              <span>Sign out</span>
-            </button>
-          </form>
-        </div>
+        <SidebarUserFooter
+          userLabel={userLabel}
+          role={activeMembership.role}
+          logoutAction={logoutAction}
+        />
       </aside>
 
       {/* Main Content Area */}
@@ -107,6 +88,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </div>
 
           <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <LanguageToggle />
             <NotificationBell businessId={activeBusiness.id} />
             <Link
               href="/dashboard/settings/notifications"

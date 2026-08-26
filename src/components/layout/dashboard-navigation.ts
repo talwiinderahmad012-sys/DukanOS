@@ -10,6 +10,7 @@ export interface DashboardNavItem {
   name: string;
   href: string;
   icon: LucideIcon;
+  translationKey?: string;
 }
 
 export function getDashboardNavigation(role: string): DashboardNavItem[] {
@@ -18,84 +19,85 @@ export function getDashboardNavigation(role: string): DashboardNavItem[] {
   const isOwnerOrManager = isOwner || isManager;
 
   return [
-    { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'My Workspace', href: '/dashboard/me', icon: User },
-    { name: 'POS Terminal', href: '/dashboard/pos', icon: ShoppingCart },
-    { name: 'Offline Sync', href: '/dashboard/sync', icon: RefreshCw },
-    { name: 'Sales Invoices', href: '/dashboard/sales', icon: Receipt },
-    { name: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
-    { name: 'Growth', href: '/dashboard/growth', icon: TrendingUp },
-    ...(isOwnerOrManager ? [{ name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 }] : []),
-    { name: 'Advisor', href: '/dashboard/advisor', icon: Sparkles },
-    { name: 'Remote Monitor', href: '/dashboard/monitoring', icon: Store },
-    ...(isOwnerOrManager ? [{ name: 'CCTV Cameras', href: '/dashboard/cameras', icon: Camera }] : []),
-    { name: 'Communications', href: '/dashboard/communications', icon: MessageSquare },
-    { name: 'Activity Stream', href: '/dashboard/activity', icon: Activity },
-    { name: 'Feedback', href: '/dashboard/feedback', icon: Star },
-    { name: 'Customers (Udhaar)', href: '/dashboard/customers', icon: Users },
-    { name: 'Staff (Employees)', href: '/dashboard/employees', icon: UserCheck },
-    ...(isOwner ? [{ name: 'Payroll', href: '/dashboard/payroll', icon: Banknote }] : []),
-    { name: 'Products', href: '/dashboard/products', icon: Package },
-    { name: 'Categories', href: '/dashboard/categories', icon: Layers },
-    { name: 'Suppliers', href: '/dashboard/suppliers', icon: Truck },
-    { name: 'Inventory', href: '/dashboard/inventory', icon: ClipboardList },
-    { name: 'Purchases', href: '/dashboard/purchases', icon: Receipt },
-    ...(isOwnerOrManager ? [{ name: 'Expenses', href: '/dashboard/expenses', icon: Banknote }] : []),
-    ...(isOwnerOrManager ? [{ name: 'Product Insights', href: '/dashboard/product-insights', icon: Sparkles }] : []),
-    ...(isOwnerOrManager ? [{ name: 'System Updates', href: '/dashboard/updates', icon: Rocket }] : []),
-    ...(isOwner ? [{ name: 'Platform Support', href: '/dashboard/product-feedback', icon: Bug }] : []),
-    ...(isOwner ? [{ name: 'Platform Plans', href: '/dashboard/platform/plans', icon: ShieldCheck }] : []),
-    ...(isOwnerOrManager ? [{ name: 'Settings Hub', href: '/dashboard/settings', icon: Settings }] : []),
-    ...(isOwner ? [{ name: 'System Health', href: '/dashboard/system', icon: ShieldCheck }] : []),
+    { name: 'Overview', translationKey: 'nav.overview', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'My Workspace', translationKey: 'nav.myWorkspace', href: '/dashboard/me', icon: User },
+    { name: 'POS Terminal', translationKey: 'nav.posTerminal', href: '/dashboard/pos', icon: ShoppingCart },
+    { name: 'Offline Sync', translationKey: 'nav.offlineSync', href: '/dashboard/sync', icon: RefreshCw },
+    { name: 'Sales Invoices', translationKey: 'nav.salesInvoices', href: '/dashboard/sales', icon: Receipt },
+    { name: 'Reports', translationKey: 'nav.reports', href: '/dashboard/reports', icon: BarChart3 },
+    { name: 'Growth', translationKey: 'nav.growth', href: '/dashboard/growth', icon: TrendingUp },
+    ...(isOwnerOrManager ? [{ name: 'Analytics', translationKey: 'nav.analytics', href: '/dashboard/analytics', icon: BarChart3 }] : []),
+    { name: 'Advisor', translationKey: 'nav.advisor', href: '/dashboard/advisor', icon: Sparkles },
+    { name: 'Remote Monitor', translationKey: 'nav.remoteMonitor', href: '/dashboard/monitoring', icon: Store },
+    ...(isOwnerOrManager ? [{ name: 'CCTV Cameras', translationKey: 'nav.cctvCameras', href: '/dashboard/cameras', icon: Camera }] : []),
+    { name: 'Communications', translationKey: 'nav.communications', href: '/dashboard/communications', icon: MessageSquare },
+    { name: 'Activity Stream', translationKey: 'nav.activityStream', href: '/dashboard/activity', icon: Activity },
+    { name: 'Feedback', translationKey: 'nav.feedback', href: '/dashboard/feedback', icon: Star },
+    { name: 'Customers (Udhaar)', translationKey: 'nav.customers', href: '/dashboard/customers', icon: Users },
+    { name: 'Staff (Employees)', translationKey: 'nav.employees', href: '/dashboard/employees', icon: UserCheck },
+    ...(isOwner ? [{ name: 'Payroll', translationKey: 'nav.payroll', href: '/dashboard/payroll', icon: Banknote }] : []),
+    { name: 'Products', translationKey: 'nav.products', href: '/dashboard/products', icon: Package },
+    { name: 'Categories', translationKey: 'nav.categories', href: '/dashboard/categories', icon: Layers },
+    { name: 'Suppliers', translationKey: 'nav.suppliers', href: '/dashboard/suppliers', icon: Truck },
+    { name: 'Inventory', translationKey: 'nav.inventory', href: '/dashboard/inventory', icon: ClipboardList },
+    { name: 'Purchases', translationKey: 'nav.purchases', href: '/dashboard/purchases', icon: Receipt },
+    ...(isOwnerOrManager ? [{ name: 'Expenses', translationKey: 'nav.expenses', href: '/dashboard/expenses', icon: Banknote }] : []),
+    ...(isOwnerOrManager ? [{ name: 'Product Insights', translationKey: 'nav.productInsights', href: '/dashboard/product-insights', icon: Sparkles }] : []),
+    ...(isOwnerOrManager ? [{ name: 'System Updates', translationKey: 'nav.systemUpdates', href: '/dashboard/updates', icon: Rocket }] : []),
+    ...(isOwner ? [{ name: 'Platform Support', translationKey: 'nav.platformSupport', href: '/dashboard/product-feedback', icon: Bug }] : []),
+    ...(isOwner ? [{ name: 'Platform Plans', translationKey: 'nav.platformPlans', href: '/dashboard/platform/plans', icon: ShieldCheck }] : []),
+    ...(isOwnerOrManager ? [{ name: 'Settings Hub', translationKey: 'nav.settingsHub', href: '/dashboard/settings', icon: Settings }] : []),
+    ...(isOwner ? [{ name: 'System Health', translationKey: 'nav.systemHealth', href: '/dashboard/system', icon: ShieldCheck }] : []),
   ];
 }
 
-const NAV_SECTION_LABELS: Record<string, string> = {
-  '/dashboard': 'Overview',
-  '/dashboard/me': 'Overview',
-  '/dashboard/pos': 'Sales',
-  '/dashboard/sync': 'Sales',
-  '/dashboard/sales': 'Sales',
-  '/dashboard/reports': 'Insights',
-  '/dashboard/growth': 'Insights',
-  '/dashboard/analytics': 'Insights',
-  '/dashboard/advisor': 'Insights',
-  '/dashboard/monitoring': 'Insights',
-  '/dashboard/cameras': 'Insights',
-  '/dashboard/communications': 'Communication',
-  '/dashboard/activity': 'Communication',
-  '/dashboard/feedback': 'Communication',
-  '/dashboard/customers': 'People',
-  '/dashboard/employees': 'People',
-  '/dashboard/payroll': 'People',
-  '/dashboard/products': 'Inventory',
-  '/dashboard/categories': 'Inventory',
-  '/dashboard/suppliers': 'Inventory',
-  '/dashboard/inventory': 'Inventory',
-  '/dashboard/purchases': 'Inventory',
-  '/dashboard/expenses': 'Finance',
-  '/dashboard/product-insights': 'Finance',
-  '/dashboard/updates': 'Platform',
-  '/dashboard/product-feedback': 'Platform',
-  '/dashboard/platform/plans': 'Platform',
-  '/dashboard/settings': 'Settings',
-  '/dashboard/system': 'Settings',
+export const NAV_SECTION_INFO: Record<string, { label: string; translationKey: string }> = {
+  '/dashboard': { label: 'Overview', translationKey: 'nav.sectionOverview' },
+  '/dashboard/me': { label: 'Overview', translationKey: 'nav.sectionOverview' },
+  '/dashboard/pos': { label: 'Sales', translationKey: 'nav.sectionSales' },
+  '/dashboard/sync': { label: 'Sales', translationKey: 'nav.sectionSales' },
+  '/dashboard/sales': { label: 'Sales', translationKey: 'nav.sectionSales' },
+  '/dashboard/reports': { label: 'Insights', translationKey: 'nav.sectionInsights' },
+  '/dashboard/growth': { label: 'Insights', translationKey: 'nav.sectionInsights' },
+  '/dashboard/analytics': { label: 'Insights', translationKey: 'nav.sectionInsights' },
+  '/dashboard/advisor': { label: 'Insights', translationKey: 'nav.sectionInsights' },
+  '/dashboard/monitoring': { label: 'Insights', translationKey: 'nav.sectionInsights' },
+  '/dashboard/cameras': { label: 'Insights', translationKey: 'nav.sectionInsights' },
+  '/dashboard/communications': { label: 'Communication', translationKey: 'nav.sectionCommunication' },
+  '/dashboard/activity': { label: 'Communication', translationKey: 'nav.sectionCommunication' },
+  '/dashboard/feedback': { label: 'Communication', translationKey: 'nav.sectionCommunication' },
+  '/dashboard/customers': { label: 'People', translationKey: 'nav.sectionPeople' },
+  '/dashboard/employees': { label: 'People', translationKey: 'nav.sectionPeople' },
+  '/dashboard/payroll': { label: 'People', translationKey: 'nav.sectionPeople' },
+  '/dashboard/products': { label: 'Inventory', translationKey: 'nav.sectionInventory' },
+  '/dashboard/categories': { label: 'Inventory', translationKey: 'nav.sectionInventory' },
+  '/dashboard/suppliers': { label: 'Inventory', translationKey: 'nav.sectionInventory' },
+  '/dashboard/inventory': { label: 'Inventory', translationKey: 'nav.sectionInventory' },
+  '/dashboard/purchases': { label: 'Inventory', translationKey: 'nav.sectionInventory' },
+  '/dashboard/expenses': { label: 'Finance', translationKey: 'nav.sectionFinance' },
+  '/dashboard/product-insights': { label: 'Finance', translationKey: 'nav.sectionFinance' },
+  '/dashboard/updates': { label: 'Platform', translationKey: 'nav.sectionPlatform' },
+  '/dashboard/product-feedback': { label: 'Platform', translationKey: 'nav.sectionPlatform' },
+  '/dashboard/platform/plans': { label: 'Platform', translationKey: 'nav.sectionPlatform' },
+  '/dashboard/settings': { label: 'Settings', translationKey: 'nav.sectionSettings' },
+  '/dashboard/system': { label: 'Settings', translationKey: 'nav.sectionSettings' },
 };
 
 export interface DashboardNavSection {
   label: string;
+  translationKey?: string;
   items: DashboardNavItem[];
 }
 
 export function getDashboardNavigationSections(role: string): DashboardNavSection[] {
   const sections: DashboardNavSection[] = [];
   for (const item of getDashboardNavigation(role)) {
-    const label = NAV_SECTION_LABELS[item.href] ?? 'General';
+    const info = NAV_SECTION_INFO[item.href] ?? { label: 'General', translationKey: 'common.actions' };
     const last = sections[sections.length - 1];
-    if (last && last.label === label) {
+    if (last && last.label === info.label) {
       last.items.push(item);
     } else {
-      sections.push({ label, items: [item] });
+      sections.push({ label: info.label, translationKey: info.translationKey, items: [item] });
     }
   }
   return sections;

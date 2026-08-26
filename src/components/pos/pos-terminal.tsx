@@ -36,6 +36,8 @@ import { Button, buttonClasses, IconButton } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { inputClasses, Select } from '@/components/ui/input';
 
+import { useTranslation } from '@/lib/i18n/language-context';
+
 export type POSProduct = {
   id: string;
   name: string;
@@ -71,8 +73,6 @@ type CompletedSale = {
   [key: string]: unknown;
 };
 
-const fmt = (n: number) => `Rs. ${n.toLocaleString()}`;
-
 export function POSTerminal({
   businessId,
   currency = 'PKR',
@@ -87,6 +87,9 @@ export function POSTerminal({
   const router = useRouter();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { networkStatus } = usePWA();
+  const { t, formatCurrency, language } = useTranslation();
+
+  const fmt = (n: number) => formatCurrency(n);
 
   const searchInputId = useId();
   const customerId = useId();
@@ -471,7 +474,7 @@ export function POSTerminal({
             mobileTab === 'products' ? 'bg-white text-primary shadow-card' : 'text-gray-600 hover:text-gray-900'
           )}
         >
-          Catalog ({filteredProducts.length})
+          {language === 'UR' ? `اشیاء (${filteredProducts.length})` : `Catalog (${filteredProducts.length})`}
         </button>
         <button
           type="button"
@@ -483,7 +486,7 @@ export function POSTerminal({
           )}
         >
           <ShoppingCart className="h-4 w-4" aria-hidden="true" />
-          Cart ({cartCount}) • {fmt(grandTotal)}
+          {language === 'UR' ? `ٹوکری (${cartCount}) • ${fmt(grandTotal)}` : `Cart (${cartCount}) • ${fmt(grandTotal)}`}
         </button>
       </div>
 
@@ -508,7 +511,7 @@ export function POSTerminal({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                placeholder="Scan barcode or type name / SKU (Press Enter to add)…"
+                placeholder={t('pos.searchProduct', 'Scan barcode or type name / SKU (Press Enter to add)…')}
                 aria-label="Scan barcode or search products by name or SKU"
                 className={inputClasses(false, 'bg-gray-50 pl-10 font-medium focus:bg-white')}
               />
@@ -537,7 +540,7 @@ export function POSTerminal({
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 )}
               >
-                All Products
+                {t('common.all', 'All Products')}
               </button>
               {categories.map((cat) => (
                 <button
@@ -565,8 +568,8 @@ export function POSTerminal({
                 <Search className="mx-auto mb-2 h-8 w-8 text-gray-300" aria-hidden="true" />
                 <p className="text-sm font-medium text-muted">
                   {products.length === 0
-                    ? 'No active products available. Add products to start selling.'
-                    : 'No products match the current search or category.'}
+                    ? t('inventory.subtitle', 'No active products available. Add products to start selling.')
+                    : t('common.noData', 'No products match the current search or category.')}
                 </p>
               </div>
             ) : (
@@ -583,7 +586,7 @@ export function POSTerminal({
                     onClick={() => handleAddToCart(product)}
                     aria-label={
                       isOutOfStock
-                        ? `${product.name}, out of stock`
+                        ? `${product.name}, ${t('inventory.outOfStock', 'out of stock')}`
                         : `Add ${product.name} to cart, ${fmt(product.sellingPrice)}`
                     }
                     className={cn(
@@ -595,7 +598,7 @@ export function POSTerminal({
                   >
                     {inCartItem && (
                       <span className="absolute right-2 top-2 rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-white shadow-card">
-                        {inCartItem.quantity} in cart
+                        {inCartItem.quantity} {language === 'UR' ? 'ٹوکری میں' : 'in cart'}
                       </span>
                     )}
 
@@ -611,7 +614,7 @@ export function POSTerminal({
                     <span className="mt-3 flex items-center justify-between gap-2 border-t border-gray-100 pt-2">
                       <span className="text-sm font-bold text-primary">{fmt(product.sellingPrice)}</span>
                       <Badge tone={stockTone} className="px-2 py-0">
-                        {isOutOfStock ? 'Out of stock' : `${product.currentStock} ${product.unit}`}
+                        {isOutOfStock ? t('inventory.outOfStock', 'Out of stock') : `${product.currentStock} ${product.unit}`}
                       </Badge>
                     </span>
                   </button>
@@ -633,7 +636,7 @@ export function POSTerminal({
           <div className="flex items-center justify-between border-b border-border p-4">
             <div className="flex items-center gap-2">
               <ShoppingCart className="h-5 w-5 text-primary" aria-hidden="true" />
-              <h2 className="text-base font-bold text-gray-900">Current Cart</h2>
+              <h2 className="text-base font-bold text-gray-900">{t('pos.itemsInCart', 'Current Cart')}</h2>
               <span className="rounded-full bg-primary-soft px-2 py-0.5 text-xs font-bold text-primary">{cartCount}</span>
             </div>
             {cart.length > 0 && (
@@ -642,7 +645,7 @@ export function POSTerminal({
                 onClick={handleClearCart}
                 className="min-h-10 rounded-lg px-2 text-xs font-semibold text-danger hover:bg-danger-soft"
               >
-                Clear Cart
+                {t('pos.clearCart', 'Clear Cart')}
               </button>
             )}
           </div>
@@ -652,7 +655,7 @@ export function POSTerminal({
             <div className="flex items-center justify-between">
               <label htmlFor={customerId} className="flex items-center gap-1.5 text-xs font-semibold text-gray-600">
                 <User className="h-3.5 w-3.5 text-gray-500" aria-hidden="true" />
-                Customer Account
+                {t('pos.selectCustomer', 'Customer Account')}
               </label>
               <button
                 type="button"
@@ -660,7 +663,7 @@ export function POSTerminal({
                 className="flex min-h-10 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-primary hover:bg-primary-soft"
               >
                 <UserPlus className="h-3.5 w-3.5" aria-hidden="true" />
-                New Customer
+                {t('customers.addCustomer', 'New Customer')}
               </button>
             </div>
 
@@ -669,17 +672,17 @@ export function POSTerminal({
               value={selectedCustomerId}
               onChange={(e) => setSelectedCustomerId(e.target.value)}
             >
-              <option value="">-- Walk-in Cash Customer (No Account) --</option>
+              <option value="">-- {t('pos.walkInCustomer', 'Walk-in Cash Customer (No Account)')} --</option>
               {customers.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} {c.phone ? `(${c.phone})` : ''} — Udhaar: {fmt(c.outstanding)}
+                  {c.name} {c.phone ? `(${c.phone})` : ''} — {t('pos.udhaar', 'Udhaar')}: {fmt(c.outstanding)}
                 </option>
               ))}
             </Select>
 
             {selectedCustomer && selectedCustomer.outstanding > 0 && (
               <p className="flex justify-between rounded-input border border-warning/25 bg-warning-soft p-2 text-xs font-medium text-amber-900">
-                <span>Existing Udhaar Balance:</span>
+                <span>{t('pos.customerBalance', 'Existing Udhaar Balance')}:</span>
                 <span className="font-bold">{fmt(selectedCustomer.outstanding)}</span>
               </p>
             )}
@@ -690,7 +693,7 @@ export function POSTerminal({
             {cart.length === 0 ? (
               <div className="py-16 text-center text-muted">
                 <ShoppingCart className="mx-auto mb-2 h-8 w-8 opacity-50" aria-hidden="true" />
-                <p className="text-sm">Scan items or tap catalog products to add them here</p>
+                <p className="text-sm">{t('pos.cartEmptySubtitle', 'Scan items or tap catalog products to add them here')}</p>
               </div>
             ) : (
               cart.map((item) => {
@@ -730,7 +733,7 @@ export function POSTerminal({
                           <Minus className="h-3.5 w-3.5" />
                         </IconButton>
                         <label className="sr-only" htmlFor={`qty-${item.product.id}`}>
-                          Quantity of {item.product.name}
+                          {t('pos.qty', 'Quantity')} {item.product.name}
                         </label>
                         <input
                           id={`qty-${item.product.id}`}
@@ -755,7 +758,7 @@ export function POSTerminal({
 
                       <div className="flex items-center gap-1.5">
                         <label htmlFor={`disc-${item.product.id}`} className="text-muted">
-                          Disc:
+                          {t('pos.discount', 'Disc')}:
                         </label>
                         <input
                           id={`disc-${item.product.id}`}
@@ -781,16 +784,16 @@ export function POSTerminal({
             {/* Discount & Total */}
             <div className="space-y-2 text-sm">
               <div className="flex justify-between text-gray-600">
-                <span>Subtotal</span>
+                <span>{t('pos.subtotal', 'Subtotal')}</span>
                 <span className="font-semibold text-gray-900">{fmt(rawSubtotal)}</span>
               </div>
 
               <div className="flex items-center justify-between">
                 <label htmlFor={globalDiscountId} className="text-gray-600">
-                  Overall Discount
+                  {t('pos.discount', 'Overall Discount')}
                 </label>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-muted" aria-hidden="true">- Rs.</span>
+                  <span className="text-xs text-muted" aria-hidden="true">- {language === 'UR' ? 'روپے' : 'Rs.'}</span>
                   <input
                     id={globalDiscountId}
                     type="number"
@@ -804,7 +807,7 @@ export function POSTerminal({
               </div>
 
               <div className="flex items-center justify-between border-t border-border pt-3">
-                <span className="text-base font-bold text-gray-900">Grand Total</span>
+                <span className="text-base font-bold text-gray-900">{t('pos.grandTotal', 'Grand Total')}</span>
                 <span className="text-2xl font-bold text-primary">{fmt(grandTotal)}</span>
               </div>
             </div>
@@ -812,24 +815,35 @@ export function POSTerminal({
             {/* Payment Mode Selector */}
             <div className="space-y-2 border-t border-border pt-3">
               <fieldset>
-                <legend className="sr-only">Payment method</legend>
+                <legend className="sr-only">{t('pos.paymentMethod', 'Payment method')}</legend>
                 <div className="grid grid-cols-3 gap-1.5">
-                  {(['CASH', 'CARD', 'MOBILE_WALLET'] as const).map((method) => (
-                    <button
-                      key={method}
-                      type="button"
-                      onClick={() => setPaymentMethod(method)}
-                      aria-pressed={paymentMethod === method}
-                      className={cn(
-                        'h-10 rounded-lg border text-xs font-semibold transition-colors',
-                        paymentMethod === method
-                          ? 'border-primary bg-primary text-white shadow-card'
-                          : 'border-border-strong bg-white text-gray-700 hover:bg-gray-100'
-                      )}
-                    >
-                      {method === 'MOBILE_WALLET' ? 'Wallet' : method}
-                    </button>
-                  ))}
+                  {(['CASH', 'CARD', 'MOBILE_WALLET'] as const).map((method) => {
+                    const methodLabel =
+                      method === 'CASH'
+                        ? t('pos.cash', 'Cash')
+                        : method === 'CARD'
+                        ? t('pos.card', 'Card')
+                        : language === 'UR'
+                        ? 'موبائل والیٹ'
+                        : 'Wallet';
+
+                    return (
+                      <button
+                        key={method}
+                        type="button"
+                        onClick={() => setPaymentMethod(method)}
+                        aria-pressed={paymentMethod === method}
+                        className={cn(
+                          'h-10 rounded-lg border text-xs font-semibold transition-colors',
+                          paymentMethod === method
+                            ? 'border-primary bg-primary text-white shadow-card'
+                            : 'border-border-strong bg-white text-gray-700 hover:bg-gray-100'
+                        )}
+                      >
+                        {methodLabel}
+                      </button>
+                    );
+                  })}
                 </div>
               </fieldset>
 
@@ -837,7 +851,7 @@ export function POSTerminal({
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <label htmlFor={paidAmountId} className="text-xs font-semibold text-gray-700">
-                    Amount Received / Paid
+                    {t('pos.cashReceived', 'Amount Received / Paid')}
                   </label>
                   <div className="flex gap-1.5">
                     <button
@@ -845,21 +859,21 @@ export function POSTerminal({
                       onClick={() => setPaidAmount(grandTotal.toString())}
                       className={buttonClasses('secondary', 'sm', 'h-9 bg-gray-200 hover:bg-gray-300')}
                     >
-                      Exact ({fmt(grandTotal)})
+                      {language === 'UR' ? `پوری رقم (${fmt(grandTotal)})` : `Exact (${fmt(grandTotal)})`}
                     </button>
                     <button
                       type="button"
                       onClick={() => setPaidAmount('0')}
                       className={buttonClasses('outline', 'sm', 'h-9 border-warning/40 bg-warning-soft text-amber-900 hover:bg-amber-100')}
                     >
-                      Full Credit (Rs. 0)
+                      {language === 'UR' ? 'مکمل ادھار (0)' : 'Full Credit (Rs. 0)'}
                     </button>
                   </div>
                 </div>
 
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted" aria-hidden="true">
-                    Rs.
+                  <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-xs text-muted" aria-hidden="true">
+                    {language === 'UR' ? 'روپے' : 'Rs.'}
                   </span>
                   <input
                     id={paidAmountId}
@@ -869,7 +883,7 @@ export function POSTerminal({
                     value={paidAmount}
                     onChange={(e) => setPaidAmount(e.target.value)}
                     placeholder={grandTotal.toString()}
-                    className={inputClasses(false, 'pl-9 font-bold')}
+                    className={inputClasses(false, 'ps-12 font-bold')}
                   />
                 </div>
               </div>
@@ -877,25 +891,25 @@ export function POSTerminal({
               {/* Due / Change Preview */}
               {dueBalance > 0 ? (
                 <div className="flex justify-between rounded-input border border-warning/25 bg-warning-soft p-2.5 text-xs font-bold text-amber-900">
-                  <span>Udhaar added to customer:</span>
+                  <span>{language === 'UR' ? 'کھاتے میں نیا ادھار:' : 'Udhaar added to customer:'}</span>
                   <span>{fmt(dueBalance)}</span>
                 </div>
               ) : changeDue > 0 ? (
                 <div className="flex justify-between rounded-input border border-success/25 bg-success-soft p-2.5 text-xs font-bold text-emerald-900">
-                  <span>Change return to customer:</span>
+                  <span>{t('pos.changeDue', 'Change return to customer')}:</span>
                   <span>{fmt(changeDue)}</span>
                 </div>
               ) : null}
             </div>
 
             {/* Complete Sale Button */}
-            <Button type="submit" size="lg" loading={loading} disabled={cart.length === 0} className="w-full text-base">
+            <Button type="submit" size="lg" loading={loading} disabled={cart.length === 0} className="w-full text-base font-bold">
               {loading ? (
-                'Processing Sale…'
+                language === 'UR' ? 'فروخت کا اندراج جاری ہے…' : 'Processing Sale…'
               ) : (
                 <>
                   <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
-                  <span>Complete Sale • {fmt(grandTotal)}</span>
+                  <span>{t('pos.completeSale', 'Complete Sale')} • {fmt(grandTotal)}</span>
                 </>
               )}
             </Button>
@@ -909,14 +923,14 @@ export function POSTerminal({
         onClose={() => {
           if (!customerModalLoading) setIsCustomerModalOpen(false);
         }}
-        title="Add New Customer"
-        description="Create a customer account on the fly — required for Udhaar / credit sales."
+        title={t('customers.addCustomer', 'Add New Customer')}
+        description={language === 'UR' ? 'فوری گاہک شامل کریں — ادھار کھاتہ کے لیے گاہک کا انتخاب ضروری ہے۔' : 'Create a customer account on the fly — required for Udhaar / credit sales.'}
       >
         <form onSubmit={handleCreateCustomer} className="space-y-4">
           <div className="space-y-1">
             <label htmlFor={newCustomerNameId} className="block text-sm font-medium text-gray-700">
-              Full Name
-              <span className="ml-0.5 text-red-500" aria-hidden="true">*</span>
+              {t('customers.customerName', 'Full Name')}
+              <span className="ms-0.5 text-red-500" aria-hidden="true">*</span>
             </label>
             <input
               id={newCustomerNameId}
@@ -924,35 +938,35 @@ export function POSTerminal({
               type="text"
               value={newCustomerName}
               onChange={(e) => setNewCustomerName(e.target.value)}
-              placeholder="e.g. Tariq Mehmood"
+              placeholder={language === 'UR' ? 'مثلاً طارق محمود' : 'e.g. Tariq Mehmood'}
               className={inputClasses()}
             />
           </div>
 
           <div className="space-y-1">
             <label htmlFor={newCustomerPhoneId} className="block text-sm font-medium text-gray-700">
-              Phone Number
+              {t('customers.phoneNumber', 'Phone Number')}
             </label>
             <input
               id={newCustomerPhoneId}
               type="text"
               value={newCustomerPhone}
               onChange={(e) => setNewCustomerPhone(e.target.value)}
-              placeholder="e.g. 0300-1234567"
+              placeholder={language === 'UR' ? 'مثلاً 0300-1234567' : 'e.g. 0300-1234567'}
               className={inputClasses()}
             />
           </div>
 
           <div className="space-y-1">
             <label htmlFor={newCustomerAddressId} className="block text-sm font-medium text-gray-700">
-              Address
+              {t('common.address', 'Address')}
             </label>
             <input
               id={newCustomerAddressId}
               type="text"
               value={newCustomerAddress}
               onChange={(e) => setNewCustomerAddress(e.target.value)}
-              placeholder="e.g. Main Bazar, Shop 4"
+              placeholder={language === 'UR' ? 'مثلاً مین بازار، دکان نمبر 4' : 'e.g. Main Bazar, Shop 4'}
               className={inputClasses()}
             />
           </div>
@@ -964,10 +978,10 @@ export function POSTerminal({
               disabled={customerModalLoading}
               onClick={() => setIsCustomerModalOpen(false)}
             >
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </Button>
             <Button type="submit" loading={customerModalLoading}>
-              {customerModalLoading ? 'Saving…' : 'Save & Select'}
+              {customerModalLoading ? (language === 'UR' ? 'محفوظ ہو رہا ہے…' : 'Saving…') : (language === 'UR' ? 'محفوظ و منتخب کریں' : 'Save & Select')}
             </Button>
           </div>
         </form>
@@ -980,8 +994,8 @@ export function POSTerminal({
           setCompletedSale(null);
           searchInputRef.current?.focus();
         }}
-        title={completedSale?.isOffline ? 'Sale Queued (Offline)' : 'Sale Completed!'}
-        description={completedSale ? `Invoice #${completedSale.invoiceNumber}` : undefined}
+        title={completedSale?.isOffline ? (language === 'UR' ? 'آف لائن فروخت محفوظ ہو گئی' : 'Sale Queued (Offline)') : (language === 'UR' ? 'فروخت مکمل ہو گئی!' : 'Sale Completed!')}
+        description={completedSale ? `${language === 'UR' ? 'رسید نمبر' : 'Invoice #'} ${completedSale.invoiceNumber}` : undefined}
         footer={
           completedSale && (
             <>
@@ -991,7 +1005,7 @@ export function POSTerminal({
                   className={buttonClasses('secondary', 'md')}
                 >
                   <Printer className="h-4 w-4" aria-hidden="true" />
-                  Print Receipt
+                  {language === 'UR' ? 'رسید پرنٹ کریں' : 'Print Receipt'}
                 </Link>
               )}
               <Button
@@ -1001,7 +1015,7 @@ export function POSTerminal({
                   searchInputRef.current?.focus();
                 }}
               >
-                Next Sale
+                {language === 'UR' ? 'اگلی فروخت' : 'Next Sale'}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
             </>
@@ -1028,23 +1042,24 @@ export function POSTerminal({
 
             {completedSale.isOffline && (
               <Alert tone="warning" className="p-3 text-xs">
-                This sale was saved to the offline queue and will be committed automatically when the
-                connection returns. The invoice number will be assigned during sync.
+                {language === 'UR'
+                  ? 'یہ فروخت آف لائن محفوظ کر لی گئی ہے اور انٹرنیٹ بحال ہوتے ہی خودکار طور پر سرور سے ہم آہنگ ہو جائے گی۔'
+                  : 'This sale was saved to the offline queue and will be committed automatically when the connection returns. The invoice number will be assigned during sync.'}
               </Alert>
             )}
 
             <dl className="space-y-2 text-sm">
               <div className="flex justify-between text-gray-600">
-                <dt>Total Amount</dt>
+                <dt>{t('common.total', 'Total Amount')}</dt>
                 <dd className="font-bold text-gray-900">{fmt(Number(completedSale.total))}</dd>
               </div>
               <div className="flex justify-between text-gray-600">
-                <dt>Paid Amount</dt>
+                <dt>{t('pos.cashReceived', 'Paid Amount')}</dt>
                 <dd className="font-semibold text-success">{fmt(Number(completedSale.paidAmount))}</dd>
               </div>
               {Number(completedSale.total) > Number(completedSale.paidAmount) && (
                 <div className="flex justify-between border-t border-border pt-2 font-bold text-warning">
-                  <dt>Added to Customer Udhaar</dt>
+                  <dt>{language === 'UR' ? 'کھاتے میں شامل ادھار' : 'Added to Customer Udhaar'}</dt>
                   <dd>{fmt(Number(completedSale.total) - Number(completedSale.paidAmount))}</dd>
                 </div>
               )}

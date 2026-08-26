@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { Menu, X, Store, LogOut } from 'lucide-react';
 import { DashboardNavSections } from '@/components/layout/nav-sections';
 import { NotificationBell } from '@/components/notifications/notification-bell';
+import { LanguageToggle } from '@/components/layout/language-toggle';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export function MobileNav({
   businessName,
@@ -19,6 +21,7 @@ export function MobileNav({
   logoutAction: () => Promise<void>;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const { t, isRTL } = useTranslation();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -40,14 +43,14 @@ export function MobileNav({
     <>
       {/* Mobile Header */}
       <div className="md:hidden sticky top-0 z-40 bg-surface border-b border-border pt-[env(safe-area-inset-top)]">
-        <div className="flex h-14 items-center justify-between gap-2 px-2">
-          <div className="flex min-w-0 items-center gap-1">
+        <div className="flex h-14 items-center justify-between gap-2 px-3">
+          <div className="flex min-w-0 items-center gap-1.5">
             <button
               type="button"
               onClick={() => setIsOpen(!isOpen)}
               aria-expanded={isOpen}
               aria-controls="mobile-drawer"
-              aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-label={isOpen ? t('common.close', 'Close navigation menu') : t('nav.overview', 'Open navigation menu')}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
             >
               <Menu className="h-6 w-6" aria-hidden="true" />
@@ -57,7 +60,8 @@ export function MobileNav({
             </div>
             <span className="min-w-0 truncate text-sm font-bold text-gray-900">{businessName}</span>
           </div>
-          <div className="flex shrink-0 items-center">
+          <div className="flex shrink-0 items-center gap-1">
+            <LanguageToggle />
             <NotificationBell businessId={businessId} />
           </div>
         </div>
@@ -76,8 +80,8 @@ export function MobileNav({
       <div
         id="mobile-drawer"
         aria-hidden={!isOpen}
-        className={`md:hidden fixed inset-y-0 left-0 z-50 flex w-[19rem] max-w-[85vw] flex-col border-r border-border bg-surface transition-[transform,visibility] duration-200 ease-in-out ${
-          isOpen ? 'visible translate-x-0' : 'invisible -translate-x-full'
+        className={`md:hidden fixed inset-y-0 start-0 z-50 flex w-[19rem] max-w-[85vw] flex-col border-e border-border bg-surface transition-[transform,visibility] duration-200 ease-in-out ${
+          isOpen ? 'visible translate-x-0' : isRTL ? 'invisible translate-x-full' : 'invisible -translate-x-full'
         }`}
       >
         <div className="flex items-center gap-3 border-b border-border px-4 py-4 pt-[calc(1rem+env(safe-area-inset-top))]">
@@ -93,7 +97,7 @@ export function MobileNav({
           <button
             type="button"
             onClick={close}
-            aria-label="Close navigation menu"
+            aria-label={t('common.close', 'Close')}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900"
           >
             <X className="h-5 w-5" aria-hidden="true" />
@@ -124,7 +128,7 @@ export function MobileNav({
               className="group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-danger-soft hover:text-danger"
             >
               <LogOut className="h-5 w-5 shrink-0 text-gray-400 transition-colors group-hover:text-danger" aria-hidden="true" />
-              <span>Sign out</span>
+              <span>{t('nav.signOut', 'Sign out')}</span>
             </button>
           </form>
         </div>

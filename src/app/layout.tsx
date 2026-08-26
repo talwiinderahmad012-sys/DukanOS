@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { PWAProvider } from "@/components/pwa/pwa-provider";
+import { LanguageProvider } from "@/lib/i18n/language-context";
+import { ThemeProvider } from "@/components/theme/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,13 +43,35 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="notranslate" translate="no" suppressHydrationWarning>
+      <head>
+        <meta name="google" content="notranslate" />
+        <meta name="robots" content="notranslate" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const stored = localStorage.getItem('dukaanos-ui-theme');
+                if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gray-50 text-gray-900`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gray-50 text-gray-900 dark:bg-slate-900 dark:text-gray-100 transition-colors`}
       >
-        <PWAProvider>
-          {children}
-        </PWAProvider>
+        <ThemeProvider>
+          <LanguageProvider>
+            <PWAProvider>
+              {children}
+            </PWAProvider>
+          </LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

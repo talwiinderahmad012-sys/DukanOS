@@ -1,15 +1,16 @@
 @import "tailwindcss";
 
+/* Modern Trust palette — light mode */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f172a; /* near-black ink */
 
-  --page: #f9fafb;
+  --page: #f8fafc; /* light slate canvas */
   --surface: #ffffff;
-  --muted: #6b7280;
-  --muted-strong: #374151;
-  --border-color: #e5e7eb;
-  --border-strong: #d1d5db;
+  --muted: #64748b; /* slate-500 secondary text */
+  --muted-strong: #1e293b; /* dark slate navy for icons/headings */
+  --border-color: #e2e8f0; /* slate-200 */
+  --border-strong: #cbd5e1; /* slate-300 */
 
   --primary: #2563eb;
   --primary-hover: #1d4ed8;
@@ -17,8 +18,8 @@
   --on-primary: #ffffff;
   --focus-ring: #3b82f6;
 
-  --success: #059669;
-  --success-hover: #047857;
+  --success: #10b981; /* emerald */
+  --success-hover: #059669;
   --success-soft: #ecfdf5;
 
   --warning: #d97706;
@@ -31,6 +32,82 @@
 
   --info: #2563eb;
   --info-soft: #eff6ff;
+}
+
+@custom-variant dark (&:is(.dark *));
+
+.dark {
+  /* Modern Trust Dark Theme — deep slate navy, no pure black */
+  --background: #0f172a; /* slate-900 */
+  --foreground: #f1f5f9; /* slate-100 */
+
+  --page: #0f172a;
+  --surface: #1e293b; /* slate-800 for cards */
+  --muted: #94a3b8; /* slate-400 */
+  --muted-strong: #e2e8f0; /* slate-200 */
+  --border-color: #334155; /* slate-700 */
+  --border-strong: #475569; /* slate-600 */
+
+  /* Primary Brand - brightened for dark backgrounds */
+  --primary: #3b82f6; /* blue-500 */
+  --primary-hover: #60a5fa; /* blue-400 */
+  --primary-soft: #1e3a8a; /* blue-900 */
+  --on-primary: #ffffff;
+  --focus-ring: #60a5fa;
+
+  /* Semantic Status Colors - brightened for legibility */
+  --success: #34d399; /* emerald-400 */
+  --success-hover: #10b981;
+  --success-soft: #064e3b;
+
+  --warning: #f59e0b;
+  --warning-hover: #fbbf24;
+  --warning-soft: #78350f;
+
+  --danger: #ef4444;
+  --danger-hover: #f87171;
+  --danger-soft: #7f1d1d;
+
+  --info: #3b82f6;
+  --info-soft: #1e3a8a;
+
+  /* 
+   * CRITICAL: Invert Tailwind's default gray palette!
+   * This automatically forces hundreds of hardcoded 'text-gray-900', 'bg-gray-50' 
+   * classes throughout the app to become dark instantly without refactoring every file.
+   * Mapped to the slate scale to stay consistent with the Modern Trust dark surfaces.
+   */
+  --color-white: #0f172a;
+  --color-black: #f8fafc;
+  --color-gray-50: #0f172a;  /* slate-900 */
+  --color-gray-100: #1e293b; /* slate-800 */
+  --color-gray-200: #334155; /* slate-700 */
+  --color-gray-300: #475569; /* slate-600 */
+  --color-gray-400: #64748b; /* slate-500 */
+  --color-gray-500: #94a3b8; /* slate-400 */
+  --color-gray-600: #cbd5e1; /* slate-300 */
+  --color-gray-700: #e2e8f0; /* slate-200 */
+  --color-gray-800: #f1f5f9; /* slate-100 */
+  --color-gray-900: #f8fafc; /* slate-50 */
+  --color-gray-950: #f8fafc;
+}
+
+/* Force hardcoded white components into dark surface cards */
+.dark .bg-white {
+  background-color: var(--surface) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Protect primary buttons and explicit text-white elements */
+.dark .text-white {
+  color: #ffffff !important;
+}
+
+/* Soften shadows in dark mode to prevent visual noise */
+.dark {
+  --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.5);
+  --shadow-elevated: 0 4px 6px -1px rgb(0 0 0 / 0.5);
+  --shadow-modal: 0 20px 25px -5px rgb(0 0 0 / 0.7);
 }
 
 @theme inline {
@@ -82,6 +159,24 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+html[lang="ur"],
+html.lang-ur,
+[dir="rtl"] {
+  font-family: var(--font-geist-sans), "Noto Sans Arabic", "Segoe UI", "Tahoma", "Arial", sans-serif;
+  letter-spacing: normal;
+}
+
+/* Urdu specific typography adjustments */
+html[lang="ur"] h1,
+html[lang="ur"] h2,
+html[lang="ur"] h3,
+html[lang="ur"] h4,
+html[lang="ur"] button,
+html[lang="ur"] .font-urdu {
+  font-family: "Noto Nastaliq Urdu", "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  line-height: 1.6;
 }
 
 :where(a, button, [role="button"], summary):focus-visible {

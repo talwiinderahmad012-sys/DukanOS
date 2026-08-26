@@ -9,6 +9,8 @@ import { Button, type ButtonSize, type ButtonVariant } from '@/components/ui/but
 import { Alert } from '@/components/ui/alert';
 import { Field, Input, Textarea } from '@/components/ui/input';
 
+import { useTranslation } from '@/lib/i18n/language-context';
+
 export function AddCustomerButton({
   businessId,
   variant = 'primary',
@@ -19,6 +21,7 @@ export function AddCustomerButton({
   size?: ButtonSize;
 }) {
   const router = useRouter();
+  const { t, language } = useTranslation();
   const idPrefix = useId();
   const fieldId = (name: string) => `${idPrefix}-${name}`;
 
@@ -53,7 +56,7 @@ export function AddCustomerButton({
         const fieldError = res.fieldErrors
           ? Object.values(res.fieldErrors).flat().find(Boolean)
           : undefined;
-        setError(res.message || fieldError || 'Failed to create customer');
+        setError(res.message || fieldError || (language === 'UR' ? 'گاہک شامل کرنے میں ناکامی' : 'Failed to create customer'));
         setLoading(false);
         return;
       }
@@ -61,7 +64,7 @@ export function AddCustomerButton({
       setIsOpen(false);
       router.refresh();
     } catch {
-      setError('An unexpected error occurred.');
+      setError(language === 'UR' ? 'غیر متوقع خرابی پیش آ گئی' : 'An unexpected error occurred.');
       setLoading(false);
     }
   }
@@ -70,34 +73,34 @@ export function AddCustomerButton({
     <>
       <Button size={size} variant={variant} onClick={() => setIsOpen(true)}>
         <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-        Add Customer
+        {t('customers.addCustomer', 'Add Customer')}
       </Button>
 
       <Modal
         open={isOpen}
         onClose={close}
-        title="Add Customer"
-        description="Create a customer profile to track sales, udhaar and payments."
+        title={t('customers.addCustomer', 'Add Customer')}
+        description={language === 'UR' ? 'فروخت، ادھار اور ادائیگیوں کے حساب کے لیے گاہک کا پروفائل بنائیں۔' : 'Create a customer profile to track sales, udhaar and payments.'}
         size="lg"
         footer={
           <>
             <Button variant="outline" onClick={() => setIsOpen(false)} disabled={loading}>
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </Button>
             <Button type="submit" form="customer-create-form" loading={loading}>
-              Save Customer
+              {loading ? (language === 'UR' ? 'محفوظ ہو رہا ہے…' : 'Saving…') : (language === 'UR' ? 'گاہک محفوظ کریں' : 'Save Customer')}
             </Button>
           </>
         }
       >
         <form id="customer-create-form" onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <Alert tone="danger" title="Could not create customer">
+            <Alert tone="danger" title={language === 'UR' ? 'گاہک شامل نہیں ہو سکا' : 'Could not create customer'}>
               {error}
             </Alert>
           )}
 
-          <Field label="Customer Name" htmlFor={fieldId('name')} required>
+          <Field label={t('customers.customerName', 'Customer Name')} htmlFor={fieldId('name')} required>
             <Input
               id={fieldId('name')}
               name="name"
@@ -105,12 +108,12 @@ export function AddCustomerButton({
               minLength={2}
               maxLength={100}
               autoFocus
-              placeholder="e.g. Tariq Mehmood"
+              placeholder={language === 'UR' ? 'مثلاً طارق محمود' : 'e.g. Tariq Mehmood'}
             />
           </Field>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Phone" htmlFor={fieldId('phone')}>
+            <Field label={t('customers.phoneNumber', 'Phone')} htmlFor={fieldId('phone')}>
               <Input
                 id={fieldId('phone')}
                 name="phone"
@@ -120,7 +123,7 @@ export function AddCustomerButton({
               />
             </Field>
 
-            <Field label="Email" htmlFor={fieldId('email')}>
+            <Field label={t('common.email', 'Email')} htmlFor={fieldId('email')}>
               <Input
                 id={fieldId('email')}
                 name="email"
@@ -131,23 +134,23 @@ export function AddCustomerButton({
             </Field>
           </div>
 
-          <Field label="Address" htmlFor={fieldId('address')}>
+          <Field label={t('common.address', 'Address')} htmlFor={fieldId('address')}>
             <Textarea
               id={fieldId('address')}
               name="address"
               maxLength={300}
               rows={2}
-              placeholder="Shop / home address"
+              placeholder={language === 'UR' ? 'دکان / رہائشی پتہ' : 'Shop / home address'}
             />
           </Field>
 
-          <Field label="Notes" htmlFor={fieldId('notes')}>
+          <Field label={t('common.notes', 'Notes')} htmlFor={fieldId('notes')}>
             <Textarea
               id={fieldId('notes')}
               name="notes"
               maxLength={500}
               rows={2}
-              placeholder="Optional notes about this customer"
+              placeholder={language === 'UR' ? 'گاہک کے بارے میں کوئی اضافی نوٹ' : 'Optional notes about this customer'}
             />
           </Field>
         </form>

@@ -1,11 +1,7 @@
 import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { prisma } from '@/lib/db/prisma';
-import { POSTerminal } from '@/components/pos/pos-terminal';
+import { POSCheckoutScreen } from '@/components/pos/pos-checkout-screen';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
-import { Receipt } from 'lucide-react';
-import { PageHeader } from '@/components/ui/page-header';
-import { buttonClasses } from '@/components/ui/button';
 
 export default async function POSPage() {
   const { business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
@@ -60,24 +56,12 @@ export default async function POSPage() {
   }));
 
   return (
-    <div className="mx-auto max-w-7xl space-y-4">
-      <PageHeader
-        title="POS Terminal"
-        description="Fast checkout desk — barcode scanning, cash sales and credit (Udhaar) invoicing."
-        actions={
-          <Link href="/dashboard/sales" className={buttonClasses('outline', 'sm')}>
-            <Receipt className="h-3.5 w-3.5" aria-hidden="true" />
-            Sales Invoices
-          </Link>
-        }
-      />
-
-      <POSTerminal
-        businessId={business.id}
-        currency={business.currency}
-        initialProducts={serializedProducts}
-        initialCustomers={serializedCustomers}
-      />
-    </div>
+    <POSCheckoutScreen
+      businessId={business.id}
+      businessName={business.name}
+      currency={business.currency}
+      initialProducts={serializedProducts}
+      initialCustomers={serializedCustomers}
+    />
   );
 }

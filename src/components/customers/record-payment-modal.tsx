@@ -10,7 +10,7 @@ import { Alert } from '@/components/ui/alert';
 import { Field, Input, Select } from '@/components/ui/input';
 import { cn } from '@/components/ui/cn';
 
-const fmt = (n: number) => `Rs. ${n.toLocaleString()}`;
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export function RecordPaymentModal({
   businessId,
@@ -20,7 +20,7 @@ export function RecordPaymentModal({
   iconOnly = false,
   variant = 'success',
   size = 'md',
-  label = 'Record Payment',
+  label,
 }: {
   businessId: string;
   customerId: string;
@@ -32,8 +32,12 @@ export function RecordPaymentModal({
   label?: string;
 }) {
   const router = useRouter();
+  const { t, formatCurrency, language } = useTranslation();
+  const fmt = (n: number) => formatCurrency(n);
   const idPrefix = useId();
   const fieldId = (name: string) => `${idPrefix}-${name}`;
+
+  const buttonLabel = label || t('customers.recordPayment', 'Record Payment');
 
   const [isOpen, setIsOpen] = useState(false);
   const [amount, setAmount] = useState('');
@@ -101,8 +105,8 @@ export function RecordPaymentModal({
         <IconButton
           size={size}
           variant={variant}
-          aria-label={`Record payment from ${customerName}`}
-          title="Record payment"
+          aria-label={language === 'UR' ? `${customerName} سے ادائیگی وصول کریں` : `Record payment from ${customerName}`}
+          title={t('customers.recordPayment', 'Record payment')}
           onClick={open}
         >
           <Banknote className={size === 'lg' ? 'h-5 w-5' : 'h-4 w-4'} aria-hidden="true" />
@@ -110,29 +114,29 @@ export function RecordPaymentModal({
       ) : (
         <Button size={size} variant={variant} onClick={open}>
           <Banknote className="h-4 w-4" aria-hidden="true" />
-          {label}
+          {buttonLabel}
         </Button>
       )}
 
       <Modal
         open={isOpen}
         onClose={close}
-        title="Record Payment"
-        description={`Receive a udhaar payment from ${customerName}.`}
+        title={t('customers.recordPayment', 'Record Payment')}
+        description={language === 'UR' ? `${customerName} سے ادھار کی وصولی درج کریں۔` : `Receive a udhaar payment from ${customerName}.`}
         footer={
           <>
             <Button variant="outline" onClick={() => setIsOpen(false)} disabled={loading}>
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </Button>
             <Button type="submit" form="record-payment-form" variant="success" loading={loading}>
-              Confirm Payment
+              {loading ? (language === 'UR' ? 'اندراج جاری ہے…' : 'Recording…') : (language === 'UR' ? 'ادائیگی کی تصدیق کریں' : 'Confirm Payment')}
             </Button>
           </>
         }
       >
         <form id="record-payment-form" onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <Alert tone="danger" title="Could not record payment">
+            <Alert tone="danger" title={language === 'UR' ? 'ادائیگی درج نہیں ہو سکی' : 'Could not record payment'}>
               {error}
             </Alert>
           )}
@@ -140,9 +144,9 @@ export function RecordPaymentModal({
           <div className="flex items-center justify-between gap-3 rounded-card border border-border bg-gray-50 p-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-muted">
-                Current Outstanding
+                {t('customers.currentBalance', 'Current Outstanding')}
               </p>
-              <p className="text-xs text-muted">Total udhaar due from this customer</p>
+              <p className="text-xs text-muted">{language === 'UR' ? 'اس گاہک کا کل واجب الادا ادھار' : 'Total udhaar due from this customer'}</p>
             </div>
             <p
               className={
@@ -157,20 +161,21 @@ export function RecordPaymentModal({
 
           {currentOutstanding <= 0 && (
             <Alert tone="info">
-              This customer has no outstanding udhaar right now. You can still record a payment if
-              they are paying in advance.
+              {language === 'UR'
+                ? 'اس گاہک پر فی الحال کوئی ادھار واجب الادا نہیں ہے۔ آپ پیشگی ادائیگی (ایڈوانس) درج کر سکتے ہیں۔'
+                : 'This customer has no outstanding udhaar right now. You can still record a payment if they are paying in advance.'}
             </Alert>
           )}
 
           <Field
-            label="Payment Amount"
+            label={t('customers.paymentAmount', 'Payment Amount')}
             htmlFor={fieldId('amount')}
             required
-            error={!amountValid && amount !== '' ? 'Amount must be greater than 0.' : undefined}
+            error={!amountValid && amount !== '' ? (language === 'UR' ? 'رقم صفر سے زیادہ ہونی چاہیے۔' : 'Amount must be greater than 0.') : undefined}
           >
             <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                Rs.
+              <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                {language === 'UR' ? 'روپے' : 'Rs.'}
               </span>
               <Input
                 id={fieldId('amount')}
@@ -181,11 +186,11 @@ export function RecordPaymentModal({
                 required
                 autoFocus
                 inputMode="decimal"
-                placeholder="e.g. 5000"
+                placeholder="5000"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 invalid={!amountValid && amount !== ''}
-                className="pl-11"
+                className="ps-12"
               />
             </div>
           </Field>
@@ -196,13 +201,15 @@ export function RecordPaymentModal({
               onClick={() => setAmount(String(currentOutstanding))}
               className="text-sm font-semibold text-primary hover:text-primary-hover"
             >
-              Set full balance ({fmt(currentOutstanding)})
+              {language === 'UR' ? `پوری رقم منتخب کریں (${fmt(currentOutstanding)})` : `Set full balance (${fmt(currentOutstanding)})`}
             </button>
           )}
 
           {exceedsOutstanding && (
             <Alert tone="warning">
-              This amount exceeds the current outstanding balance of {fmt(currentOutstanding)}.
+              {language === 'UR'
+                ? `یہ رقم موجودہ واجب الادا ادھار (${fmt(currentOutstanding)}) سے زیادہ ہے۔`
+                : `This amount exceeds the current outstanding balance of ${fmt(currentOutstanding)}.`}
             </Alert>
           )}
 
@@ -212,49 +219,50 @@ export function RecordPaymentModal({
               aria-live="polite"
             >
               <div className="flex items-center justify-between gap-3 text-sm">
-                <span className="text-muted">Current Outstanding</span>
+                <span className="text-muted">{t('customers.currentBalance', 'Current Outstanding')}</span>
                 <span className="font-semibold text-gray-900">{fmt(currentOutstanding)}</span>
               </div>
               <div className="flex items-center justify-between gap-3 text-sm">
-                <span className="text-muted">Payment Amount</span>
+                <span className="text-muted">{t('customers.paymentAmount', 'Payment Amount')}</span>
                 <span className="font-semibold text-gray-900">− {fmt(parsedAmount)}</span>
               </div>
               <div className="flex items-center justify-between gap-3 border-t border-border pt-1.5 text-sm">
-                <span className="font-semibold text-gray-700">Remaining Balance</span>
+                <span className="font-semibold text-gray-700">{t('customers.balanceDue', 'Remaining Balance')}</span>
                 <span
                   className={cn(
                     'font-bold',
                     projectedBalance > 0 ? 'text-warning' : 'text-success',
                   )}
                 >
-                  {projectedBalance > 0 ? fmt(projectedBalance) : 'Rs. 0 (Settled)'}
+                  {projectedBalance > 0 ? fmt(projectedBalance) : (language === 'UR' ? '0 روپے (بے باق)' : 'Rs. 0 (Settled)')}
                 </span>
               </div>
               {projectedBalance < 0 && (
                 <p className="text-xs text-muted">
-                  Includes an advance payment of {fmt(Math.abs(projectedBalance))} that will be
-                  adjusted against future udhaar.
+                  {language === 'UR'
+                    ? `اس میں ${fmt(Math.abs(projectedBalance))} کی پیشگی رقم (ایڈوانس) شامل ہے جو آئندہ ادھار میں منہا ہو گی۔`
+                    : `Includes an advance payment of ${fmt(Math.abs(projectedBalance))} that will be adjusted against future udhaar.`}
                 </p>
               )}
             </div>
           )}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Payment Method" htmlFor={fieldId('method')}>
+            <Field label={t('pos.paymentMethod', 'Payment Method')} htmlFor={fieldId('method')}>
               <Select id={fieldId('method')} name="method" defaultValue="CASH">
-                <option value="CASH">Cash</option>
-                <option value="BANK_TRANSFER">Bank Transfer / Online</option>
-                <option value="MOBILE_WALLET">EasyPaisa / JazzCash / Mobile Wallet</option>
-                <option value="CARD">Card</option>
+                <option value="CASH">{t('pos.cash', 'Cash')}</option>
+                <option value="BANK_TRANSFER">{language === 'UR' ? 'بینک ٹرانسفر / آن لائن' : 'Bank Transfer / Online'}</option>
+                <option value="MOBILE_WALLET">{language === 'UR' ? 'ایزی پیسہ / جاز کیش / والیٹ' : 'EasyPaisa / JazzCash / Mobile Wallet'}</option>
+                <option value="CARD">{t('pos.card', 'Card')}</option>
               </Select>
             </Field>
 
-            <Field label="Notes" htmlFor={fieldId('notes')}>
+            <Field label={t('common.notes', 'Notes')} htmlFor={fieldId('notes')}>
               <Input
                 id={fieldId('notes')}
                 name="notes"
                 maxLength={500}
-                placeholder="Optional memo"
+                placeholder={language === 'UR' ? 'تفصیل یا رسید نمبر' : 'Optional memo'}
               />
             </Field>
           </div>

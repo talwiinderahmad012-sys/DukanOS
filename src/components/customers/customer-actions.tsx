@@ -7,6 +7,7 @@ import { IconButton, buttonClasses, type ButtonSize } from '@/components/ui/butt
 import { cn } from '@/components/ui/cn';
 import { RecordPaymentModal } from './record-payment-modal';
 import { CustomerEditDialog, type CustomerEditableData } from './customer-edit-dialog';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export type CustomerActionData = CustomerEditableData & {
   outstanding: number;
@@ -26,6 +27,7 @@ export function CustomerActions({
   size?: ButtonSize;
 }) {
   const [editOpen, setEditOpen] = useState(false);
+  const { t, language } = useTranslation();
 
   const iconSize = size === 'lg' ? 'h-5 w-5' : 'h-4 w-4';
 
@@ -33,8 +35,8 @@ export function CustomerActions({
     <div className="flex items-center justify-end gap-1">
       <Link
         href={`/dashboard/customers/${customer.id}`}
-        aria-label={`View ledger for ${customer.name}`}
-        title="View profile & ledger"
+        aria-label={language === 'UR' ? `${customer.name} کا کھاتہ دیکھیں` : `View ledger for ${customer.name}`}
+        title={language === 'UR' ? 'پروفائل اور کھاتہ لیجر دیکھیں' : 'View profile & ledger'}
         className={cn(
           buttonClasses('ghost', size),
           size === 'lg' ? 'h-10 w-10 p-0' : 'h-8 w-8 p-0',
@@ -59,8 +61,8 @@ export function CustomerActions({
         <>
           <IconButton
             size={size}
-            aria-label={`Edit ${customer.name}`}
-            title="Edit customer"
+            aria-label={language === 'UR' ? `${customer.name} میں ترمیم کریں` : `Edit ${customer.name}`}
+            title={t('common.edit', 'Edit customer')}
             onClick={() => setEditOpen(true)}
           >
             <Pencil className={iconSize} aria-hidden="true" />

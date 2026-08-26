@@ -7,12 +7,10 @@ import {
   Store, 
   ChevronDown, 
   Check, 
-  Plus, 
-  Building2, 
-  ArrowRightLeft,
   Settings
 } from 'lucide-react';
 import { switchActiveBusinessAction } from '@/app/actions/business.actions';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export function BusinessSwitcher({
   currentBusiness,
@@ -32,6 +30,7 @@ export function BusinessSwitcher({
   }>;
 }) {
   const router = useRouter();
+  const { language } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [switchingId, setSwitchingId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -68,7 +67,7 @@ export function BusinessSwitcher({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-2.5 rounded-2xl hover:bg-gray-100/80 transition-all text-left group border border-transparent hover:border-gray-200"
+        className="w-full flex items-center justify-between p-2.5 rounded-2xl hover:bg-gray-100/80 transition-all text-start group border border-transparent hover:border-gray-200"
       >
         <div className="flex items-center gap-2.5 overflow-hidden">
           <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
@@ -86,7 +85,7 @@ export function BusinessSwitcher({
               </span>
               {currentBusiness.status === 'ARCHIVED' && (
                 <span className="text-[9px] bg-amber-100 text-amber-800 px-1 rounded font-bold">
-                  ARCHIVED
+                  {language === 'UR' ? 'محفوظ شدہ' : 'ARCHIVED'}
                 </span>
               )}
             </div>
@@ -98,9 +97,9 @@ export function BusinessSwitcher({
 
       {/* Popover Menu */}
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full mt-2 z-50 bg-white rounded-3xl border border-gray-200 shadow-2xl p-2 space-y-1 animate-in fade-in zoom-in-95 min-w-[240px]">
+        <div className="absolute start-0 end-0 top-full mt-2 z-50 bg-white rounded-3xl border border-gray-200 shadow-2xl p-2 space-y-1 animate-in fade-in zoom-in-95 min-w-[240px]">
           <div className="px-3 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
-            Switch Business ({userBusinesses.length})
+            {language === 'UR' ? `کاروبار تبدیل کریں (${userBusinesses.length})` : `Switch Business (${userBusinesses.length})`}
           </div>
 
           <div className="max-h-60 overflow-y-auto space-y-1">
@@ -114,7 +113,7 @@ export function BusinessSwitcher({
                   type="button"
                   disabled={isSwitching}
                   onClick={() => handleSelectBusiness(b.id)}
-                  className={`w-full p-2.5 rounded-2xl flex items-center justify-between text-left transition-colors ${
+                  className={`w-full p-2.5 rounded-2xl flex items-center justify-between text-start transition-colors ${
                     isSelected
                       ? 'bg-blue-50/80 text-blue-900 font-bold'
                       : 'hover:bg-gray-50 text-gray-700'
@@ -123,7 +122,7 @@ export function BusinessSwitcher({
                   <div className="overflow-hidden">
                     <span className="text-xs truncate block">{b.name}</span>
                     <span className="text-[10px] text-gray-400 font-normal">
-                      {b.role} • {b.branchesCount} {b.branchesCount === 1 ? 'branch' : 'branches'}
+                      {b.role} • {b.branchesCount} {language === 'UR' ? (b.branchesCount === 1 ? 'برانچ' : 'برانچیں') : (b.branchesCount === 1 ? 'branch' : 'branches')}
                     </span>
                   </div>
 
@@ -142,7 +141,7 @@ export function BusinessSwitcher({
               className="w-full px-3 py-2 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-50 flex items-center gap-2"
             >
               <Settings className="w-3.5 h-3.5 text-gray-400" />
-              <span>Manage All Businesses</span>
+              <span>{language === 'UR' ? 'تمام کاروباری ادارے سنبھالیں' : 'Manage All Businesses'}</span>
             </Link>
           </div>
         </div>
