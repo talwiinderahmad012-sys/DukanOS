@@ -8,6 +8,7 @@ import { Modal } from '@/components/ui/modal';
 import { Button, IconButton, type ButtonSize, type ButtonVariant } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
 import { Field, Input, Select } from '@/components/ui/input';
+import { cn } from '@/components/ui/cn';
 
 const fmt = (n: number) => `Rs. ${n.toLocaleString()}`;
 
@@ -43,6 +44,7 @@ export function RecordPaymentModal({
   const amountValid = Number.isFinite(parsedAmount) && parsedAmount > 0;
   const exceedsOutstanding =
     amountValid && currentOutstanding > 0 && parsedAmount > currentOutstanding;
+  const projectedBalance = amountValid ? currentOutstanding - parsedAmount : null;
 
   function open() {
     setAmount('');
@@ -202,6 +204,39 @@ export function RecordPaymentModal({
             <Alert tone="warning">
               This amount exceeds the current outstanding balance of {fmt(currentOutstanding)}.
             </Alert>
+          )}
+
+          {projectedBalance !== null && (
+            <div
+              className="space-y-1.5 rounded-card border border-dashed border-border bg-gray-50 p-4"
+              aria-live="polite"
+            >
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <span className="text-muted">Current Outstanding</span>
+                <span className="font-semibold text-gray-900">{fmt(currentOutstanding)}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <span className="text-muted">Payment Amount</span>
+                <span className="font-semibold text-gray-900">− {fmt(parsedAmount)}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 border-t border-border pt-1.5 text-sm">
+                <span className="font-semibold text-gray-700">Remaining Balance</span>
+                <span
+                  className={cn(
+                    'font-bold',
+                    projectedBalance > 0 ? 'text-warning' : 'text-success',
+                  )}
+                >
+                  {projectedBalance > 0 ? fmt(projectedBalance) : 'Rs. 0 (Settled)'}
+                </span>
+              </div>
+              {projectedBalance < 0 && (
+                <p className="text-xs text-muted">
+                  Includes an advance payment of {fmt(Math.abs(projectedBalance))} that will be
+                  adjusted against future udhaar.
+                </p>
+              )}
+            </div>
           )}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

@@ -110,7 +110,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <NotificationBell businessId={activeBusiness.id} />
             <Link
               href="/dashboard/settings/notifications"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-600"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               title="Notification Settings"
               aria-label="Notification settings"
             >
@@ -118,7 +118,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             </Link>
             <Link
               href="/dashboard/me"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft text-sm font-bold text-primary transition-colors hover:bg-blue-100"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-600 transition-colors hover:bg-blue-100 dark:bg-blue-500/20 dark:text-blue-400 dark:hover:bg-blue-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               title="My Workspace"
               aria-label={`My Workspace (${userLabel})`}
             >

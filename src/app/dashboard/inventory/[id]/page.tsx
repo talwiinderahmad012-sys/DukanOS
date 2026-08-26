@@ -43,6 +43,15 @@ export default async function InventoryDetailsPage({
   const stock = stockDisplay(product);
   const fmt = (n: number) => `Rs. ${Number(n).toLocaleString()}`;
 
+  const creatorIds = [
+    ...new Set(product.movements.map((m) => m.createdBy).filter((id): id is string => Boolean(id))),
+  ];
+  const creators =
+    creatorIds.length > 0
+      ? await prisma.user.findMany({ where: { id: { in: creatorIds } }, select: { id: true, name: true } })
+      : [];
+  const creatorNames = new Map(creators.map((u) => [u.id, u.name ?? '']));
+
   const overviewItems = [
     { label: 'SKU', value: product.sku || 'Not set', mono: true },
     { label: 'Barcode', value: product.barcode || 'Not set', mono: true },
@@ -185,43 +194,97 @@ export default async function InventoryDetailsPage({
               description="Movements are recorded automatically when this product is purchased, sold, returned or manually adjusted."
             />
           ) : (
-            <TableWrap>
-              <Table className="min-w-[640px] whitespace-nowrap">
-                <TableHead>
-                  <tr>
-                    <Th>Date</Th>
-                    <Th>Movement</Th>
-                    <Th className="text-right">Change</Th>
-                    <Th className="text-right">Before</Th>
-                    <Th className="text-right">After</Th>
-                    <Th>Reference / Notes</Th>
-                  </tr>
-                </TableHead>
-                <tbody>
-                  {product.movements.map((movement) => {
-                    const movementLabel = movementDisplay(movement.movementType, movement.notes);
-                    const referenceHref = movementReferenceHref(
-                      movement.movementType,
-                      movement.notes,
-                      movement.referenceId,
-                    );
-                    return (
-                      <Tr key={movement.id}>
-                        <Td className="text-xs text-gray-600">
-                          {new Date(movement.createdAt).toLocaleString(undefined, {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </Td>
-                        <Td>
-                          <Badge tone={movementLabel.tone}>{movementLabel.label}</Badge>
-                        </Td>
-                        <Td
+            <>
+              {/* Desktop / tablet movement table */}
+              <TableWrap className="hidden md:block">
+                <Table className="min-w-[640px] whitespace-nowrap">
+                  <TableHead>
+                    <tr>
+                      <Th>Date</Th>
+                      <Th>Movement</Th>
+                      <Th className="text-right">Change</Th>
+                      <Th className="text-right">Before</Th>
+                      <Th className="text-right">After</Th>
+                      <Th>Reference / Notes</Th>
+                    </tr>
+                  </TableHead>
+                  <tbody>
+                    {product.movements.map((movement) => {
+                      const movementLabel = movementDisplay(movement.movementType, movement.notes);
+                      const referenceHref = movementReferenceHref(
+                        movement.movementType,
+                        movement.notes,
+                        movement.referenceId,
+                      );
+                      const creator = movement.createdBy ? creatorNames.get(movement.createdBy) : undefined;
+                      return (
+                        <Tr key={movement.id}>
+                          <Td className="text-xs text-gray-600">
+                            {new Date(movement.createdAt).toLocaleString(undefined, {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                            {creator && <p className="mt-0.5 text-[11px] text-muted">by {creator}</p>}
+                          </Td>
+                          <Td>
+                            <Badge tone={movementLabel.tone}>{movementLabel.label}</Badge>
+                          </Td>
+                          <Td
+                            className={cn(
+                              'text-right font-semibold tabular-nums',
+                              movement.quantity > 0
+                                ? 'text-success'
+                                : movement.quantity < 0
+                                  ? 'text-danger'
+                                  : 'text-gray-900',
+                            )}
+                          >
+                            {movement.quantity > 0 ? '+' : ''}
+                            {movement.quantity}
+                          </Td>
+                          <Td className="text-right text-sm tabular-nums text-gray-600">{movement.previousStock}</Td>
+                          <Td className="text-right text-sm font-bold tabular-nums text-gray-900">
+                            {movement.resultingStock}
+                          </Td>
+                          <Td className="max-w-[240px] text-sm text-gray-600">
+                            {referenceHref ? (
+                              <Link
+                                href={referenceHref}
+                                className="font-medium text-primary transition-colors hover:text-primary-hover hover:underline"
+                              >
+                                {movement.notes || 'View source document'}
+                              </Link>
+                            ) : (
+                              <span className="block truncate">{movement.notes || '—'}</span>
+                            )}
+                          </Td>
+                        </Tr>
+                      );
+                    })}
+                  </tbody>
+                </Table>
+              </TableWrap>
+
+              {/* Mobile movement list */}
+              <ul className="divide-y divide-border md:hidden">
+                {product.movements.map((movement) => {
+                  const movementLabel = movementDisplay(movement.movementType, movement.notes);
+                  const referenceHref = movementReferenceHref(
+                    movement.movementType,
+                    movement.notes,
+                    movement.referenceId,
+                  );
+                  const creator = movement.createdBy ? creatorNames.get(movement.createdBy) : undefined;
+                  return (
+                    <li key={movement.id} className="space-y-2 p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <Badge tone={movementLabel.tone}>{movementLabel.label}</Badge>
+                        <span
                           className={cn(
-                            'text-right font-semibold tabular-nums',
+                            'text-sm font-semibold tabular-nums',
                             movement.quantity > 0
                               ? 'text-success'
                               : movement.quantity < 0
@@ -230,13 +293,32 @@ export default async function InventoryDetailsPage({
                           )}
                         >
                           {movement.quantity > 0 ? '+' : ''}
-                          {movement.quantity}
-                        </Td>
-                        <Td className="text-right text-sm tabular-nums text-gray-600">{movement.previousStock}</Td>
-                        <Td className="text-right text-sm font-bold tabular-nums text-gray-900">
-                          {movement.resultingStock}
-                        </Td>
-                        <Td className="max-w-[240px] text-sm text-gray-600">
+                          {movement.quantity} {product.unit}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 text-xs text-muted">
+                        <span>
+                          {new Date(movement.createdAt).toLocaleString(undefined, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                        {creator && <span>by {creator}</span>}
+                      </div>
+
+                      <div className="flex items-center justify-between rounded-input border border-border bg-gray-50 px-3 py-2 text-xs">
+                        <span className="font-medium text-muted">Balance</span>
+                        <span className="font-medium tabular-nums text-gray-600">
+                          {movement.previousStock} → <span className="font-bold text-gray-900">{movement.resultingStock}</span> {product.unit}
+                        </span>
+                      </div>
+
+                      {(movement.notes || referenceHref) && (
+                        <p className="break-words text-xs text-gray-600">
                           {referenceHref ? (
                             <Link
                               href={referenceHref}
@@ -245,15 +327,15 @@ export default async function InventoryDetailsPage({
                               {movement.notes || 'View source document'}
                             </Link>
                           ) : (
-                            <span className="block truncate">{movement.notes || '—'}</span>
+                            movement.notes
                           )}
-                        </Td>
-                      </Tr>
-                    );
-                  })}
-                </tbody>
-              </Table>
-            </TableWrap>
+                        </p>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
           )}
         </Card>
       </div>
