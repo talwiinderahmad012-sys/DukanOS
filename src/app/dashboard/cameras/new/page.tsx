@@ -1,10 +1,10 @@
 import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { prisma } from '@/lib/db/prisma';
-import { CameraForm } from '@/components/cctv/camera-form';
 import { redirect } from 'next/navigation';
+import { CameraNewClient } from './camera-new-client';
 
 export default async function NewCameraPage() {
-  const { user, business, membership } = await getActiveBusiness().catch(() =>
+  const { business, membership } = await getActiveBusiness().catch(() =>
     redirect('/onboarding')
   );
 
@@ -18,9 +18,5 @@ export default async function NewCameraPage() {
     orderBy: { name: 'asc' },
   });
 
-  return (
-    <div className="py-2">
-      <CameraForm businessId={business.id} branches={branches} />
-    </div>
-  );
+  return <CameraNewClient businessId={business.id} branches={branches} />;
 }

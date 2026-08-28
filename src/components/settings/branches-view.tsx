@@ -16,7 +16,13 @@ import {
   PowerOff,
   Power
 } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/language-context';
 import { createBranchAction, updateBranchAction, deactivateBranchAction, reactivateBranchAction } from '@/app/actions/settings.actions';
+
+const STATUS_KEYS: Record<string, string> = {
+  ACTIVE: 'common.active',
+  INACTIVE: 'common.inactive',
+};
 
 export function BranchesView({
   businessId,
@@ -26,6 +32,7 @@ export function BranchesView({
   initialBranches: any[];
 }) {
   const router = useRouter();
+  const { t, tm } = useTranslation();
   const [branches, setBranches] = useState<any[]>(initialBranches);
 
   // Modal State
@@ -45,6 +52,8 @@ export function BranchesView({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const activeBranchCount = branches.filter(b => b.status === 'ACTIVE').length;
+
+  const statusLabel = (status: string) => t(STATUS_KEYS[status] ?? 'common.unknown', status);
 
   const openCreateModal = () => {
     setEditingBranch(null);
@@ -78,21 +87,21 @@ export function BranchesView({
       });
 
       if (res.success) {
-        setSuccessMsg(`Branch "${form.name}" updated successfully.`);
+        setSuccessMsg(t('settingsAdmin.branches.updatedMsg', { name: form.name }));
         setShowModal(false);
         router.refresh();
       } else {
-        setErrorMsg(res.message || 'Failed to update branch.');
+        setErrorMsg(tm(res.message) || t('settingsAdmin.branches.updateFailed'));
       }
     } else {
       const res = await createBranchAction(businessId, form);
 
       if (res.success) {
-        setSuccessMsg(`Branch "${form.name}" created successfully.`);
+        setSuccessMsg(t('settingsAdmin.branches.createdMsg', { name: form.name }));
         setShowModal(false);
         router.refresh();
       } else {
-        setErrorMsg(res.message || 'Failed to create branch.');
+        setErrorMsg(tm(res.message) || t('settingsAdmin.branches.createFailed'));
       }
     }
     setSaving(false);
@@ -100,18 +109,18 @@ export function BranchesView({
 
   const handleDeactivate = async (branch: any) => {
     if (activeBranchCount <= 1) {
-      alert('Cannot deactivate the last active branch.');
+      alert(t('settingsAdmin.branches.cannotDeactivateLast'));
       return;
     }
-    if (!confirm(`Are you sure you want to deactivate ${branch.name}?`)) return;
+    if (!confirm(t('settingsAdmin.branches.deactivateConfirm', { name: branch.name }))) return;
     
     setSaving(true);
     const res = await deactivateBranchAction(businessId, branch.id);
     if (res.success) {
-      setSuccessMsg(`Branch deactivated.`);
+      setSuccessMsg(t('settingsAdmin.branches.deactivatedMsg'));
       router.refresh();
     } else {
-      setErrorMsg(res.message || 'Failed to deactivate branch.');
+      setErrorMsg(tm(res.message) || t('settingsAdmin.branches.deactivateFailed'));
     }
     setSaving(false);
   };
@@ -120,10 +129,10 @@ export function BranchesView({
     setSaving(true);
     const res = await reactivateBranchAction(businessId, branch.id);
     if (res.success) {
-      setSuccessMsg(`Branch reactivated.`);
+      setSuccessMsg(t('settingsAdmin.branches.reactivatedMsg'));
       router.refresh();
     } else {
-      setErrorMsg(res.message || 'Failed to reactivate branch.');
+      setErrorMsg(tm(res.message) || t('settingsAdmin.branches.reactivateFailed'));
     }
     setSaving(false);
   };
@@ -136,21 +145,21 @@ export function BranchesView({
             href="/dashboard/settings"
             className="text-xs text-gray-500 hover:text-gray-900 font-semibold flex items-center gap-1 mb-2"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Settings</span>
+            <ArrowLeft className="w-3.5 h-3.5 rtl-flip" />
+            <span>{t('settingsAdmin.backToSettings')}</span>
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Branch Locations</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('settingsAdmin.branches.title')}</h1>
           <p className="text-gray-500 text-sm mt-0.5">
-            Manage physical outlets, store codes, phone numbers, and addresses.
+            {t('settingsAdmin.branches.description')}
           </p>
         </div>
 
         <button
           onClick={openCreateModal}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
+          className="px-4 py-2 bg-primary hover:bg-primary-hover text-on-primary rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5"
         >
           <Plus className="w-4 h-4" />
-          <span>New Branch</span>
+          <span>{t('settingsAdmin.branches.newBranch')}</span>
         </button>
       </div>
 
@@ -171,7 +180,7 @@ export function BranchesView({
       {activeBranchCount <= 1 && (
         <div className="p-4 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-2xl text-xs font-semibold flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>You must have at least 1 active branch.</span>
+          <span>{t('settingsAdmin.branches.minOneActive')}</span>
         </div>
       )}
 
@@ -184,13 +193,13 @@ export function BranchesView({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className={`w-8 h-8 rounded-xl ${b.status === 'ACTIVE' ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-500'} flex items-center justify-center font-bold text-xs`}>
+                  <div className={`w-8 h-8 rounded-xl ${b.status === 'ACTIVE' ? 'bg-primary-soft text-gray-900' : 'bg-gray-100 text-gray-500'} flex items-center justify-center font-bold text-xs`}>
                     <Building2 className="w-4 h-4" />
                   </div>
                   <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
                     {b.name}
                     <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${b.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-700'}`}>
-                      {b.status}
+                      {statusLabel(b.status)}
                     </span>
                   </h3>
                 </div>
@@ -227,10 +236,10 @@ export function BranchesView({
                   onClick={() => handleDeactivate(b)}
                   disabled={saving || activeBranchCount <= 1}
                   className="px-3 py-1.5 hover:bg-red-50 text-red-600 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors disabled:opacity-50"
-                  title="Deactivate branch"
+                  title={t('settingsAdmin.branches.deactivateTitle')}
                 >
                   <PowerOff className="w-3 h-3" />
-                  <span>Deactivate</span>
+                  <span>{t('settingsAdmin.branches.deactivate')}</span>
                 </button>
               ) : (
                 <button
@@ -239,7 +248,7 @@ export function BranchesView({
                   className="px-3 py-1.5 hover:bg-emerald-50 text-emerald-600 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors disabled:opacity-50"
                 >
                   <Power className="w-3 h-3" />
-                  <span>Reactivate</span>
+                  <span>{t('settingsAdmin.branches.reactivate')}</span>
                 </button>
               )}
               <button
@@ -247,7 +256,7 @@ export function BranchesView({
                 className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors"
               >
                 <Edit2 className="w-3 h-3 text-gray-500" />
-                <span>Edit</span>
+                <span>{t('common.edit')}</span>
               </button>
             </div>
           </div>
@@ -259,7 +268,7 @@ export function BranchesView({
           <div className="bg-white rounded-3xl border border-gray-200 shadow-2xl max-w-md w-full p-6 space-y-5 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <h3 className="font-bold text-gray-900 text-base">
-                {editingBranch ? 'Edit Branch' : 'Add New Branch'}
+                {editingBranch ? t('settingsAdmin.branches.editBranch') : t('settingsAdmin.branches.addNewBranch')}
               </h3>
               <button
                 onClick={() => setShowModal(false)}
@@ -272,27 +281,27 @@ export function BranchesView({
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-700 block">Branch Name *</label>
+                  <label className="text-xs font-semibold text-gray-700 block">{t('settingsAdmin.branches.branchNameLabel')}</label>
                   <input
                     type="text"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     required
-                    placeholder="e.g. Main Market"
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder={t('settingsAdmin.branches.namePlaceholder')}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-700 block">Branch Code *</label>
+                  <label className="text-xs font-semibold text-gray-700 block">{t('settingsAdmin.branches.branchCodeLabel')}</label>
                   <input
                     type="text"
                     value={form.code}
                     disabled={!!editingBranch}
                     onChange={(e) => setForm({ ...form, code: e.target.value })}
                     required
-                    placeholder="e.g. BR-01"
-                    className={`w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none ${
+                    placeholder={t('settingsAdmin.branches.codePlaceholder')}
+                    className={`w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-mono font-bold focus:ring-2 focus:ring-primary focus:outline-none ${
                       editingBranch ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''
                     }`}
                   />
@@ -300,47 +309,47 @@ export function BranchesView({
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-700 block">Email Address</label>
+                <label className="text-xs font-semibold text-gray-700 block">{t('common.emailAddress')}</label>
                 <input
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  placeholder="branch@example.com"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  placeholder={t('settingsAdmin.branches.emailPlaceholder')}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-700 block">Street Address</label>
+                <label className="text-xs font-semibold text-gray-700 block">{t('settingsAdmin.branches.streetAddress')}</label>
                 <input
                   type="text"
                   value={form.address}
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
-                  placeholder="Plot 12, Commercial Area"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  placeholder={t('settingsAdmin.branches.addressPlaceholder')}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-700 block">City</label>
+                  <label className="text-xs font-semibold text-gray-700 block">{t('common.city')}</label>
                   <input
                     type="text"
                     value={form.city}
                     onChange={(e) => setForm({ ...form, city: e.target.value })}
-                    placeholder="Lahore"
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder={t('settingsAdmin.branches.cityPlaceholder')}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-700 block">Phone</label>
+                  <label className="text-xs font-semibold text-gray-700 block">{t('common.phone')}</label>
                   <input
                     type="text"
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    placeholder="+92 300 0000000"
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder={t('settingsAdmin.branches.phonePlaceholder')}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
                   />
                 </div>
               </div>
@@ -351,14 +360,14 @@ export function BranchesView({
                   onClick={() => setShowModal(false)}
                   className="px-4 py-2 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-xs font-semibold"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg-primary hover:bg-primary-hover text-on-primary rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
                 >
-                  {saving ? 'Saving...' : editingBranch ? 'Update Branch' : 'Create Branch'}
+                  {saving ? t('common.saving') : editingBranch ? t('settingsAdmin.branches.updateBranch') : t('settingsAdmin.branches.createBranch')}
                 </button>
               </div>
             </form>

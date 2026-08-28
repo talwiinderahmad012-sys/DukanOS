@@ -1,0 +1,18 @@
+{
+  "custom": "اپنی مرضی",
+  "to": "تک",
+  "thisQuarter": "اس سہ ماہی",
+  "lastYear": "پچھلے سال",
+  "exportCsv": "CSV ایکسپورٹ کریں",
+  "excellentHealth": "بہترین صحت",
+  "goodHealth": "اچھی صحت",
+  "needsAttention": "توجہ درکار",
+  "criticalRisk": "سنگین خطرہ",
+  "noChartData": "منتخب مدت کے لیے کوئی ڈیٹا نہیں۔",
+  "revenue": "آمدنی",
+  "grossProfit": "مجموعی منافع",
+  "profit": "منافع",
+  "expenses": "اخراجات",
+  "salesRevenue": "فروخت کی آمدنی",
+  "orderVolume100": "آرڈرز کی تعداد (x100)"
+}

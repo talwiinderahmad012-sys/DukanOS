@@ -19,6 +19,7 @@ import {
   markNotificationReadAction, 
   markAllNotificationsReadAction 
 } from '@/app/actions/notification.actions';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export function NotificationCenterView({
   businessId,
@@ -29,6 +30,8 @@ export function NotificationCenterView({
   initialNotifications: any[];
   initialTotal: number;
 }) {
+  const { t, language } = useTranslation();
+  const langLocale = language === 'UR' ? 'ur-PK' : 'en-PK';
   const [notifications, setNotifications] = useState<any[]>(initialNotifications);
   const [filterTab, setFilterTab] = useState<'ALL' | 'UNREAD' | 'CRITICAL' | 'DIGEST'>('ALL');
 
@@ -63,7 +66,7 @@ export function NotificationCenterView({
       case 'SUCCESS':
         return { color: 'bg-emerald-100 text-emerald-800 border-emerald-200', icon: CheckCheck };
       default:
-        return { color: 'bg-blue-50 text-blue-800 border-blue-200', icon: Info };
+        return { color: 'bg-primary-soft text-gray-900 border-blue-200', icon: Info };
     }
   };
 
@@ -72,9 +75,9 @@ export function NotificationCenterView({
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Notification Center</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('notifications.centerTitle')}</h1>
           <p className="text-gray-500 text-sm mt-0.5">
-            Operational alerts, daily business digests, and system events.
+            {t('notifications.centerSubtitle')}
           </p>
         </div>
 
@@ -85,16 +88,16 @@ export function NotificationCenterView({
               className="px-3.5 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
             >
               <CheckCheck className="w-3.5 h-3.5" />
-              <span>Mark All as Read</span>
+              <span>{t('notifications.markAllAsRead')}</span>
             </button>
           )}
 
           <Link
             href="/dashboard/settings/notifications"
-            className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
+            className="px-3.5 py-2 bg-primary hover:bg-primary-hover text-on-primary rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
           >
             <Settings className="w-3.5 h-3.5" />
-            <span>Alert Preferences</span>
+            <span>{t('notifications.alertPreferences')}</span>
           </Link>
         </div>
       </div>
@@ -109,7 +112,7 @@ export function NotificationCenterView({
               : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
           }`}
         >
-          All Alerts ({notifications.length})
+          {t('notifications.allAlerts', { count: notifications.length })}
         </button>
 
         <button
@@ -120,9 +123,9 @@ export function NotificationCenterView({
               : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
           }`}
         >
-          <span>Unread</span>
+          <span>{t('notifications.unread')}</span>
           {unreadCount > 0 && (
-            <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+            <span className="w-2 h-2 rounded-full bg-primary"></span>
           )}
         </button>
 
@@ -134,7 +137,7 @@ export function NotificationCenterView({
               : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
           }`}
         >
-          Critical & Warnings
+          {t('notifications.criticalAndWarnings')}
         </button>
 
         <button
@@ -145,7 +148,7 @@ export function NotificationCenterView({
               : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
           }`}
         >
-          Daily Digests
+          {t('notifications.dailyDigests')}
         </button>
       </div>
 
@@ -156,9 +159,9 @@ export function NotificationCenterView({
             <div className="w-12 h-12 rounded-full bg-gray-50 text-gray-400 flex items-center justify-center mx-auto">
               <Bell className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-gray-900">No notifications found</h3>
+            <h3 className="text-base font-bold text-gray-900">{t('notifications.noNotificationsFound')}</h3>
             <p className="text-xs text-gray-500 max-w-sm mx-auto">
-              You are all caught up. No alerts matching this filter category.
+              {t('notifications.noNotificationsFoundDesc')}
             </p>
           </div>
         ) : (
@@ -170,7 +173,7 @@ export function NotificationCenterView({
                 <div
                   key={n.id}
                   className={`p-5 hover:bg-gray-50/50 transition-colors flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${
-                    !n.isRead ? 'bg-blue-50/20' : ''
+                    !n.isRead ? 'bg-primary-soft/20' : ''
                   }`}
                 >
                   <div className="flex items-start gap-3.5 min-w-0">
@@ -181,11 +184,11 @@ export function NotificationCenterView({
                     <div className="space-y-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${color}`}>
-                          {n.severity}
+                          {t(`notifications.severities.${n.severity}`, n.severity)}
                         </span>
                         <h3 className="font-bold text-xs text-gray-900">{n.title}</h3>
                         {!n.isRead && (
-                          <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0"></span>
+                          <span className="w-2 h-2 rounded-full bg-primary shrink-0"></span>
                         )}
                       </div>
 
@@ -194,8 +197,8 @@ export function NotificationCenterView({
                       </p>
 
                       <div className="flex items-center gap-3 text-[11px] text-gray-400 pt-0.5 font-mono">
-                        <span>{new Date(n.createdAt).toLocaleString()}</span>
-                        {n.type && <span>• Type: {n.type}</span>}
+                        <span>{new Date(n.createdAt).toLocaleString(langLocale)}</span>
+                        {n.type && <span>• {t('common.type')}: {t(`notifications.types.${n.type}`, n.type)}</span>}
                       </div>
                     </div>
                   </div>
@@ -206,19 +209,19 @@ export function NotificationCenterView({
                         href={n.actionUrl}
                         className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors"
                       >
-                        <span>View</span>
-                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>{t('common.view')}</span>
+                        <ExternalLink className="w-3.5 h-3.5 rtl-flip" />
                       </Link>
                     )}
 
                     {!n.isRead && (
                       <button
                         onClick={() => handleMarkAsRead(n.id)}
-                        className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1"
-                        title="Mark as read"
+                        className="px-3 py-1.5 bg-primary-soft hover:bg-blue-100 text-gray-950 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1"
+                        title={t('notifications.markAsRead')}
                       >
                         <Check className="w-3.5 h-3.5" />
-                        <span>Acknowledge</span>
+                        <span>{t('notifications.acknowledge')}</span>
                       </button>
                     )}
                   </div>

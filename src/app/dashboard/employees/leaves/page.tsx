@@ -1,10 +1,8 @@
 import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { listEmployeeLeaves } from '@/services/leave';
 import { redirect } from 'next/navigation';
-import { LeavesBoard } from '@/components/employees/leaves-board';
-import Link from 'next/link';
-import { ChevronLeft } from 'lucide-react';
 import { LeaveStatus } from '@/generated/prisma/client';
+import { LeavesPageClient, type LeavesBoardData } from './leaves-page-client';
 
 export default async function LeavesPage({
   searchParams,
@@ -22,21 +20,30 @@ export default async function LeavesPage({
     limit: 50,
   });
 
-  return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <Link href="/dashboard/employees" className="inline-flex items-center text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors mb-2">
-            <ChevronLeft className="w-4 h-4 mr-1" /> Back to Employees
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Leave Management</h1>
-          <p className="text-gray-500 text-sm mt-0.5">
-            Review and manage staff leave requests.
-          </p>
-        </div>
-      </div>
+  const initialData: LeavesBoardData = {
+    leaves: data.leaves.map((leave) => ({
+      id: leave.id,
+      leaveType: leave.leaveType,
+      startDate: leave.startDate.toISOString(),
+      endDate: leave.endDate.toISOString(),
+      daysCount: leave.daysCount,
+      reason: leave.reason,
+      status: leave.status,
+      approvalNotes: leave.approvalNotes,
+      employee: {
+        id: leave.employee.id,
+        name: leave.employee.name,
+        employeeCode: leave.employee.employeeCode,
+        position: leave.employee.position,
+      },
+    })),
+    pagination: {
+      total: data.pagination.total,
+      page: data.pagination.page,
+      limit: data.pagination.limit,
+      totalPages: data.pagination.totalPages,
+    },
+  };
 
-      <LeavesBoard businessId={business.id} initialData={data} currentStatus={status} />
-    </div>
-  );
+  return <LeavesPageClient businessId={business.id} initialData={initialData} currentStatus={status} />;
 }

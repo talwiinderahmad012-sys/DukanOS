@@ -8,6 +8,7 @@ import { Alert } from '@/components/ui/alert';
 import { Field, Select, Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/components/ui/cn';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export function InventoryAdjustmentForm({
   businessId,
@@ -21,6 +22,7 @@ export function InventoryAdjustmentForm({
   unit?: string;
 }) {
   const router = useRouter();
+  const { t, tm } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -36,7 +38,7 @@ export function InventoryAdjustmentForm({
     setError('');
 
     if (newStock < 0) {
-      setError('Stock cannot go below zero.');
+      setError(t('inventory.stockBelowZero'));
       setLoading(false);
       return;
     }
@@ -51,7 +53,7 @@ export function InventoryAdjustmentForm({
     try {
       const res = await adjustStockAction(businessId, payload);
       if (!res.success) {
-        setError(res.message || 'Failed to adjust stock');
+        setError(tm(res.message) || t('inventory.adjustFailed'));
         setLoading(false);
         return;
       }
@@ -61,7 +63,7 @@ export function InventoryAdjustmentForm({
       router.refresh();
       setLoading(false);
     } catch {
-      setError('Unexpected error occurred');
+      setError(t('inventory.unexpectedError'));
       setLoading(false);
     }
   }
@@ -69,29 +71,29 @@ export function InventoryAdjustmentForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Adjust Stock</CardTitle>
-        <CardDescription>Manually correct the stock level for this product.</CardDescription>
+        <CardTitle>{t('inventory.adjustStock')}</CardTitle>
+        <CardDescription>{t('inventory.adjustStockDescription')}</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4" aria-label="Adjust stock for this product">
-          <Alert tone="warning" title="This changes live inventory">
-            The adjustment updates stock immediately and writes a permanent movement record. It cannot be undone.
+        <form onSubmit={handleSubmit} className="space-y-4" aria-label={t('inventory.adjustStockAria')}>
+          <Alert tone="warning" title={t('inventory.adjustWarningTitle')}>
+            {t('inventory.adjustWarningBody')}
           </Alert>
 
           {error && <Alert tone="danger">{error}</Alert>}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Action" htmlFor="adjustment-action">
+            <Field label={t('inventory.action')} htmlFor="adjustment-action">
               <Select
                 id="adjustment-action"
                 value={adjustmentType}
                 onChange={(e) => setAdjustmentType(e.target.value)}
               >
-                <option value="add">Add Stock (+)</option>
-                <option value="subtract">Reduce Stock (−)</option>
+                <option value="add">{t('inventory.addStockOption')}</option>
+                <option value="subtract">{t('inventory.reduceStockOption')}</option>
               </Select>
             </Field>
-            <Field label={`Quantity (${unit})`} htmlFor="adjustment-quantity">
+            <Field label={t('inventory.quantityUnit', { unit })} htmlFor="adjustment-quantity">
               <Input
                 id="adjustment-quantity"
                 type="number"
@@ -106,13 +108,13 @@ export function InventoryAdjustmentForm({
             </Field>
           </div>
 
-          <Field label="Reason" htmlFor="adjustment-reason" required>
+          <Field label={t('inventory.reason')} htmlFor="adjustment-reason" required>
             <Select id="adjustment-reason" name="reason" required defaultValue="Opening Stock">
-              <option value="Opening Stock">Opening Stock</option>
-              <option value="Correction">Correction</option>
-              <option value="Damage">Damage</option>
-              <option value="Loss">Loss</option>
-              <option value="Other">Other</option>
+              <option value="Opening Stock">{t('inventory.openingStock')}</option>
+              <option value="Correction">{t('inventory.reasonCorrection')}</option>
+              <option value="Damage">{t('inventory.movementDamage')}</option>
+              <option value="Loss">{t('inventory.movementLoss')}</option>
+              <option value="Other">{t('common.other')}</option>
             </Select>
           </Field>
 
@@ -121,7 +123,11 @@ export function InventoryAdjustmentForm({
             aria-live="polite"
           >
             <span className="text-sm font-medium text-gray-600">
-              Resulting Stock ({currentStock} {adjustmentType === 'add' ? '+' : '−'} {quantity})
+              {t('inventory.resultingStock', {
+                currentStock,
+                sign: adjustmentType === 'add' ? '+' : '−',
+                quantity,
+              })}
             </span>
             <span className={cn('text-lg font-bold tabular-nums', newStock < 0 ? 'text-danger' : 'text-gray-900')}>
               {newStock} {unit}
@@ -136,7 +142,7 @@ export function InventoryAdjustmentForm({
             disabled={quantity <= 0 || newStock < 0}
             className="w-full"
           >
-            {loading ? 'Adjusting…' : 'Confirm Adjustment'}
+            {loading ? t('inventory.adjusting') : t('inventory.confirmAdjustment')}
           </Button>
         </form>
       </CardContent>

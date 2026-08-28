@@ -1,8 +1,13 @@
+'use client';
+
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export default function EditExpenseLoading() {
+  const { t } = useTranslation();
+
   return (
-    <div className="mx-auto max-w-2xl space-y-6" aria-busy="true" aria-label="Loading expense details">
+    <div className="mx-auto max-w-2xl space-y-6" aria-busy="true" aria-label={t('expenses.loadingExpenseDetail')}>
       <Skeleton className="h-4 w-48" />
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

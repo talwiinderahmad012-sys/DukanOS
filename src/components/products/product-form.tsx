@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
 import { Field, Input, Select, Textarea } from '@/components/ui/input';
 import { cn } from '@/components/ui/cn';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export function ProductForm({
   businessId,
@@ -17,6 +18,7 @@ export function ProductForm({
   categories: { id: string; name: string }[];
 }) {
   const router = useRouter();
+  const { t, tm, formatCurrency } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -57,7 +59,7 @@ export function ProductForm({
         const fieldError = res.fieldErrors
           ? Object.values(res.fieldErrors).flat().find(Boolean)
           : undefined;
-        setError(res.message || fieldError || 'Failed to create product');
+        setError(tm(res.message) || tm(fieldError) || t('products.createFailed'));
         setLoading(false);
         return;
       }
@@ -65,7 +67,7 @@ export function ProductForm({
       router.push('/dashboard/products');
       router.refresh();
     } catch {
-      setError('An unexpected error occurred.');
+      setError(t('products.unexpectedError'));
       setLoading(false);
     }
   }
@@ -76,7 +78,7 @@ export function ProductForm({
         <div className="divide-y divide-border">
           {error && (
             <div className="p-5 pb-0">
-              <Alert tone="danger" title="Could not save product">
+              <Alert tone="danger" title={t('products.couldNotSaveProduct')}>
                 {error}
               </Alert>
             </div>
@@ -85,40 +87,40 @@ export function ProductForm({
           <section className="space-y-4 p-5" aria-labelledby="product-section-basic">
             <div>
               <h2 id="product-section-basic" className="text-sm font-bold text-gray-900">
-                Basic Information
+                {t('products.basicInformation')}
               </h2>
-              <p className="text-xs text-muted">Name and identifiers used on invoices and barcode scans.</p>
+              <p className="text-xs text-muted">{t('products.basicInformationDescription')}</p>
             </div>
 
-            <Field label="Product Name" htmlFor="product-name" required>
-              <Input id="product-name" name="name" required maxLength={100} placeholder="e.g. Nestle Pure Life 1.5L" />
+            <Field label={t('products.productName')} htmlFor="product-name" required>
+              <Input id="product-name" name="name" required maxLength={100} placeholder={t('products.namePlaceholder')} />
             </Field>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label="SKU" htmlFor="product-sku">
+              <Field label={t('products.sku')} htmlFor="product-sku">
                 <Input
                   id="product-sku"
                   name="sku"
                   maxLength={50}
-                  placeholder="e.g. ITEM-001"
+                  placeholder={t('products.skuPlaceholder')}
                   className="font-mono"
                 />
               </Field>
-              <Field label="Barcode" htmlFor="product-barcode">
+              <Field label={t('products.barcode')} htmlFor="product-barcode">
                 <Input
                   id="product-barcode"
                   name="barcode"
                   maxLength={50}
-                  placeholder="e.g. 8901234567890"
+                  placeholder={t('products.barcodePlaceholder')}
                   className="font-mono"
                 />
               </Field>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label="Category" htmlFor="product-category">
+              <Field label={t('common.category')} htmlFor="product-category">
                 <Select id="product-category" name="categoryId" defaultValue="">
-                  <option value="">No Category</option>
+                  <option value="">{t('products.noCategory')}</option>
                   {categories.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.name}
@@ -126,18 +128,18 @@ export function ProductForm({
                   ))}
                 </Select>
               </Field>
-              <Field label="Unit" htmlFor="product-unit" required hint="e.g. pcs, kg, box">
+              <Field label={t('inventory.unit')} htmlFor="product-unit" required hint={t('products.unitHint')}>
                 <Input id="product-unit" name="unit" required defaultValue="pcs" maxLength={20} />
               </Field>
             </div>
 
-            <Field label="Description" htmlFor="product-description">
+            <Field label={t('common.description')} htmlFor="product-description">
               <Textarea
                 id="product-description"
                 name="description"
                 maxLength={500}
                 rows={2}
-                placeholder="Optional notes about this product"
+                placeholder={t('products.descriptionPlaceholder')}
               />
             </Field>
           </section>
@@ -145,16 +147,16 @@ export function ProductForm({
           <section className="space-y-4 p-5" aria-labelledby="product-section-pricing">
             <div>
               <h2 id="product-section-pricing" className="text-sm font-bold text-gray-900">
-                Pricing
+                {t('products.pricing')}
               </h2>
-              <p className="text-xs text-muted">Cost price you pay suppliers and the price customers pay.</p>
+              <p className="text-xs text-muted">{t('products.pricingDescription')}</p>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label="Purchase Price" htmlFor="product-purchase-price" required>
+              <Field label={t('products.purchasePrice')} htmlFor="product-purchase-price" required>
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                    Rs.
+                  <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                    {t('common.pkr')}
                   </span>
                   <Input
                     id="product-purchase-price"
@@ -165,14 +167,14 @@ export function ProductForm({
                     required
                     value={purchasePrice}
                     onChange={(e) => setPurchasePrice(Number(e.target.value))}
-                    className="pl-11"
+                    className="ps-11"
                   />
                 </div>
               </Field>
-              <Field label="Selling Price" htmlFor="product-selling-price" required>
+              <Field label={t('products.sellingPrice')} htmlFor="product-selling-price" required>
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                    Rs.
+                  <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                    {t('common.pkr')}
                   </span>
                   <Input
                     id="product-selling-price"
@@ -183,7 +185,7 @@ export function ProductForm({
                     required
                     value={sellingPrice}
                     onChange={(e) => setSellingPrice(Number(e.target.value))}
-                    className="pl-11"
+                    className="ps-11"
                   />
                 </div>
               </Field>
@@ -191,13 +193,13 @@ export function ProductForm({
 
             <div className="flex items-center justify-between rounded-card border border-border bg-gray-50 p-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted">Expected Profit</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('products.expectedProfit')}</p>
                 <p className={cn('text-lg font-bold', profit >= 0 ? 'text-success' : 'text-danger')}>
-                  Rs. {profit.toLocaleString()}
+                  {formatCurrency(profit)}
                 </p>
               </div>
-              <div className="text-right">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted">Margin</p>
+              <div className="text-end">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('products.margin')}</p>
                 <p className={cn('text-lg font-bold', profit >= 0 ? 'text-success' : 'text-danger')}>
                   {margin}%
                 </p>
@@ -208,17 +210,17 @@ export function ProductForm({
           <section className="space-y-4 p-5" aria-labelledby="product-section-inventory">
             <div>
               <h2 id="product-section-inventory" className="text-sm font-bold text-gray-900">
-                Inventory
+                {t('products.inventorySection')}
               </h2>
               <p className="text-xs text-muted">
-                New products start at 0 stock. Record opening stock from the Inventory page after saving.
+                {t('products.inventorySectionDescription')}
               </p>
             </div>
 
             <Field
-              label="Minimum Stock Threshold"
+              label={t('products.minStockThreshold')}
               htmlFor="product-min-stock"
-              hint="You will be alerted when stock falls below this level."
+              hint={t('products.minStockHint')}
             >
               <Input
                 id="product-min-stock"
@@ -235,10 +237,10 @@ export function ProductForm({
 
         <div className="flex justify-end gap-2 border-t border-border bg-gray-50/50 px-5 py-4">
           <Button variant="outline" onClick={() => router.back()} disabled={loading}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button type="submit" loading={loading}>
-            {loading ? 'Saving…' : 'Save Product'}
+            {loading ? t('common.saving') : t('products.saveProduct')}
           </Button>
         </div>
       </Card>

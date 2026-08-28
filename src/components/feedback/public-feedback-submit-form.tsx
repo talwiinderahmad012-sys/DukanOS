@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Star, Send, Loader2, CheckCircle2 } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/language-context';
 import { submitPublicFeedbackAction } from '@/app/actions/feedback-management.actions';
 // Type-only import: erased at build time, never bundled into client JS.
 import type { CustomerFeedbackType } from '@/generated/prisma/client';
@@ -16,6 +17,7 @@ export function PublicFeedbackSubmitForm({
   businessId: string;
   products: { id: string; name: string }[];
 }) {
+  const { t, tm } = useTranslation();
   const [type, setType] = useState<CustomerFeedbackType>('FEEDBACK');
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
@@ -45,7 +47,7 @@ export function PublicFeedbackSubmitForm({
     if (res.success) {
       setDone(true);
     } else {
-      setError(res.message || 'Failed to submit. Please try again.');
+      setError(res.message ? tm(res.message) : t('feedback.publicSubmit.submitFailed'));
     }
   };
 
@@ -53,10 +55,9 @@ export function PublicFeedbackSubmitForm({
     return (
       <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-10 text-center space-y-3">
         <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto" />
-        <h2 className="font-bold text-gray-900 text-lg">Thank you!</h2>
+        <h2 className="font-bold text-gray-900 text-lg">{t('feedback.publicSubmit.thankYouTitle')}</h2>
         <p className="text-xs text-gray-500">
-          Your submission has been received{phone ? ' — we may contact you on the number provided' : ''}.
-          The business owner has been notified.
+          {phone ? t('feedback.publicSubmit.thankYouMessagePhone') : t('feedback.publicSubmit.thankYouMessage')}
         </p>
       </div>
     );
@@ -66,18 +67,18 @@ export function PublicFeedbackSubmitForm({
     <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 space-y-4">
       {/* Type selector */}
       <div className="grid grid-cols-3 gap-2">
-        {FEEDBACK_TYPES.map((t) => (
+        {FEEDBACK_TYPES.map((ty) => (
           <button
-            key={t}
+            key={ty}
             type="button"
-            onClick={() => setType(t as CustomerFeedbackType)}
+            onClick={() => setType(ty as CustomerFeedbackType)}
             className={`py-2 rounded-xl text-xs font-bold border transition-colors ${
-              type === t
-                ? 'bg-blue-600 text-white border-blue-600'
+              type === ty
+                ? 'bg-primary text-on-primary border-primary'
                 : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
             }`}
           >
-            {t.charAt(0) + t.slice(1).toLowerCase()}
+            {t(`feedback.enums.types.${ty}`, ty)}
           </button>
         ))}
       </div>
@@ -91,7 +92,7 @@ export function PublicFeedbackSubmitForm({
             onMouseEnter={() => setHoverRating(n)}
             onMouseLeave={() => setHoverRating(0)}
             onClick={() => setRating(n)}
-            aria-label={`${n} star`}
+            aria-label={t('feedback.publicSubmit.starAria', { n })}
           >
             <Star
               className={`w-8 h-8 transition-colors ${
@@ -107,9 +108,9 @@ export function PublicFeedbackSubmitForm({
       <input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        placeholder="Short title (e.g. 'Late delivery on Tuesday')"
+        placeholder={t('feedback.publicSubmit.titlePlaceholder')}
         maxLength={150}
-        className="w-full text-sm border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+        className="w-full text-sm border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-primary"
       />
       <textarea
         value={description}
@@ -118,10 +119,10 @@ export function PublicFeedbackSubmitForm({
         maxLength={2000}
         placeholder={
           type === 'COMPLAINT'
-            ? 'Please describe what went wrong so we can fix it...'
-            : 'Tell us more about your experience...'
+            ? t('feedback.publicSubmit.complaintPlaceholder')
+            : t('feedback.publicSubmit.descriptionPlaceholder')
         }
-        className="w-full text-sm border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+        className="w-full text-sm border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-primary"
       />
 
       {products.length > 0 && (
@@ -130,7 +131,7 @@ export function PublicFeedbackSubmitForm({
           onChange={(e) => setProductId(e.target.value)}
           className="w-full text-sm border border-gray-300 rounded-xl px-4 py-2.5 bg-white"
         >
-          <option value="">Related product (optional)</option>
+          <option value="">{t('feedback.publicSubmit.relatedProduct')}</option>
           {products.map((p) => (
             <option key={p.id} value={p.id}>{p.name}</option>
           ))}
@@ -141,13 +142,13 @@ export function PublicFeedbackSubmitForm({
         <input
           value={customerName}
           onChange={(e) => setCustomerName(e.target.value)}
-          placeholder="Your name (optional)"
+          placeholder={t('feedback.publicSubmit.namePlaceholder')}
           className="w-full text-sm border border-gray-300 rounded-xl px-4 py-2.5"
         />
         <input
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          placeholder="Phone for follow-up (optional)"
+          placeholder={t('feedback.publicSubmit.phonePlaceholder')}
           inputMode="tel"
           className="w-full text-sm border border-gray-300 rounded-xl px-4 py-2.5"
         />
@@ -160,10 +161,10 @@ export function PublicFeedbackSubmitForm({
       <button
         onClick={submit}
         disabled={busy || !title.trim() || !description.trim()}
-        className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2"
+        className="w-full py-3 bg-primary hover:bg-primary-hover disabled:opacity-50 text-on-primary rounded-xl text-sm font-bold flex items-center justify-center gap-2"
       >
         {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-        Submit
+        {t('common.submit')}
       </button>
     </div>
   );

@@ -15,6 +15,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import { updateAdvisorSettingsAction } from '@/app/actions/settings.actions';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export function AdvisorSettingsForm({
   businessId,
@@ -24,6 +25,7 @@ export function AdvisorSettingsForm({
   initialSettings: any;
 }) {
   const router = useRouter();
+  const { t, tm } = useTranslation();
 
   const [form, setForm] = useState({
     salesDeclineThresholdPercent: initialSettings.salesDeclineThresholdPercent || 15,
@@ -59,10 +61,10 @@ export function AdvisorSettingsForm({
     });
 
     if (res.success) {
-      setSuccessMsg('Business Advisor sensitivity thresholds updated.');
+      setSuccessMsg(t('settings.advisorSettingsSaved'));
       router.refresh();
     } else {
-      setErrorMsg(res.message || 'Failed to update advisor settings.');
+      setErrorMsg(res.message ? tm(res.message) : t('settings.advisorSaveFailed'));
     }
     setSaving(false);
   };
@@ -74,12 +76,12 @@ export function AdvisorSettingsForm({
           href="/dashboard/settings"
           className="text-xs text-gray-500 hover:text-gray-900 font-semibold flex items-center gap-1 mb-2"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Settings</span>
+          <ArrowLeft className="w-3.5 h-3.5 rtl-flip" />
+          <span>{t('settings.backToSettings')}</span>
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Business Advisor Thresholds</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('settings.advisorThresholdsTitle')}</h1>
         <p className="text-gray-500 text-sm mt-0.5">
-          Tune the algorithms and sensitivity triggers that generate proactive growth and risk advisories.
+          {t('settings.advisorThresholdsSubtitle')}
         </p>
       </div>
 
@@ -98,82 +100,80 @@ export function AdvisorSettingsForm({
       )}
 
       <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-6">
-        {/* Section 1: Sensitivity Thresholds */}
         <div className="space-y-4">
           <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
             <Sliders className="w-3.5 h-3.5 text-gray-500" />
-            <span>1. Trigger Sensitivity Sliders</span>
+            <span>{t('settings.advisorSensitivitySection')}</span>
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">Sales Drop Trigger (%)</label>
+              <label className="text-xs font-semibold text-gray-700 block">{t('settings.salesDropTrigger')}</label>
               <input
                 type="number"
                 min="5"
                 max="80"
                 value={form.salesDeclineThresholdPercent}
                 onChange={(e) => setForm({ ...form, salesDeclineThresholdPercent: Number(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-primary focus:outline-none"
               />
-              <p className="text-[11px] text-gray-400">Trigger alert if month-over-month revenue drops by this %.</p>
+              <p className="text-[11px] text-gray-400">{t('settings.salesDropTriggerHint')}</p>
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">Slow-Moving Stock Period (Days)</label>
+              <label className="text-xs font-semibold text-gray-700 block">{t('settings.slowMovingPeriod')}</label>
               <input
                 type="number"
                 min="7"
                 max="365"
                 value={form.slowMovingDays}
                 onChange={(e) => setForm({ ...form, slowMovingDays: Number(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-primary focus:outline-none"
               />
-              <p className="text-[11px] text-gray-400">Flag items with zero sales after this many days.</p>
+              <p className="text-[11px] text-gray-400">{t('settings.slowMovingPeriodHint')}</p>
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">Profit Margin Contraction (%)</label>
+              <label className="text-xs font-semibold text-gray-700 block">{t('settings.profitContraction')}</label>
               <input
                 type="number"
                 min="2"
                 max="50"
                 value={form.profitDeclineThresholdPercent}
                 onChange={(e) => setForm({ ...form, profitDeclineThresholdPercent: Number(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-primary focus:outline-none"
               />
-              <p className="text-[11px] text-gray-400">Alert if gross margin drops by this percentage point.</p>
+              <p className="text-[11px] text-gray-400">{t('settings.profitContractionHint')}</p>
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">Customer Credit Risk (%)</label>
+              <label className="text-xs font-semibold text-gray-700 block">{t('settings.creditRiskLabel')}</label>
               <input
                 type="number"
                 min="10"
                 max="100"
                 value={form.creditRiskThresholdPercent}
                 onChange={(e) => setForm({ ...form, creditRiskThresholdPercent: Number(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-primary focus:outline-none"
               />
-              <p className="text-[11px] text-gray-400">Flag when outstanding Udhaar exceeds this % of monthly sales.</p>
+              <p className="text-[11px] text-gray-400">{t('settings.creditRiskHint')}</p>
             </div>
           </div>
         </div>
 
-        {/* Section 2: Active Advisory Rules */}
         <div className="space-y-4 pt-4 border-t border-gray-100">
           <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
-            2. Active Advisory Rules
+            {t('settings.advisorRulesSection')}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
-              { id: 'advisorRuleLowStock', label: 'Out of Stock & Low Stock Warnings' },
-              { id: 'advisorRuleSlowMoving', label: 'Dead Capital & Slow-Moving Stock' },
-              { id: 'advisorRuleSalesDecline', label: 'Monthly Sales Decline Detection' },
-              { id: 'advisorRuleProfitDecline', label: 'Profit Margin Contraction Alerts' },
-              { id: 'advisorRuleCreditRisk', label: 'Customer Credit (Khata) Exposure' },
-              { id: 'advisorRuleExpenseSpike', label: 'Expense Category Spikes' },
+              { id: 'advisorRuleLowStock', label: t('settings.advisorRuleLowStock') },
+              { id: 'advisorRuleSlowMoving', label: t('settings.advisorRuleSlowMoving') },
+              { id: 'advisorRuleSalesDecline', label: t('settings.advisorRuleSalesDecline') },
+              { id: 'advisorRuleProfitDecline', label: t('settings.advisorRuleProfitDecline') },
+              { id: 'advisorRuleCreditRisk', label: t('settings.advisorRuleCreditRisk') },
+              { id: 'advisorRuleExpenseSpike', label: t('settings.advisorRuleExpenseSpike') },
             ].map((rule) => (
               <label
                 key={rule.id}
@@ -184,28 +184,27 @@ export function AdvisorSettingsForm({
                   type="checkbox"
                   checked={(form as any)[rule.id]}
                   onChange={(e) => setForm({ ...form, [rule.id]: e.target.checked })}
-                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                  className="w-4 h-4 rounded text-gray-900 focus:ring-primary"
                 />
               </label>
             ))}
           </div>
         </div>
 
-        {/* Submit */}
         <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
           <Link
             href="/dashboard/settings"
             className="px-4 py-2 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-xs font-semibold"
           >
-            Cancel
+            {t('common.cancel')}
           </Link>
           <button
             type="submit"
             disabled={saving}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5 disabled:opacity-50"
+            className="px-6 py-2 bg-primary hover:bg-primary-hover text-on-primary rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5 disabled:opacity-50"
           >
             <Save className="w-3.5 h-3.5" />
-            <span>{saving ? 'Saving...' : 'Save Advisor Settings'}</span>
+            <span>{saving ? t('common.saving') : t('settings.saveAdvisorSettings')}</span>
           </button>
         </div>
       </form>

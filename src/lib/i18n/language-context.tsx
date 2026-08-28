@@ -1,61 +1,120 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useSyncExternalStore, useLayoutEffect, useCallback, useMemo } from 'react';
 import { translations, Language } from './translations';
+import { SERVER_MESSAGES } from './server-messages';
+
+import { LANGUAGE_STORAGE_KEY } from './constants';
+
+export { LANGUAGE_STORAGE_KEY };
 
 export type TranslationDict = typeof translations.EN | typeof translations.UR;
+
+export type TranslationVars = Record<string, string | number>;
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   toggleLanguage: () => void;
   isRTL: boolean;
-  t: (path: string, fallback?: string) => string;
+  t: (path: string, varsOrFallback?: TranslationVars | string) => string;
+  tm: (message: string | null | undefined) => string;
   dict: TranslationDict;
   formatCurrency: (amount: number | string) => string;
+  formatNumber: (value: number | string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'dukaanos_lang';
+function interpolate(value: string, vars?: TranslationVars): string {
+  if (!vars) return value;
+  return value.replace(/\{(\w+)\}/g, (match, key: string) => {
+    return key in vars ? String(vars[key]) : match;
+  });
+}
+
+function lookup(dict: unknown, path: string): string | undefined {
+  const parts = path.split('.');
+  let current: unknown = dict;
+  for (const part of parts) {
+    if (current && typeof current === 'object' && part in (current as Record<string, unknown>)) {
+      current = (current as Record<string, unknown>)[part];
+    } else {
+      return undefined;
+    }
+  }
+  return typeof current === 'string' ? current : undefined;
+}
+
+function makeT(dict: unknown) {
+  return (path: string, varsOrFallback?: TranslationVars | string): string => {
+    const found = lookup(dict, path);
+    if (found === undefined) {
+      return typeof varsOrFallback === 'string' ? varsOrFallback : path;
+    }
+    return typeof varsOrFallback === 'string' ? found : interpolate(found, varsOrFallback);
+  };
+}
+
+function applyLanguageToDocument(lang: Language): void {
+  const root = document.documentElement;
+  root.classList.add('notranslate');
+  root.setAttribute('translate', 'no');
+  root.lang = lang === 'UR' ? 'ur' : 'en';
+  root.dir = lang === 'UR' ? 'rtl' : 'ltr';
+  root.classList.toggle('lang-ur', lang === 'UR');
+}
+
+function readStoredLanguage(): Language | null {
+  try {
+    const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    return saved === 'EN' || saved === 'UR' ? saved : null;
+  } catch {
+    return null;
+  }
+}
+
+const LANGUAGE_CHANGE_EVENT = 'dukaanos-lang-change';
+
+function subscribeToLanguage(callback: () => void): () => void {
+  window.addEventListener(LANGUAGE_CHANGE_EVENT, callback);
+  window.addEventListener('storage', callback);
+  return () => {
+    window.removeEventListener(LANGUAGE_CHANGE_EVENT, callback);
+    window.removeEventListener('storage', callback);
+  };
+}
+
+function getLanguageSnapshot(): Language {
+  return readStoredLanguage() ?? 'EN';
+}
+
+function getServerLanguageSnapshot(): Language {
+  return 'EN';
+}
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>('EN');
-  const [isMounted, setIsMounted] = useState(false);
+  // During SSR and hydration React uses the server snapshot ('EN'), so the
+  // initial client render matches the server HTML. After mount the stored
+  // value from localStorage takes over without a hydration mismatch.
+  const language = useSyncExternalStore(
+    subscribeToLanguage,
+    getLanguageSnapshot,
+    getServerLanguageSnapshot
+  );
 
-  useEffect(() => {
-    setIsMounted(true);
-    document.documentElement.classList.add('notranslate');
-    document.documentElement.setAttribute('translate', 'no');
-    const saved = localStorage.getItem(STORAGE_KEY) as Language | null;
-    if (saved && (saved === 'EN' || saved === 'UR')) {
-      setLanguageState(saved);
-      document.documentElement.lang = saved === 'UR' ? 'ur' : 'en';
-      document.documentElement.dir = saved === 'UR' ? 'rtl' : 'ltr';
-      if (saved === 'UR') {
-        document.documentElement.classList.add('lang-ur');
-      } else {
-        document.documentElement.classList.remove('lang-ur');
-      }
-    }
-  }, []);
+  useLayoutEffect(() => {
+    applyLanguageToDocument(language);
+  }, [language]);
 
   const setLanguage = useCallback((newLang: Language) => {
-    setLanguageState(newLang);
     try {
-      localStorage.setItem(STORAGE_KEY, newLang);
-      document.documentElement.classList.add('notranslate');
-      document.documentElement.setAttribute('translate', 'no');
-      document.documentElement.lang = newLang === 'UR' ? 'ur' : 'en';
-      document.documentElement.dir = newLang === 'UR' ? 'rtl' : 'ltr';
-      if (newLang === 'UR') {
-        document.documentElement.classList.add('lang-ur');
-      } else {
-        document.documentElement.classList.remove('lang-ur');
-      }
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, newLang);
     } catch {
-      // ignore storage errors
+      // storage unavailable (private mode) — language still applies for session
     }
+    applyLanguageToDocument(newLang);
+    window.dispatchEvent(new Event(LANGUAGE_CHANGE_EVENT));
   }, []);
 
   const toggleLanguage = useCallback(() => {
@@ -68,26 +127,29 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     return translations[language] || translations.EN;
   }, [language]);
 
-  const t = useCallback(
-    (path: string, fallback?: string): string => {
-      const parts = path.split('.');
-      let current: unknown = dict;
-      for (const part of parts) {
-        if (current && typeof current === 'object' && part in current) {
-          current = (current as Record<string, unknown>)[part];
-        } else {
-          return fallback || path;
-        }
-      }
-      return typeof current === 'string' ? current : fallback || path;
+  const t = useMemo(() => makeT(dict), [dict]);
+
+  const tm = useCallback(
+    (message: string | null | undefined): string => {
+      if (!message) return '';
+      const map = SERVER_MESSAGES[language];
+      return map[message] ?? message;
     },
-    [dict]
+    [language]
+  );
+
+  const formatNumber = useCallback(
+    (value: number | string): string => {
+      const num = typeof value === 'string' ? parseFloat(value) || 0 : value;
+      return num.toLocaleString(language === 'UR' ? 'ur-PK' : 'en-PK');
+    },
+    [language]
   );
 
   const formatCurrency = useCallback(
     (amount: number | string): string => {
       const num = typeof amount === 'string' ? parseFloat(amount) || 0 : amount;
-      const formatted = num.toLocaleString();
+      const formatted = num.toLocaleString(language === 'UR' ? 'ur-PK' : 'en-PK');
       if (language === 'UR') {
         return `${formatted} روپے`;
       }
@@ -103,10 +165,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       toggleLanguage,
       isRTL,
       t,
+      tm,
       dict,
       formatCurrency,
+      formatNumber,
     }),
-    [language, setLanguage, toggleLanguage, isRTL, t, dict, formatCurrency]
+    [language, setLanguage, toggleLanguage, isRTL, t, tm, dict, formatCurrency, formatNumber]
   );
 
   return (
@@ -116,7 +180,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function useTranslation() {
+export function useTranslation(): LanguageContextType {
   const context = useContext(LanguageContext);
   if (!context) {
     // Graceful fallback for components rendered outside provider
@@ -127,19 +191,16 @@ export function useTranslation() {
       toggleLanguage: () => {},
       isRTL: false,
       dict: fallbackDict as TranslationDict,
-      t: (path: string, fallback?: string) => {
-        const parts = path.split('.');
-        let current: unknown = fallbackDict;
-        for (const part of parts) {
-          if (current && typeof current === 'object' && part in current) {
-            current = (current as Record<string, unknown>)[part];
-          } else {
-            return fallback || path;
-          }
-        }
-        return typeof current === 'string' ? current : fallback || path;
+      t: makeT(fallbackDict),
+      tm: (message: string | null | undefined) => message ?? '',
+      formatCurrency: (amount: number | string) => {
+        const num = typeof amount === 'string' ? parseFloat(amount) || 0 : amount;
+        return `Rs. ${num.toLocaleString()}`;
       },
-      formatCurrency: (amount: number | string) => `Rs. ${amount}`,
+      formatNumber: (value: number | string) => {
+        const num = typeof value === 'string' ? parseFloat(value) || 0 : value;
+        return num.toLocaleString();
+      },
     };
   }
   return context;

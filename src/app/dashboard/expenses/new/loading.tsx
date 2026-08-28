@@ -1,8 +1,13 @@
+'use client';
+
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export default function NewExpenseLoading() {
+  const { t } = useTranslation();
+
   return (
-    <div className="mx-auto max-w-2xl space-y-6" aria-busy="true" aria-label="Loading new expense form">
+    <div className="mx-auto max-w-2xl space-y-6" aria-busy="true" aria-label={t('expenses.loadingNewExpense')}>
       <Skeleton className="h-4 w-48" />
 
       <div className="space-y-2">

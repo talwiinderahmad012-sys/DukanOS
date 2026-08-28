@@ -8,7 +8,7 @@ const TONES: Record<BadgeTone, string> = {
   warning: 'bg-warning-soft text-warning border-warning/25',
   danger: 'bg-danger-soft text-danger border-danger/25',
   info: 'bg-info-soft text-info border-info/25',
-  primary: 'bg-primary text-white border-primary',
+  primary: 'bg-primary text-on-primary border-primary',
   neutral: 'bg-gray-100 text-gray-600 border-gray-200',
 };
 

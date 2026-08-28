@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Save, AlertCircle } from 'lucide-react';
+import { Save, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { createPayrollPeriodAction } from '@/app/actions/payroll.actions';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export function CreatePayrollForm({ businessId }: { businessId: string }) {
   const router = useRouter();
+  const { t, tm } = useTranslation();
   const [periodName, setPeriodName] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -18,12 +20,12 @@ export function CreatePayrollForm({ businessId }: { businessId: string }) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    
+
     const res = await createPayrollPeriodAction(businessId, { periodName, startDate, endDate });
     if (res.success) {
       router.push('/dashboard/payroll');
     } else {
-      setError(res.message || 'Error occurred');
+      setError(tm(res.message) || t('common.error'));
       setLoading(false);
     }
   };
@@ -39,16 +41,16 @@ export function CreatePayrollForm({ businessId }: { businessId: string }) {
 
       <div className="grid grid-cols-1 gap-4">
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-gray-700">Period Name *</label>
-          <input type="text" required value={periodName} onChange={e => setPeriodName(e.target.value)} placeholder="e.g. August 2026" className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm" />
+          <label className="text-xs font-semibold text-gray-700">{t('payroll.periodName')} *</label>
+          <input type="text" required value={periodName} onChange={e => setPeriodName(e.target.value)} placeholder={t('payroll.periodNamePlaceholder')} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm" />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">Start Date *</label>
+            <label className="text-xs font-semibold text-gray-700">{t('common.startDate')} *</label>
             <input type="date" required value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm" />
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">End Date *</label>
+            <label className="text-xs font-semibold text-gray-700">{t('common.endDate')} *</label>
             <input type="date" required value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm" />
           </div>
         </div>
@@ -56,10 +58,10 @@ export function CreatePayrollForm({ businessId }: { businessId: string }) {
 
       <div className="pt-4 flex items-center justify-end gap-3 border-t">
         <Link href="/dashboard/payroll" className="px-4 py-2 text-gray-700 text-xs font-bold hover:bg-gray-100 rounded-xl transition-colors">
-          Cancel
+          {t('common.cancel')}
         </Link>
-        <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-colors disabled:opacity-50">
-          <Save className="w-4 h-4" /> {loading ? 'Saving...' : 'Create Period'}
+        <button type="submit" disabled={loading} className="px-4 py-2 bg-primary hover:bg-primary-hover text-on-primary text-xs font-bold rounded-xl flex items-center gap-2 transition-colors disabled:opacity-50">
+          <Save className="w-4 h-4" /> {loading ? t('common.saving') : t('payroll.createPeriodButton')}
         </button>
       </div>
     </form>

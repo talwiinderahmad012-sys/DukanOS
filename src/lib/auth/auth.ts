@@ -14,12 +14,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        const email = typeof credentials?.email === 'string' ? credentials.email.trim().toLowerCase() : '';
+        const password = typeof credentials?.password === 'string' ? credentials.password : '';
+
+        if (!email || !password) {
           return null
         }
 
         try {
-          await enforceRateLimit('LOGIN', String(credentials.email))
+          await enforceRateLimit('LOGIN', email)
         } catch {
           // Rate-limited: reject before any authentication/DB work. The audit
           // event is preserved through recordAuthAudit's structured-log path
@@ -27,15 +30,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           await recordAuthAudit({
             userId: null,
             action: 'LOGIN_RATE_LIMITED',
-            metadata: { email: String(credentials.email) },
+            metadata: { email },
           })
           return null
         }
 
         let user;
         try {
-          user = await prisma.user.findUnique({
-            where: { email: credentials.email as string }
+          user = await prisma.user.findFirst({
+            where: {
+              email: {
+                equals: email,
+                mode: 'insensitive',
+              },
+            },
           })
         } catch (error) {
           // Log the actual error safely on the server side
@@ -48,13 +56,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           await recordAuthAudit({
             userId: user?.id ?? null,
             action: 'LOGIN_FAILED',
-            metadata: { reason: 'user_not_found', email: String(credentials.email) },
+            metadata: { reason: 'user_not_found', email },
           })
           return null
         }
 
         const isValid = await bcrypt.compare(
-          credentials.password as string,
+          password,
           user.password
         )
 
@@ -62,7 +70,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           await recordAuthAudit({
             userId: user.id,
             action: 'LOGIN_FAILED',
-            metadata: { reason: 'invalid_password', email: String(credentials.email) },
+            metadata: { reason: 'invalid_password', email },
           })
           return null
         }
@@ -70,7 +78,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         await recordAuthAudit({
           userId: user.id,
           action: 'LOGIN_SUCCESS',
-          metadata: { email: String(credentials.email) },
+          metadata: { email },
         })
 
         return {

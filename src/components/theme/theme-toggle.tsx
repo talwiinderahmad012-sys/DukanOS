@@ -2,10 +2,12 @@
 
 import { Moon, Sun, Laptop } from 'lucide-react';
 import { useTheme } from '@/components/theme/theme-provider';
+import { useTranslation } from '@/lib/i18n/language-context';
 import { useState, useRef, useEffect } from 'react';
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -37,8 +39,8 @@ export function ThemeToggle() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        title="Toggle Theme"
-        aria-label="Toggle Theme"
+        title={t('ui.toggleTheme')}
+        aria-label={t('ui.toggleTheme')}
         aria-expanded={isOpen}
         aria-haspopup="menu"
       >
@@ -48,7 +50,7 @@ export function ThemeToggle() {
 
       {isOpen && (
         <div 
-          className="absolute right-0 mt-2 w-36 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-lg z-50 overflow-hidden animate-in fade-in zoom-in-95" 
+          className="absolute end-0 mt-2 w-36 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-lg z-50 overflow-hidden animate-in fade-in zoom-in-95" 
           role="menu"
         >
           <div className="py-1">
@@ -56,37 +58,37 @@ export function ThemeToggle() {
               onClick={() => handleSelect('light')}
               className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
                 theme === 'light' 
-                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 font-semibold' 
+                  ? 'bg-primary-soft text-gray-950 dark:bg-blue-900/20 dark:text-blue-400 font-semibold' 
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
               }`}
               role="menuitem"
             >
               <Sun className="h-4 w-4" />
-              <span>Light</span>
+              <span>{t('common.themeLight')}</span>
             </button>
             <button
               onClick={() => handleSelect('dark')}
               className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
                 theme === 'dark' 
-                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 font-semibold' 
+                  ? 'bg-primary-soft text-gray-950 dark:bg-blue-900/20 dark:text-blue-400 font-semibold' 
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
               }`}
               role="menuitem"
             >
               <Moon className="h-4 w-4" />
-              <span>Dark</span>
+              <span>{t('common.themeDark')}</span>
             </button>
             <button
               onClick={() => handleSelect('system')}
               className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
                 theme === 'system' 
-                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 font-semibold' 
+                  ? 'bg-primary-soft text-gray-950 dark:bg-blue-900/20 dark:text-blue-400 font-semibold' 
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
               }`}
               role="menuitem"
             >
               <Laptop className="h-4 w-4" />
-              <span>System</span>
+              <span>{t('common.themeSystem')}</span>
             </button>
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Star, Copy, CheckCircle2, Share2, ExternalLink } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/language-context';
 import { generateFeedbackInviteAction } from '@/app/actions/feedback.actions';
 
 export function InvoiceFeedbackButton({
@@ -13,6 +14,7 @@ export function InvoiceFeedbackButton({
   saleId: string;
   customerId?: string | null;
 }) {
+  const { t } = useTranslation();
   const [link, setLink] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -47,7 +49,7 @@ export function InvoiceFeedbackButton({
           className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-50"
         >
           <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
-          {loading ? 'Generating...' : 'Get Feedback Link'}
+          {loading ? t('feedback.invoice.generating') : t('feedback.invoice.getLink')}
         </button>
       ) : (
         <div className="flex items-center gap-2">
@@ -57,11 +59,11 @@ export function InvoiceFeedbackButton({
           >
             {copied ? (
               <>
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Copied!
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> {t('feedback.invoice.copied')}
               </>
             ) : (
               <>
-                <Copy className="w-3.5 h-3.5 text-emerald-600" /> Copy Feedback Link
+                <Copy className="w-3.5 h-3.5 text-emerald-600" /> {t('feedback.invoice.copyLink')}
               </>
             )}
           </button>
@@ -70,7 +72,7 @@ export function InvoiceFeedbackButton({
             target="_blank"
             rel="noreferrer"
             className="px-2 py-1.5 text-gray-500 hover:text-gray-900 text-xs flex items-center"
-            title="Open link"
+            title={t('feedback.invoice.openLink')}
           >
             <ExternalLink className="w-3.5 h-3.5" />
           </a>

@@ -4,6 +4,7 @@ import { useEffect, useId, type ComponentProps, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { cn } from './cn';
 import { IconButton } from './button';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 
@@ -36,6 +37,7 @@ export function Modal({
   size = 'md',
   className,
 }: ModalProps) {
+  const { t } = useTranslation();
   const titleId = useId();
   const descriptionId = useId();
 
@@ -83,7 +85,7 @@ export function Modal({
               </p>
             )}
           </div>
-          <IconButton aria-label="Close dialog" onClick={onClose} className="-mr-1.5 -mt-1 shrink-0">
+          <IconButton aria-label={t('ui.closeDialog')} onClick={onClose} className="-me-1.5 -mt-1 shrink-0">
             <X className="h-4 w-4" />
           </IconButton>
         </div>

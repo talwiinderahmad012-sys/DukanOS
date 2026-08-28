@@ -2,8 +2,11 @@
 
 import { Printer } from 'lucide-react';
 import { buttonClasses } from '@/components/ui/button';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export function PrintButton() {
+  const { t } = useTranslation();
+
   return (
     <button
       type="button"
@@ -11,7 +14,7 @@ export function PrintButton() {
       className={buttonClasses('secondary', 'md', 'print:hidden')}
     >
       <Printer className="h-4 w-4" aria-hidden="true" />
-      Print Invoice
+      {t('sales.printInvoice')}
     </button>
   );
 }

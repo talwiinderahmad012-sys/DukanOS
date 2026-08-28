@@ -1,0 +1,18 @@
+{
+  "custom": "Custom",
+  "to": "to",
+  "thisQuarter": "This Quarter",
+  "lastYear": "Last Year",
+  "exportCsv": "Export CSV",
+  "excellentHealth": "Excellent Health",
+  "goodHealth": "Good Health",
+  "needsAttention": "Needs Attention",
+  "criticalRisk": "Critical Risk",
+  "noChartData": "No chart data available for selected period.",
+  "revenue": "Revenue",
+  "grossProfit": "Gross Profit",
+  "profit": "Profit",
+  "expenses": "Expenses",
+  "salesRevenue": "Sales Revenue",
+  "orderVolume100": "Order Volume (x100)"
+}

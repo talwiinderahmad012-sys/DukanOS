@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Building2, ChevronDown, Check, Layers } from 'lucide-react';
 import { switchActiveBranchAction } from '@/app/actions/business.actions';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export function BranchSwitcher({
   activeBranch,
@@ -13,6 +14,7 @@ export function BranchSwitcher({
   branches: Array<{ id: string; name: string; code: string }>;
 }) {
   const router = useRouter();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [switching, setSwitching] = useState(false);
 
@@ -41,23 +43,23 @@ export function BranchSwitcher({
         <div className="flex items-center gap-1.5 truncate">
           {activeBranch ? (
             <>
-              <Building2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+              <Building2 className="w-3.5 h-3.5 text-gray-900 shrink-0" />
               <span className="truncate">{activeBranch.name}</span>
             </>
           ) : (
             <>
               <Layers className="w-3.5 h-3.5 text-purple-600 shrink-0" />
-              <span>All Branches</span>
+              <span>{t('ui.allBranches')}</span>
             </>
           )}
         </div>
-        <ChevronDown className="w-3 h-3 text-gray-400 shrink-0 ml-1" />
+        <ChevronDown className="w-3 h-3 text-gray-400 shrink-0 ms-1" />
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-white rounded-2xl border border-gray-200 shadow-xl p-1.5 space-y-1 animate-in fade-in zoom-in-95 min-w-[180px]">
+        <div className="absolute start-0 end-0 top-full mt-1 z-50 bg-white rounded-2xl border border-gray-200 shadow-xl p-1.5 space-y-1 animate-in fade-in zoom-in-95 min-w-[180px]">
           <div className="px-2 py-1 text-[9px] font-bold text-gray-400 uppercase tracking-wider">
-            Select Active Branch
+            {t('ui.selectActiveBranch')}
           </div>
 
           <button
@@ -71,7 +73,7 @@ export function BranchSwitcher({
           >
             <div className="flex items-center gap-1.5">
               <Layers className="w-3.5 h-3.5 text-purple-600" />
-              <span>All Branches (Aggregated)</span>
+              <span>{t('ui.allBranchesAggregated')}</span>
             </div>
             {!activeBranch && <Check className="w-3.5 h-3.5 text-purple-600" />}
           </button>
@@ -86,15 +88,15 @@ export function BranchSwitcher({
                 onClick={() => handleSelectBranch(b.id)}
                 className={`w-full px-2.5 py-1.5 rounded-xl flex items-center justify-between text-xs transition-colors ${
                   isSelected
-                    ? 'bg-blue-50 text-blue-900 font-bold'
+                    ? 'bg-primary-soft text-blue-900 font-bold'
                     : 'hover:bg-gray-50 text-gray-700'
                 }`}
               >
                 <div className="flex items-center gap-1.5 truncate">
-                  <Building2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                  <Building2 className="w-3.5 h-3.5 text-gray-900 shrink-0" />
                   <span className="truncate">{b.name}</span>
                 </div>
-                {isSelected && <Check className="w-3.5 h-3.5 text-blue-600" />}
+                {isSelected && <Check className="w-3.5 h-3.5 text-gray-900" />}
               </button>
             );
           })}

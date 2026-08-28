@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export function HealthGauge({
   score,
@@ -9,6 +10,7 @@ export function HealthGauge({
   score: number;
   grade: 'EXCELLENT' | 'GOOD' | 'ATTENTION' | 'CRITICAL';
 }) {
+  const { t } = useTranslation();
   const clamped = Math.min(100, Math.max(0, score));
   
   // Circumference for r=40 is 2 * PI * 40 = 251.32
@@ -18,20 +20,20 @@ export function HealthGauge({
 
   let strokeColor = '#16a34a'; // Green
   let badgeBg = 'bg-green-100 text-green-800 border-green-300';
-  let label = 'Excellent Health';
+  let label = t('charts.excellentHealth');
 
   if (clamped < 50) {
     strokeColor = '#dc2626'; // Red
     badgeBg = 'bg-red-100 text-red-800 border-red-300';
-    label = 'Critical Risk';
+    label = t('charts.criticalRisk');
   } else if (clamped < 70) {
     strokeColor = '#ea580c'; // Orange
     badgeBg = 'bg-orange-100 text-orange-800 border-orange-300';
-    label = 'Needs Attention';
+    label = t('charts.needsAttention');
   } else if (clamped < 85) {
-    strokeColor = '#2563eb'; // Blue
-    badgeBg = 'bg-blue-100 text-blue-800 border-blue-300';
-    label = 'Good Health';
+    strokeColor = '#aff33e'; // Primary Lime
+    badgeBg = 'bg-primary text-on-primary border-primary';
+    label = t('charts.goodHealth');
   }
 
   return (

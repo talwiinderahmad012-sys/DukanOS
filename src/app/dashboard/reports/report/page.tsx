@@ -1,15 +1,20 @@
 import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { getBusinessReportAction } from '@/app/actions/report.actions';
-import { PrintableReport } from '@/components/reports/printable-report';
-import { ExportButton } from '@/components/analytics/export-button';
 import { prisma } from '@/lib/db/prisma';
 import { redirect } from 'next/navigation';
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { ArrowLeft, Printer } from 'lucide-react';
 import { type ReportType } from '@/services/reports';
+import { ReportViewClient, type ReportResultData } from './report-view-client';
 
 export const dynamic = 'force-dynamic';
+
+function serializeValue(value: unknown): string | number | boolean | null {
+  if (value === null || value === undefined) return null;
+  if (value instanceof Date) return value.toISOString().split('T')[0];
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'string') return value;
+  const num = Number(String(value));
+  return Number.isFinite(num) ? num : String(value);
+}
 
 export default async function ReportViewPage({ searchParams }: { searchParams: Promise<{ type?: string; from?: string; to?: string; branchId?: string }> }) {
   const params = await searchParams;
@@ -24,12 +29,10 @@ export default async function ReportViewPage({ searchParams }: { searchParams: P
 
   if (!result.success) {
     return (
-      <div className="max-w-4xl mx-auto py-12 text-center">
-        <p className="text-red-600 text-sm">Failed to generate report: {result.errorCode || 'Unknown'} — {result.message || ''}</p>
-        <Link href="/dashboard/reports" className="text-blue-600 text-sm mt-4 inline-flex items-center gap-1">
-          <ArrowLeft className="w-4 h-4" /> Back to Reports
-        </Link>
-      </div>
+      <ReportViewClient
+        businessName={business.name}
+        error={{ errorCode: result.errorCode ?? null, message: result.message ?? null }}
+      />
     );
   }
 
@@ -37,43 +40,27 @@ export default async function ReportViewPage({ searchParams }: { searchParams: P
   const branches = await prisma.branch.findMany({ where: { businessId: business.id }, select: { id: true, name: true } });
   const branchName = branchId ? branches.find((b: { id: string }) => b.id === branchId)?.name : undefined;
 
-  return (
-    <div className="max-w-5xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard/reports" className="text-gray-500 hover:text-gray-900">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">{report.title}</h1>
-            <p className="text-xs text-gray-500">
-              {report.dateRange.from} {report.dateRange.to !== report.dateRange.from ? `to ${report.dateRange.to}` : ''}
-              {branchName && ` • ${branchName}`}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <ExportButton data={report.rows} filename={`${report.type.toLowerCase()}-report`} label="Export CSV" />
-          <button
-            onClick={() => window.print()}
-            className="flex items-center gap-1.5 px-4 py-2 bg-gray-900 text-white text-xs font-semibold rounded-lg hover:bg-gray-800 transition-colors"
-          >
-            <Printer className="w-4 h-4" />
-            Print / PDF
-          </button>
-        </div>
-      </div>
+  const reportData: ReportResultData = {
+    type: report.type,
+    title: report.title,
+    dateRange: { from: report.dateRange.from, to: report.dateRange.to },
+    generatedAt: report.generatedAt.toISOString().replace('T', ' ').slice(0, 19),
+    summary: Object.fromEntries(
+      Object.entries(report.summary).map(([key, value]) => [key, serializeValue(value)])
+    ),
+    rows: report.rows.map((row) =>
+      Object.fromEntries(Object.entries(row).map(([key, value]) => [key, serializeValue(value)]))
+    ),
+    totals: Object.fromEntries(
+      Object.entries(report.totals).map(([key, value]) => [key, Number(serializeValue(value)) || 0])
+    ),
+  };
 
-      <PrintableReport
-        businessName={business.name}
-        reportTitle={report.title}
-        dateRange={report.dateRange}
-        branchName={branchName}
-        generatedAt={report.generatedAt.toISOString().replace('T', ' ').slice(0, 19)}
-        summary={report.summary}
-        rows={report.rows}
-        totals={report.totals}
-      />
-    </div>
+  return (
+    <ReportViewClient
+      businessName={business.name}
+      branchName={branchName}
+      report={reportData}
+    />
   );
 }

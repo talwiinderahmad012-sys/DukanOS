@@ -23,6 +23,7 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { toggleBusinessStatusAction } from '@/app/actions/monitoring.actions';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export function RemoteMonitoringView({
   businessId,
@@ -33,6 +34,7 @@ export function RemoteMonitoringView({
   data: any;
   isOwnerOrManager: boolean;
 }) {
+  const { t, formatCurrency } = useTranslation();
   const router = useRouter();
   const { business, liveSales, attendance, actionCenter } = data;
 
@@ -67,9 +69,9 @@ export function RemoteMonitoringView({
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Remote Business Monitoring</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('monitoring.title')}</h1>
           <p className="text-gray-500 text-sm mt-0.5">
-            Monitor physical store operations, live revenue, staff attendance, and critical alerts from anywhere.
+            {t('monitoring.subtitle')}
           </p>
         </div>
 
@@ -79,7 +81,7 @@ export function RemoteMonitoringView({
           className="px-3.5 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-          <span>Refresh Cockpit</span>
+          <span>{t('monitoring.refreshCockpit')}</span>
         </button>
       </div>
 
@@ -99,12 +101,12 @@ export function RemoteMonitoringView({
                 isOpen ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
               }`}>
                 <span className={`w-2 h-2 rounded-full ${isOpen ? 'bg-emerald-600 animate-pulse' : 'bg-rose-600'}`}></span>
-                {isOpen ? 'Store Open & Active' : 'Store Closed'}
+                {isOpen ? t('monitoring.storeOpenActive') : t('monitoring.storeClosed')}
               </span>
             </div>
 
             <p className="text-xs text-gray-500">
-              {operatingHours ? `Operating Hours: ${operatingHours}` : 'Operating hours not configured'} • Timezone: {business.timezone}
+              {operatingHours ? t('monitoring.operatingHours', { hours: operatingHours }) : t('monitoring.operatingHoursNotSet')} • {t('monitoring.timezone')}: {business.timezone}
             </p>
           </div>
         </div>
@@ -120,7 +122,7 @@ export function RemoteMonitoringView({
             }`}
           >
             <Power className="w-4 h-4" />
-            <span>{toggling ? 'Updating...' : isOpen ? 'Set as Closed' : 'Open Store'}</span>
+            <span>{toggling ? t('monitoring.updating') : isOpen ? t('monitoring.setAsClosed') : t('monitoring.openStore')}</span>
           </button>
         )}
       </div>
@@ -128,27 +130,27 @@ export function RemoteMonitoringView({
       {/* Row 2: Live Financial Performance Today */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Today's Total Sales</span>
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('monitoring.todayTotalSales')}</span>
           <h3 className="text-2xl font-bold text-gray-900 mt-1">
-            Rs. {liveSales.totalSales.toLocaleString()}
+            {formatCurrency(liveSales.totalSales)}
           </h3>
-          <span className="text-[11px] text-gray-400">{liveSales.orderCount} orders completed today</span>
+          <span className="text-[11px] text-gray-400">{t('monitoring.ordersCompletedToday', { count: liveSales.orderCount })}</span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
-          <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Realized Gross Profit</span>
+          <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">{t('monitoring.realizedGrossProfit')}</span>
           <h3 className="text-2xl font-bold text-emerald-700 mt-1">
-            Rs. {liveSales.grossProfit.toLocaleString()}
+            {formatCurrency(liveSales.grossProfit)}
           </h3>
-          <span className="text-[11px] text-emerald-600">Net after product cost deductions</span>
+          <span className="text-[11px] text-emerald-600">{t('monitoring.netAfterCost')}</span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
-          <span className="text-xs font-semibold text-blue-700 uppercase tracking-wider">Average Basket Size</span>
-          <h3 className="text-2xl font-bold text-blue-700 mt-1">
-            Rs. {liveSales.orderCount > 0 ? Math.round(liveSales.totalSales / liveSales.orderCount).toLocaleString() : '0'}
+          <span className="text-xs font-semibold text-gray-950 uppercase tracking-wider">{t('monitoring.avgBasketSize')}</span>
+          <h3 className="text-2xl font-bold text-gray-950 mt-1">
+            {formatCurrency(liveSales.orderCount > 0 ? Math.round(liveSales.totalSales / liveSales.orderCount) : 0)}
           </h3>
-          <span className="text-[11px] text-blue-500">Per order today</span>
+          <span className="text-[11px] text-gray-800">{t('monitoring.perOrderToday')}</span>
         </div>
       </div>
 
@@ -159,39 +161,39 @@ export function RemoteMonitoringView({
         <div className="lg:col-span-5 bg-white rounded-3xl border border-gray-200 shadow-xs p-6 space-y-4">
           <div className="flex justify-between items-center border-b pb-3">
             <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
-              <UserCheck className="w-4 h-4 text-purple-600" /> Live Staff Attendance
+              <UserCheck className="w-4 h-4 text-purple-600" /> {t('monitoring.liveStaffAttendance')}
             </h3>
             <span className="text-xs text-gray-400 font-mono">
-              {attendance.totalEmployees} Active Staff
+              {t('monitoring.activeStaff', { count: attendance.totalEmployees })}
             </span>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="p-3 bg-emerald-50/70 border border-emerald-100 rounded-2xl">
-              <span className="text-xs font-bold text-emerald-900 block">Present On-Duty</span>
+              <span className="text-xs font-bold text-emerald-900 block">{t('monitoring.presentOnDuty')}</span>
               <span className="text-xl font-extrabold text-emerald-700">{attendance.presentCount}</span>
             </div>
 
             <div className="p-3 bg-amber-50/70 border border-amber-100 rounded-2xl">
-              <span className="text-xs font-bold text-amber-900 block">Late Arrival</span>
+              <span className="text-xs font-bold text-amber-900 block">{t('monitoring.lateArrival')}</span>
               <span className="text-xl font-extrabold text-amber-700">{attendance.lateCount}</span>
             </div>
 
             <div className="p-3 bg-rose-50/70 border border-rose-100 rounded-2xl">
-              <span className="text-xs font-bold text-rose-900 block">Absent Today</span>
+              <span className="text-xs font-bold text-rose-900 block">{t('monitoring.absentToday')}</span>
               <span className="text-xl font-extrabold text-rose-700">{attendance.absentCount}</span>
             </div>
 
-            <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-2xl">
-              <span className="text-xs font-bold text-blue-900 block">Approved Leave</span>
-              <span className="text-xl font-extrabold text-blue-700">{attendance.leaveCount}</span>
+            <div className="p-3 bg-primary-soft/70 border border-blue-100 rounded-2xl">
+              <span className="text-xs font-bold text-blue-900 block">{t('monitoring.approvedLeave')}</span>
+              <span className="text-xl font-extrabold text-gray-950">{attendance.leaveCount}</span>
             </div>
           </div>
 
           {attendance.unmarkedCount > 0 && (
             <div className="p-3 bg-gray-50 border border-gray-200 rounded-2xl flex items-center justify-between text-xs">
-              <span className="text-gray-600 font-medium">Unrecorded Attendance:</span>
-              <span className="font-bold text-gray-900">{attendance.unmarkedCount} staff members</span>
+              <span className="text-gray-600 font-medium">{t('monitoring.unrecordedAttendance')}</span>
+              <span className="font-bold text-gray-900">{t('monitoring.staffMembers', { count: attendance.unmarkedCount })}</span>
             </div>
           )}
 
@@ -200,8 +202,8 @@ export function RemoteMonitoringView({
               href="/dashboard/employees"
               className="w-full py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-semibold rounded-xl flex items-center justify-center gap-1 border border-gray-200 transition-colors"
             >
-              <span>View Employee Roster</span>
-              <ChevronRight className="w-3.5 h-3.5" />
+              <span>{t('monitoring.viewEmployeeRoster')}</span>
+              <ChevronRight className="w-3.5 h-3.5 rtl-flip" />
             </Link>
           </div>
         </div>
@@ -210,7 +212,7 @@ export function RemoteMonitoringView({
         <div className="lg:col-span-7 bg-white rounded-3xl border border-gray-200 shadow-xs p-6 space-y-4">
           <div className="flex justify-between items-center border-b pb-3">
             <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4 text-orange-600" /> Owner Action Center
+              <ShieldAlert className="w-4 h-4 text-orange-600" /> {t('monitoring.ownerActionCenter')}
             </h3>
             <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
               actionCenter.totalActionableIssues > 0
@@ -218,8 +220,8 @@ export function RemoteMonitoringView({
                 : 'bg-green-100 text-green-800'
             }`}>
               {actionCenter.totalActionableIssues > 0
-                ? `${actionCenter.totalActionableIssues} Attention Needed`
-                : 'All Operations Clear'}
+                ? t('monitoring.attentionNeeded', { count: actionCenter.totalActionableIssues })
+                : t('monitoring.allOperationsClear')}
             </span>
           </div>
 
@@ -236,12 +238,12 @@ export function RemoteMonitoringView({
                   </div>
                   <div>
                     <span className="font-bold text-xs text-rose-950 block">
-                      {actionCenter.lowStockCount} Products Depleted / Below Min Threshold
+                      {t('monitoring.lowStockTitle', { count: actionCenter.lowStockCount })}
                     </span>
-                    <span className="text-[11px] text-rose-700">Reorder stock to prevent stockouts</span>
+                    <span className="text-[11px] text-rose-700">{t('monitoring.lowStockDesc')}</span>
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-rose-400 group-hover:text-rose-600 transition-colors" />
+                <ChevronRight className="w-4 h-4 text-rose-400 group-hover:text-rose-600 transition-colors rtl-flip" />
               </Link>
             )}
 
@@ -257,12 +259,12 @@ export function RemoteMonitoringView({
                   </div>
                   <div>
                     <span className="font-bold text-xs text-amber-950 block">
-                      {actionCenter.overdueCustomersCount} Customers with Pending Credit (Udhaar)
+                      {t('monitoring.pendingCreditTitle', { count: actionCenter.overdueCustomersCount })}
                     </span>
-                    <span className="text-[11px] text-amber-700">Collect outstanding receivables</span>
+                    <span className="text-[11px] text-amber-700">{t('monitoring.pendingCreditDesc')}</span>
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-amber-400 group-hover:text-amber-600 transition-colors" />
+                <ChevronRight className="w-4 h-4 text-amber-400 group-hover:text-amber-600 transition-colors rtl-flip" />
               </Link>
             )}
 
@@ -270,20 +272,20 @@ export function RemoteMonitoringView({
             {actionCenter.pendingLeavesCount > 0 && (
               <Link
                 href="/dashboard/employees"
-                className="p-3.5 rounded-2xl border border-blue-200 bg-blue-50/50 hover:bg-blue-50 flex items-center justify-between transition-colors group"
+                className="p-3.5 rounded-2xl border border-blue-200 bg-primary-soft/50 hover:bg-primary-soft flex items-center justify-between transition-colors group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-blue-100 text-gray-950 flex items-center justify-center shrink-0">
                     <Clock className="w-4 h-4" />
                   </div>
                   <div>
                     <span className="font-bold text-xs text-blue-950 block">
-                      {actionCenter.pendingLeavesCount} Employee Leave Request(s) Awaiting Review
+                      {t('monitoring.pendingLeavesTitle', { count: actionCenter.pendingLeavesCount })}
                     </span>
-                    <span className="text-[11px] text-blue-700">Approve or reject staff leaves</span>
+                    <span className="text-[11px] text-gray-950">{t('monitoring.pendingLeavesDesc')}</span>
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-blue-400 group-hover:text-blue-600 transition-colors" />
+                <ChevronRight className="w-4 h-4 text-blue-400 group-hover:text-gray-900 transition-colors rtl-flip" />
               </Link>
             )}
 
@@ -299,12 +301,12 @@ export function RemoteMonitoringView({
                   </div>
                   <div>
                     <span className="font-bold text-xs text-purple-950 block">
-                      {actionCenter.openComplaintsCount} Confidential Workplace Grievance(s)
+                      {t('monitoring.grievancesTitle', { count: actionCenter.openComplaintsCount })}
                     </span>
-                    <span className="text-[11px] text-purple-700">Review and resolve staff issues</span>
+                    <span className="text-[11px] text-purple-700">{t('monitoring.grievancesDesc')}</span>
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-purple-400 group-hover:text-purple-600 transition-colors" />
+                <ChevronRight className="w-4 h-4 text-purple-400 group-hover:text-purple-600 transition-colors rtl-flip" />
               </Link>
             )}
 
@@ -320,21 +322,21 @@ export function RemoteMonitoringView({
                   </div>
                   <div>
                     <span className="font-bold text-xs text-red-950 block">
-                      {actionCenter.newLowFeedbacksCount} Low Customer Review(s) (≤ 2★)
+                      {t('monitoring.lowReviewsTitle', { count: actionCenter.newLowFeedbacksCount })}
                     </span>
-                    <span className="text-[11px] text-red-700">Investigate customer dissatisfaction</span>
+                    <span className="text-[11px] text-red-700">{t('monitoring.lowReviewsDesc')}</span>
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-red-400 group-hover:text-red-600 transition-colors" />
+                <ChevronRight className="w-4 h-4 text-red-400 group-hover:text-red-600 transition-colors rtl-flip" />
               </Link>
             )}
 
             {actionCenter.totalActionableIssues === 0 && (
               <div className="p-8 text-center space-y-2">
                 <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
-                <h4 className="font-bold text-gray-900 text-xs">No pending operational issues!</h4>
+                <h4 className="font-bold text-gray-900 text-xs">{t('monitoring.noPendingIssues')}</h4>
                 <p className="text-[11px] text-gray-500">
-                  Stock levels are healthy, receivables are normal, and no unresolved grievances exist.
+                  {t('monitoring.noPendingIssuesDesc')}
                 </p>
               </div>
             )}

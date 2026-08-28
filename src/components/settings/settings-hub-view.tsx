@@ -19,6 +19,7 @@ import {
   Activity,
   ChevronRight
 } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export function SettingsHubView({
   isOwner,
@@ -27,54 +28,64 @@ export function SettingsHubView({
   isOwner: boolean;
   isManager: boolean;
 }) {
+  const { t, language, setLanguage } = useTranslation();
+
   const sections = [
     {
-      title: 'Store & Operations',
-      description: 'Business identity, branch locations, POS rules, and receipts',
+      title: t('settings.sectionStoreOperations'),
+      description: t('settings.sectionStoreOperationsDesc'),
       items: [
         {
-          title: 'My Businesses',
-          desc: 'Manage multiple stores, switch contexts, and add franchises',
+          title: t('settings.myBusinesses'),
+          desc: t('settings.myBusinessesDesc'),
           href: '/dashboard/settings/businesses',
           icon: Store,
           color: 'text-indigo-600 bg-indigo-50',
           ownerOnly: false,
         },
         {
-          title: 'Business Profile',
-          desc: 'Name, address, contact, currency, and timezone',
+          title: t('settings.branches'),
+          desc: t('settings.branchesDescription'),
+          href: '/dashboard/settings/branches',
+          icon: Building2,
+          color: 'text-blue-600 bg-blue-50',
+          ownerOnly: false,
+        },
+        {
+          title: t('settings.businessProfile'),
+          desc: t('settings.businessProfileCardDesc'),
           href: '/dashboard/settings/business',
           icon: Store,
-          color: 'text-blue-600 bg-blue-50',
+          color: 'text-gray-900 bg-primary-soft',
           ownerOnly: true,
         },
         {
-          title: 'Sales & POS Rules',
-          desc: 'Discount caps, invoice prefixes, and credit policies',
+          title: t('settings.salesPosRules'),
+          desc: t('settings.salesPosRulesDesc'),
           href: '/dashboard/settings/sales',
           icon: ShoppingCart,
           color: 'text-emerald-600 bg-emerald-50',
           ownerOnly: true,
         },
         {
-          title: 'Inventory Settings',
-          desc: 'Low stock thresholds, adjustment rules, and notifications',
+          title: t('settings.inventorySettings'),
+          desc: t('settings.inventoryCardDesc'),
           href: '/dashboard/settings/inventory',
           icon: Package,
           color: 'text-orange-600 bg-orange-50',
           ownerOnly: true,
         },
         {
-          title: 'Invoice Settings',
-          desc: 'Invoice display, logo, footer, and visibility options',
+          title: t('settings.invoiceSettings'),
+          desc: t('settings.invoiceCardDesc'),
           href: '/dashboard/settings/invoices',
           icon: FileText,
           color: 'text-indigo-600 bg-indigo-50',
           ownerOnly: true,
         },
         {
-          title: 'Receipts & Invoices',
-          desc: 'Header, footer message, and feedback QR code toggle',
+          title: t('settings.receiptsAndInvoices'),
+          desc: t('settings.receiptsCardDesc'),
           href: '/dashboard/settings/receipts',
           icon: Receipt,
           color: 'text-purple-600 bg-purple-50',
@@ -83,36 +94,36 @@ export function SettingsHubView({
       ],
     },
     {
-      title: 'Intelligence & Alerts',
-      description: 'Advisor thresholds, push notifications, and external gateway',
+      title: t('settings.sectionIntelligenceAlerts'),
+      description: t('settings.sectionIntelligenceAlertsDesc'),
       items: [
         {
-          title: 'Business Advisor',
-          desc: 'Sales decline, slow moving, and credit risk thresholds',
+          title: t('settings.advisorCardTitle'),
+          desc: t('settings.advisorCardDesc'),
           href: '/dashboard/settings/advisor',
           icon: Sparkles,
           color: 'text-amber-600 bg-amber-50',
           ownerOnly: true,
         },
         {
-          title: 'Notifications & Alerts',
-          desc: 'In-app, Web Push, and daily business digest alerts',
+          title: t('settings.notificationsAlerts'),
+          desc: t('settings.notificationsAlertsDesc'),
           href: '/dashboard/settings/notifications',
           icon: Bell,
           color: 'text-rose-600 bg-rose-50',
           ownerOnly: false,
         },
         {
-          title: 'External Communications',
-          desc: 'WhatsApp Cloud API, SMS, and Email integrations',
+          title: t('settings.externalCommunications'),
+          desc: t('settings.externalCommunicationsDesc'),
           href: '/dashboard/communications',
           icon: MessageSquare,
           color: 'text-indigo-600 bg-indigo-50',
           ownerOnly: true,
         },
         {
-          title: 'Security Cameras (CCTV)',
-          desc: 'IP cameras, NVR channels, and remote monitoring feeds',
+          title: t('settings.securityCameras'),
+          desc: t('settings.securityCamerasDesc'),
           href: '/dashboard/cameras',
           icon: Video,
           color: 'text-teal-600 bg-teal-50',
@@ -121,28 +132,28 @@ export function SettingsHubView({
       ],
     },
     {
-      title: 'Team, Security & Account',
-      description: 'Team permissions, password, personal profile, and safety',
+      title: t('settings.sectionTeamSecurity'),
+      description: t('settings.sectionTeamSecurityDesc'),
       items: [
         {
-          title: 'Team & Members',
-          desc: 'Manage roles (Manager, Cashier, Staff) with owner protection',
+          title: t('settings.teamMembers'),
+          desc: t('settings.teamMembersDesc'),
           href: '/dashboard/settings/members',
           icon: Users,
           color: 'text-sky-600 bg-sky-50',
           ownerOnly: true,
         },
         {
-          title: 'Security & Password',
-          desc: 'Change login password and account security settings',
+          title: t('settings.securityPassword'),
+          desc: t('settings.securityPasswordDesc'),
           href: '/dashboard/settings/security',
           icon: ShieldCheck,
           color: 'text-green-600 bg-green-50',
           ownerOnly: false,
         },
         {
-          title: 'Personal Profile',
-          desc: 'Your display name, phone number, and contact info',
+          title: t('settings.personalProfile'),
+          desc: t('settings.personalProfileDesc'),
           href: '/dashboard/settings/profile',
           icon: User,
           color: 'text-gray-600 bg-gray-50',
@@ -151,28 +162,28 @@ export function SettingsHubView({
       ],
     },
     {
-      title: 'Data & System Health',
-      description: 'Data exports, backup architecture, and system diagnostics',
+      title: t('settings.sectionDataSystem'),
+      description: t('settings.sectionDataSystemDesc'),
       items: [
         {
-          title: 'Data Export',
-          desc: 'Export business catalog, sales, customers (CSV / JSON)',
+          title: t('settings.dataExport'),
+          desc: t('settings.dataExportCardDesc'),
           href: '/dashboard/settings/data-export',
           icon: Database,
           color: 'text-orange-600 bg-orange-50',
           ownerOnly: true,
         },
         {
-          title: 'Backup & Recovery',
-          desc: 'Application snapshot and database backup recovery guide',
+          title: t('settings.backupRecovery'),
+          desc: t('settings.backupRecoveryDesc'),
           href: '/dashboard/settings/backup',
           icon: Database,
           color: 'text-cyan-600 bg-cyan-50',
           ownerOnly: true,
         },
         {
-          title: 'System Information & Health',
-          desc: 'Database latency, service health, and software diagnostics',
+          title: t('settings.systemInfoHealth'),
+          desc: t('settings.systemInfoHealthDesc'),
           href: '/dashboard/settings/system',
           icon: Activity,
           color: 'text-slate-600 bg-slate-50',
@@ -181,28 +192,28 @@ export function SettingsHubView({
       ],
     },
     {
-      title: 'Plan & Resource Limits',
-      description: 'Active subscription tier, feature entitlements, and quota metrics',
+      title: t('settings.sectionPlanResources'),
+      description: t('settings.sectionPlanResourcesDesc'),
       items: [
         {
-          title: 'Plan & Entitlements',
-          desc: 'Current free tier, included features, and commercial capabilities',
+          title: t('settings.planEntitlements'),
+          desc: t('settings.planEntitlementsDesc'),
           href: '/dashboard/settings/plan',
           icon: Sparkles,
-          color: 'text-blue-600 bg-blue-50',
+          color: 'text-gray-900 bg-primary-soft',
           ownerOnly: false,
         },
         {
-          title: 'Resource Usage & Quotas',
-          desc: 'Real-time database records, product quotas, and monthly usage',
+          title: t('settings.resourceUsage'),
+          desc: t('settings.resourceUsageDesc'),
           href: '/dashboard/settings/usage',
           icon: Activity,
           color: 'text-emerald-600 bg-emerald-50',
           ownerOnly: false,
         },
         {
-          title: 'Platform Governance (Admin)',
-          desc: 'Inspect system-wide plan definitions and feature flags',
+          title: t('settings.platformGovernance'),
+          desc: t('settings.platformGovernanceDesc'),
           href: '/dashboard/platform/plans',
           icon: ShieldCheck,
           color: 'text-indigo-600 bg-indigo-50',
@@ -214,18 +225,48 @@ export function SettingsHubView({
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">System & Business Settings</h1>
-        <p className="text-gray-500 text-sm mt-0.5">
-          Configure business rules, manage team roles, adjust advisor thresholds, and control data.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{t('settings.hubHeading')}</h1>
+          <p className="text-gray-500 text-sm mt-0.5">
+            {t('settings.hubHeadingDescription')}
+          </p>
+        </div>
+
+        <div
+          role="group"
+          aria-label={t('common.language')}
+          className="flex items-center gap-1 rounded-2xl border border-gray-200 bg-white p-1 shadow-xs"
+        >
+          <button
+            type="button"
+            onClick={() => setLanguage('EN')}
+            aria-pressed={language === 'EN'}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
+              language === 'EN'
+                ? 'bg-primary text-on-primary'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            {t('common.english')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setLanguage('UR')}
+            aria-pressed={language === 'UR'}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
+              language === 'UR'
+                ? 'bg-primary text-on-primary'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            {t('common.urdu')}
+          </button>
+        </div>
       </div>
 
-      {/* Sections Grid */}
       <div className="space-y-8">
         {sections.map((section) => {
-          // Filter items based on owner permission
           const visibleItems = section.items.filter(
             (item) => !item.ownerOnly || isOwner
           );
@@ -256,11 +297,11 @@ export function SettingsHubView({
                           >
                             <Icon className="w-5 h-5" />
                           </div>
-                          <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-700 transition-colors" />
+                          <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-700 transition-colors rtl-flip" />
                         </div>
 
                         <div>
-                          <h3 className="font-bold text-sm text-gray-900 group-hover:text-blue-600 transition-colors">
+                          <h3 className="font-bold text-sm text-gray-900 group-hover:text-gray-900 transition-colors">
                             {item.title}
                           </h3>
                           <p className="text-xs text-gray-500 mt-1 leading-relaxed">

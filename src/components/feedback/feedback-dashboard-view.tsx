@@ -2,41 +2,75 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { 
-  Star, 
-  MessageSquare, 
-  ThumbsUp, 
-  AlertTriangle, 
-  Minus, 
-  CheckCircle2, 
-  Filter, 
-  Search, 
-  Edit3, 
-  User, 
+import {
+  Star,
+  MessageSquare,
+  SearchX,
+  CheckCircle2,
+  Search,
+  Edit3,
   FileText,
   Copy,
   ExternalLink,
-  Plus
+  Plus,
 } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/language-context';
+import { PageHeader } from '@/components/ui/page-header';
+import { Card } from '@/components/ui/card';
+import { Badge, type BadgeTone } from '@/components/ui/badge';
+import { Button, buttonClasses } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
+import { inputClasses, Select } from '@/components/ui/input';
+import { cn } from '@/components/ui/cn';
 import { ResolveFeedbackModal } from './resolve-feedback-modal';
 import { generateFeedbackInviteAction } from '@/app/actions/feedback.actions';
+import type { LegacyFeedbackRow, LegacyFeedbacksData, LegacyFeedbackStats, LegacyReviewFilters } from './feedback-hub';
+
+const STATUS_TONE: Record<string, BadgeTone> = {
+  NEW: 'info',
+  REVIEWING: 'warning',
+  RESOLVED: 'success',
+  ARCHIVED: 'neutral',
+};
+
+const LEGACY_STATUSES = ['NEW', 'REVIEWING', 'RESOLVED', 'ARCHIVED'] as const;
+
+function buildReviewsHref(filters: LegacyReviewFilters, overrides: Record<string, string | number | undefined>): string {
+  const q = new URLSearchParams();
+  const merged: Record<string, string | number | undefined> = {
+    tab: 'reviews',
+    search: filters.search || undefined,
+    rating: filters.rating || undefined,
+    status: filters.status !== 'ALL' ? filters.status : undefined,
+    ...overrides,
+  };
+  Object.entries(merged).forEach(([k, v]) => {
+    if (v !== undefined && v !== '' && v !== null) q.set(k, String(v));
+  });
+  return `/dashboard/feedback?${q.toString()}`;
+}
 
 export function FeedbackDashboardView({
   businessId,
   stats,
   feedbacksData,
-  searchParams,
+  filters,
 }: {
   businessId: string;
-  stats: any;
-  feedbacksData: any;
-  searchParams: any;
+  stats: LegacyFeedbackStats;
+  feedbacksData: LegacyFeedbacksData;
+  filters: LegacyReviewFilters;
 }) {
+  const { t, language, formatNumber } = useTranslation();
+  const dateLocale = language === 'UR' ? 'ur-PK' : 'en-PK';
+  const statusLabel = (v: string) => t(`feedback.enums.legacyStatuses.${v}`, v);
   const { feedbacks, pagination } = feedbacksData;
-  const [activeModalFeedback, setActiveModalFeedback] = useState<any | null>(null);
+  const [activeModalFeedback, setActiveModalFeedback] = useState<LegacyFeedbackRow | null>(null);
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [creatingLink, setCreatingLink] = useState(false);
+
+  const hasFilters = filters.search !== '' || filters.rating !== '' || filters.status !== 'ALL';
 
   const handleGenerateLink = async () => {
     setCreatingLink(true);
@@ -55,269 +89,321 @@ export function FeedbackDashboardView({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const kpiTiles = [
+    {
+      label: t('feedback.dashboard.averageRating'),
+      value: stats.averageRating != null ? formatNumber(stats.averageRating) : t('common.dash'),
+      sub: t('feedback.dashboard.totalReviews', { count: formatNumber(stats.totalReviews) }),
+      icon: Star,
+      chip: 'bg-warning-soft text-warning',
+      valueClassName: stats.averageRating != null ? undefined : 'text-muted',
+    },
+    {
+      label: t('feedback.dashboard.positive'),
+      value: formatNumber(stats.positiveCount),
+      sub: t('feedback.dashboard.positiveDesc'),
+      icon: CheckCircle2,
+      chip: 'bg-success-soft text-success',
+      valueClassName: undefined,
+    },
+    {
+      label: t('feedback.dashboard.neutral'),
+      value: formatNumber(stats.neutralCount),
+      sub: t('feedback.dashboard.neutralDesc'),
+      icon: Star,
+      chip: 'bg-warning-soft text-warning',
+      valueClassName: undefined,
+    },
+    {
+      label: t('feedback.dashboard.negative'),
+      value: formatNumber(stats.negativeCount),
+      sub: t('feedback.dashboard.negativeDesc'),
+      icon: Star,
+      chip: 'bg-danger-soft text-danger',
+      valueClassName: undefined,
+    },
+    {
+      label: t('feedback.dashboard.newFeedback'),
+      value: formatNumber(stats.newCount),
+      sub: t('feedback.dashboard.newFeedbackDesc'),
+      icon: MessageSquare,
+      chip: 'bg-primary-soft text-primary',
+      valueClassName: undefined,
+    },
+  ];
+
+  const rangeStart = pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.limit + 1;
+  const rangeEnd = Math.min(pagination.page * pagination.limit, pagination.total);
+
   return (
     <div className="space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Customer Feedback & Reviews</h1>
-          <p className="text-gray-500 text-sm mt-0.5">
-            Monitor customer satisfaction, 1–5 star ratings, and address service feedback.
-          </p>
-        </div>
+      <PageHeader
+        title={t('feedback.dashboard.title')}
+        description={t('feedback.dashboard.subtitle')}
+        actions={
+          <Button variant="primary" size="md" onClick={handleGenerateLink} loading={creatingLink}>
+            {!creatingLink && <Plus className="h-4 w-4" aria-hidden="true" />}
+            {t('feedback.dashboard.createLink')}
+          </Button>
+        }
+      />
 
-        <button
-          onClick={handleGenerateLink}
-          disabled={creatingLink}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors disabled:opacity-50"
-        >
-          <Plus className="w-4 h-4" /> {creatingLink ? 'Generating...' : 'Create Feedback Invite Link'}
-        </button>
-      </div>
-
-      {/* Generated Link Popup Card */}
       {generatedLink && (
-        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-          <div className="space-y-0.5 max-w-xl">
-            <span className="text-xs font-bold text-blue-950 flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-blue-600" /> New Secure Feedback Link Generated:
-            </span>
-            <p className="text-xs text-blue-800 font-mono truncate">{generatedLink}</p>
-          </div>
+        <Card className="border-primary/25 bg-primary-soft p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0 space-y-0.5">
+              <p className="flex items-center gap-1.5 text-xs font-bold text-gray-900">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-success" aria-hidden="true" />
+                {t('feedback.dashboard.linkGenerated')}
+              </p>
+              <p className="truncate font-mono text-xs text-gray-900">{generatedLink}</p>
+            </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => copyToClipboard(generatedLink)}
-              className="px-3 py-1.5 bg-white border border-blue-300 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg flex items-center gap-1 transition-colors"
-            >
-              <Copy className="w-3.5 h-3.5" /> {copied ? 'Copied!' : 'Copy Link'}
-            </button>
-            <a
-              href={generatedLink}
-              target="_blank"
-              rel="noreferrer"
-              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg flex items-center gap-1 transition-colors"
-            >
-              <ExternalLink className="w-3.5 h-3.5" /> Open
-            </a>
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => copyToClipboard(generatedLink)}
+                className={buttonClasses('outline', 'sm')}
+              >
+                <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+                {copied ? t('feedback.dashboard.copied') : t('feedback.dashboard.copyLink')}
+              </button>
+              <a
+                href={generatedLink}
+                target="_blank"
+                rel="noreferrer"
+                className={buttonClasses('primary', 'sm')}
+              >
+                <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                {t('feedback.dashboard.open')}
+              </a>
+            </div>
           </div>
-        </div>
+        </Card>
       )}
 
-      {/* KPI Cards Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
-          <span className="text-xs font-semibold text-gray-500 uppercase">Average Rating</span>
-          <div className="flex items-center gap-2 mt-1">
-            <h3 className="text-2xl font-bold text-gray-900">
-              {stats.averageRating ? `${stats.averageRating}` : '—'}
-            </h3>
-            {stats.averageRating && <Star className="w-5 h-5 fill-amber-400 text-amber-400" />}
-          </div>
-          <span className="text-[11px] text-gray-400">{stats.totalReviews} total reviews</span>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
-          <span className="text-xs font-semibold text-green-700 uppercase">Positive (4-5★)</span>
-          <h3 className="text-2xl font-bold text-green-700 mt-1">{stats.positiveCount}</h3>
-          <span className="text-[11px] text-green-600">Satisfied customers</span>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
-          <span className="text-xs font-semibold text-amber-700 uppercase">Neutral (3★)</span>
-          <h3 className="text-2xl font-bold text-amber-700 mt-1">{stats.neutralCount}</h3>
-          <span className="text-[11px] text-amber-600">Average experience</span>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
-          <span className="text-xs font-semibold text-red-700 uppercase">Negative (1-2★)</span>
-          <h3 className="text-2xl font-bold text-red-700 mt-1">{stats.negativeCount}</h3>
-          <span className="text-[11px] text-red-500">Needs attention</span>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
-          <span className="text-xs font-semibold text-blue-700 uppercase">New Feedback</span>
-          <h3 className="text-2xl font-bold text-blue-700 mt-1">{stats.newCount}</h3>
-          <span className="text-[11px] text-blue-500">Awaiting review</span>
-        </div>
-      </div>
-
-      {/* Filter Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
-        <form method="GET" className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-          <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              name="search"
-              defaultValue={searchParams.search || ''}
-              placeholder="Search comments or customer name..."
-              className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-            <select
-              name="rating"
-              defaultValue={searchParams.rating || ''}
-              className="px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            >
-              <option value="">All Stars</option>
-              <option value="5">5 Stars</option>
-              <option value="4">4 Stars</option>
-              <option value="3">3 Stars</option>
-              <option value="2">2 Stars</option>
-              <option value="1">1 Star</option>
-            </select>
-
-            <select
-              name="status"
-              defaultValue={searchParams.status || 'ALL'}
-              className="px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            >
-              <option value="ALL">All Statuses</option>
-              <option value="NEW">New</option>
-              <option value="REVIEWING">Under Review</option>
-              <option value="RESOLVED">Resolved</option>
-              <option value="ARCHIVED">Archived</option>
-            </select>
-
-            <button
-              type="submit"
-              className="px-4 py-2 bg-gray-900 hover:bg-black text-white text-xs font-semibold rounded-xl transition-colors shrink-0"
-            >
-              Filter
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {/* Feedbacks List Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
-        {feedbacks.length === 0 ? (
-          <div className="p-12 text-center space-y-3">
-            <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto">
-              <MessageSquare className="w-6 h-6" />
-            </div>
-            <h3 className="text-base font-bold text-gray-900">No customer feedback yet</h3>
-            <p className="text-xs text-gray-500 max-w-sm mx-auto">
-              Generate and share feedback invite links with your customers or include feedback links on receipts.
-            </p>
-            <button
-              onClick={handleGenerateLink}
-              className="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold hover:bg-blue-700 transition-colors"
-            >
-              Create Feedback Link
-            </button>
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-100">
-            {feedbacks.map((f: any) => (
-              <div key={f.id} className="p-5 hover:bg-gray-50/50 transition-colors space-y-3">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                  <div className="flex items-center gap-3">
-                    {/* Star Rating Badge */}
-                    <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-xl">
-                      <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                      <span className="text-xs font-bold text-amber-900">{f.rating}.0</span>
-                    </div>
-
-                    <div>
-                      <span className="font-bold text-gray-900 text-xs">
-                        {f.isAnonymous ? 'Anonymous Customer' : (f.customer?.name || 'Verified Customer')}
-                      </span>
-                      <span className="text-xs text-gray-400 ml-2">({f.category})</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                        f.status === 'RESOLVED'
-                          ? 'bg-green-100 text-green-800'
-                          : f.status === 'REVIEWING'
-                          ? 'bg-amber-100 text-amber-800'
-                          : f.status === 'NEW'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {f.status}
-                    </span>
-
-                    <button
-                      onClick={() => setActiveModalFeedback(f)}
-                      className="px-2.5 py-1 text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" /> Action
-                    </button>
-                  </div>
-                </div>
-
-                <p className="text-xs text-gray-700 leading-relaxed pl-1">
-                  "{f.message}"
-                </p>
-
-                {/* Resolution Note If Exists */}
-                {f.resolutionNote && (
-                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-950 space-y-1">
-                    <span className="font-bold block flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Manager Resolution Note:
-                    </span>
-                    <p className="text-emerald-900 text-[11px]">{f.resolutionNote}</p>
-                  </div>
-                )}
-
-                <div className="flex flex-wrap items-center justify-between text-[11px] text-gray-400 pt-1 border-t border-gray-100">
-                  <span>Submitted on {new Date(f.createdAt).toLocaleDateString()}</span>
-                  {f.sale && (
-                    <Link
-                      href={`/dashboard/sales/${f.sale.id}`}
-                      className="text-blue-600 hover:underline flex items-center gap-1 font-mono"
-                    >
-                      <FileText className="w-3 h-3" /> Invoice #{f.sale.invoiceNumber}
-                    </Link>
-                  )}
-                </div>
+      <Card className="overflow-hidden">
+        <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          {kpiTiles.map((tile) => (
+            <div key={tile.label} className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted">{tile.label}</p>
+                <span
+                  className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', tile.chip)}
+                  aria-hidden="true"
+                >
+                  <tile.icon className="h-4 w-4" />
+                </span>
               </div>
-            ))}
-          </div>
-        )}
+              <div>
+                <p className={cn('text-2xl font-bold leading-tight text-gray-900', tile.valueClassName)}>{tile.value}</p>
+                <p className="mt-1 text-xs text-muted">{tile.sub}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
 
-        {/* Pagination */}
-        {pagination.totalPages > 1 && (
-          <div className="p-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-            <span>
-              Page {pagination.page} of {pagination.totalPages} ({pagination.total} total reviews)
-            </span>
-            <div className="flex gap-1">
-              {pagination.page > 1 && (
+      <Card className="overflow-hidden">
+        <div className="space-y-3 border-b border-border p-4">
+          <form method="GET" aria-label={t('feedback.dashboard.filterFormAria')} className="flex flex-col gap-2">
+            <input type="hidden" name="tab" value="reviews" />
+            <div className="relative">
+              <Search
+                className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                aria-hidden="true"
+              />
+              <input
+                type="text"
+                name="search"
+                defaultValue={filters.search}
+                placeholder={t('feedback.dashboard.searchPlaceholder')}
+                aria-label={t('feedback.dashboard.searchAria')}
+                className={inputClasses(false, 'ps-9')}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:flex xl:flex-wrap">
+              <Select
+                name="rating"
+                defaultValue={filters.rating}
+                aria-label={t('feedback.dashboard.ratingFilterAria')}
+                className="xl:w-44"
+              >
+                <option value="">{t('feedback.dashboard.allStars')}</option>
+                <option value="5">{t('feedback.dashboard.nStars', { n: 5 })}</option>
+                <option value="4">{t('feedback.dashboard.nStars', { n: 4 })}</option>
+                <option value="3">{t('feedback.dashboard.nStars', { n: 3 })}</option>
+                <option value="2">{t('feedback.dashboard.nStars', { n: 2 })}</option>
+                <option value="1">{t('feedback.dashboard.oneStar')}</option>
+              </Select>
+
+              <Select
+                name="status"
+                defaultValue={filters.status}
+                aria-label={t('feedback.dashboard.statusFilterAria')}
+                className="xl:w-44"
+              >
+                <option value="ALL">{t('common.all')} — {t('common.status')}</option>
+                {LEGACY_STATUSES.map((s) => (
+                  <option key={s} value={s}>{statusLabel(s)}</option>
+                ))}
+              </Select>
+
+              <button type="submit" className={buttonClasses('secondary', 'md', 'w-full sm:w-auto xl:shrink-0')}>
+                {t('common.apply')}
+              </button>
+
+              {hasFilters && (
                 <Link
-                  href={`/dashboard/feedback?page=${pagination.page - 1}`}
-                  className="px-3 py-1 bg-gray-100 rounded-lg hover:bg-gray-200 text-gray-700 font-medium"
+                  href="/dashboard/feedback?tab=reviews"
+                  className={buttonClasses('ghost', 'md', 'w-full text-danger hover:bg-danger-soft hover:text-danger sm:w-auto xl:shrink-0')}
                 >
-                  Previous
-                </Link>
-              )}
-              {pagination.page < pagination.totalPages && (
-                <Link
-                  href={`/dashboard/feedback?page=${pagination.page + 1}`}
-                  className="px-3 py-1 bg-gray-100 rounded-lg hover:bg-gray-200 text-gray-700 font-medium"
-                >
-                  Next
+                  {t('common.clear')}
                 </Link>
               )}
             </div>
-          </div>
-        )}
-      </div>
+          </form>
+        </div>
 
-      {/* Modal */}
+        {feedbacks.length === 0 ? (
+          hasFilters ? (
+            <EmptyState
+              icon={SearchX}
+              title={t('feedback.dashboard.noMatchTitle')}
+              description={t('common.noResultsDescription')}
+              action={
+                <Link href="/dashboard/feedback?tab=reviews" className={buttonClasses('outline', 'sm')}>
+                  {t('common.clearFilters')}
+                </Link>
+              }
+            />
+          ) : (
+            <EmptyState
+              icon={MessageSquare}
+              title={t('feedback.dashboard.emptyTitle')}
+              description={t('feedback.dashboard.emptyDesc')}
+              action={
+                <Button variant="primary" size="sm" onClick={handleGenerateLink} loading={creatingLink}>
+                  {!creatingLink && <Plus className="h-3.5 w-3.5" aria-hidden="true" />}
+                  {t('feedback.dashboard.createLinkShort')}
+                </Button>
+              }
+            />
+          )
+        ) : (
+          <>
+            <ul className="divide-y divide-border">
+              {feedbacks.map((f) => (
+                <li key={f.id} className="space-y-3 p-4 sm:p-5">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-warning/25 bg-warning-soft px-2.5 py-1 text-xs font-bold text-warning">
+                        <Star className="h-4 w-4 fill-current" aria-hidden="true" />
+                        {f.rating}.0
+                      </span>
+
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-bold text-gray-900">
+                          {f.isAnonymous
+                            ? t('feedback.dashboard.anonymousCustomer')
+                            : f.customer?.name || t('feedback.dashboard.verifiedCustomer')}
+                          <span className="ms-2 font-normal text-muted">
+                            ({t(`feedback.enums.categories.${f.category}.label`, f.category)})
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex shrink-0 items-center gap-2">
+                      <Badge tone={STATUS_TONE[f.status] ?? 'neutral'}>{statusLabel(f.status)}</Badge>
+                      <button
+                        type="button"
+                        onClick={() => setActiveModalFeedback(f)}
+                        aria-label={t('feedback.dashboard.resolveAria', {
+                          name: f.isAnonymous
+                            ? t('feedback.dashboard.anonymousCustomer')
+                            : f.customer?.name || t('feedback.dashboard.verifiedCustomer'),
+                        })}
+                        className={buttonClasses('outline', 'sm')}
+                      >
+                        <Edit3 className="h-3.5 w-3.5" aria-hidden="true" />
+                        {t('feedback.dashboard.action')}
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-sm leading-relaxed text-gray-700">&ldquo;{f.message}&rdquo;</p>
+
+                  {f.resolutionNote && (
+                    <div className="space-y-1 rounded-input border border-success/25 bg-success-soft p-3 text-xs text-gray-900">
+                      <span className="flex items-center gap-1 font-bold">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-success" aria-hidden="true" />
+                        {t('feedback.dashboard.managerResolutionNote')}
+                      </span>
+                      <p>{f.resolutionNote}</p>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-2 text-xs text-muted">
+                    <span>{t('feedback.dashboard.submittedOn', { date: new Date(f.createdAt).toLocaleDateString(dateLocale) })}</span>
+                    {f.sale && (
+                      <Link
+                        href={`/dashboard/sales/${f.sale.id}`}
+                        className="inline-flex items-center gap-1 font-mono text-gray-900 hover:underline"
+                      >
+                        <FileText className="h-3 w-3" aria-hidden="true" />
+                        {t('feedback.dashboard.invoiceNumber', { number: f.sale.invoiceNumber })}
+                      </Link>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            {pagination.totalPages > 1 && (
+              <div className="flex flex-col items-center justify-between gap-3 border-t border-border px-4 py-3 sm:flex-row">
+                <p className="text-xs text-muted">
+                  {t('common.showingRange', {
+                    start: formatNumber(rangeStart),
+                    end: formatNumber(rangeEnd),
+                    total: formatNumber(pagination.total),
+                  })}
+                </p>
+                <nav aria-label={t('feedback.dashboard.paginationAria')} className="flex items-center gap-2">
+                  {pagination.page > 1 ? (
+                    <Link href={buildReviewsHref(filters, { page: pagination.page - 1 })} className={buttonClasses('outline', 'sm')}>
+                      {t('common.previous')}
+                    </Link>
+                  ) : (
+                    <span aria-disabled="true" className={buttonClasses('outline', 'sm', 'pointer-events-none opacity-50')}>
+                      {t('common.previous')}
+                    </span>
+                  )}
+                  <span className="px-1 text-xs font-semibold text-gray-700">
+                    {t('common.pageOf', { page: formatNumber(pagination.page), totalPages: formatNumber(pagination.totalPages) })}
+                  </span>
+                  {pagination.page < pagination.totalPages ? (
+                    <Link href={buildReviewsHref(filters, { page: pagination.page + 1 })} className={buttonClasses('outline', 'sm')}>
+                      {t('common.next')}
+                    </Link>
+                  ) : (
+                    <span aria-disabled="true" className={buttonClasses('outline', 'sm', 'pointer-events-none opacity-50')}>
+                      {t('common.next')}
+                    </span>
+                  )}
+                </nav>
+              </div>
+            )}
+          </>
+        )}
+      </Card>
+
       {activeModalFeedback && (
         <ResolveFeedbackModal
           businessId={businessId}
           feedbackId={activeModalFeedback.id}
-          customerName={activeModalFeedback.isAnonymous ? 'Anonymous' : activeModalFeedback.customer?.name}
+          customerName={activeModalFeedback.isAnonymous ? t('feedback.management.anonymous') : activeModalFeedback.customer?.name}
           rating={activeModalFeedback.rating}
           message={activeModalFeedback.message}
           currentStatus={activeModalFeedback.status}

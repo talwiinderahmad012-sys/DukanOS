@@ -14,6 +14,7 @@ import {
   FileText
 } from 'lucide-react';
 import { updateSalesSettingsAction } from '@/app/actions/settings.actions';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export function SalesSettingsForm({
   businessId,
@@ -23,6 +24,7 @@ export function SalesSettingsForm({
   initialSettings: any;
 }) {
   const router = useRouter();
+  const { t, tm } = useTranslation();
 
   const [form, setForm] = useState({
     invoicePrefix: initialSettings.invoicePrefix || 'INV-',
@@ -55,10 +57,10 @@ export function SalesSettingsForm({
     });
 
     if (res.success) {
-      setSuccessMsg('Sales & POS rules updated successfully.');
+      setSuccessMsg(t('settings.salesRulesSaved'));
       router.refresh();
     } else {
-      setErrorMsg(res.message || 'Failed to update sales settings.');
+      setErrorMsg(res.message ? tm(res.message) : t('settings.salesSaveFailed'));
     }
     setSaving(false);
   };
@@ -70,12 +72,12 @@ export function SalesSettingsForm({
           href="/dashboard/settings"
           className="text-xs text-gray-500 hover:text-gray-900 font-semibold flex items-center gap-1 mb-2"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Settings</span>
+          <ArrowLeft className="w-3.5 h-3.5 rtl-flip" />
+          <span>{t('settings.backToSettings')}</span>
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Sales & POS Rules</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('settings.salesPageTitle')}</h1>
         <p className="text-gray-500 text-sm mt-0.5">
-          Configure financial guardrails, cashier discount limits, and invoice numbering sequence.
+          {t('settings.salesPageSubtitle')}
         </p>
       </div>
 
@@ -95,16 +97,15 @@ export function SalesSettingsForm({
 
       <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-6">
         
-        {/* Section 1: Discount Limits */}
         <div className="space-y-4">
           <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
             <Percent className="w-3.5 h-3.5 text-gray-500" />
-            <span>1. Role-Based Discount Permissions</span>
+            <span>{t('settings.discountPermissionsSection')}</span>
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">Max Cashier Discount (%)</label>
+              <label className="text-xs font-semibold text-gray-700 block">{t('settings.maxCashierDiscount')}</label>
               <input
                 type="number"
                 min="0"
@@ -112,13 +113,13 @@ export function SalesSettingsForm({
                 step="0.5"
                 value={form.maxCashierDiscountPercent}
                 onChange={(e) => setForm({ ...form, maxCashierDiscountPercent: Number(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-primary focus:outline-none"
               />
-              <p className="text-[11px] text-gray-400">Cashiers cannot apply discounts greater than this.</p>
+              <p className="text-[11px] text-gray-400">{t('settings.maxCashierDiscountHint')}</p>
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">Max Manager Discount (%)</label>
+              <label className="text-xs font-semibold text-gray-700 block">{t('settings.maxManagerDiscount')}</label>
               <input
                 type="number"
                 min="0"
@@ -126,66 +127,64 @@ export function SalesSettingsForm({
                 step="0.5"
                 value={form.maxManagerDiscountPercent}
                 onChange={(e) => setForm({ ...form, maxManagerDiscountPercent: Number(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-primary focus:outline-none"
               />
-              <p className="text-[11px] text-gray-400">Managers cannot exceed this discount without owner approval.</p>
+              <p className="text-[11px] text-gray-400">{t('settings.maxManagerDiscountHint')}</p>
             </div>
           </div>
         </div>
 
-        {/* Section 2: Invoice Numbering Rules */}
         <div className="space-y-4 pt-4 border-t border-gray-100">
           <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
             <FileText className="w-3.5 h-3.5 text-gray-500" />
-            <span>2. Invoice Numbering Rules</span>
+            <span>{t('settings.invoiceNumberingSection')}</span>
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">Invoice Number Prefix</label>
+              <label className="text-xs font-semibold text-gray-700 block">{t('settings.invoiceNumberPrefix')}</label>
               <input
                 type="text"
                 value={form.invoicePrefix}
                 onChange={(e) => setForm({ ...form, invoicePrefix: e.target.value })}
                 placeholder="INV-"
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-primary focus:outline-none"
               />
-              <p className="text-[11px] text-gray-400">Applied to new future sales invoices.</p>
+              <p className="text-[11px] text-gray-400">{t('settings.invoiceNumberPrefixHint')}</p>
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">Starting Sequence Number</label>
+              <label className="text-xs font-semibold text-gray-700 block">{t('settings.startingSequenceNumber')}</label>
               <input
                 type="number"
                 min="1"
                 value={form.invoiceStartingNumber}
                 onChange={(e) => setForm({ ...form, invoiceStartingNumber: Number(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-primary focus:outline-none"
               />
-              <p className="text-[11px] text-gray-400">Base sequence index for your store.</p>
+              <p className="text-[11px] text-gray-400">{t('settings.startingSequenceHint')}</p>
             </div>
           </div>
         </div>
 
-        {/* Section 3: Checkout Configuration */}
         <div className="space-y-4 pt-4 border-t border-gray-100">
           <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
             <ShoppingCart className="w-3.5 h-3.5 text-gray-500" />
-            <span>3. Checkout Configuration</span>
+            <span>{t('settings.checkoutConfigSection')}</span>
           </h2>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
              <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">Default Payment Method</label>
+              <label className="text-xs font-semibold text-gray-700 block">{t('settings.defaultPaymentMethod')}</label>
               <select
                 value={form.defaultPaymentMethod}
                 onChange={(e) => setForm({ ...form, defaultPaymentMethod: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
               >
-                <option value="CASH">Cash</option>
-                <option value="CARD">Card</option>
-                <option value="BANK_TRANSFER">Bank Transfer</option>
-                <option value="MOBILE_WALLET">Mobile Wallet</option>
+                <option value="CASH">{t('settings.paymentCash')}</option>
+                <option value="CARD">{t('settings.paymentCard')}</option>
+                <option value="BANK_TRANSFER">{t('settings.paymentBankTransfer')}</option>
+                <option value="MOBILE_WALLET">{t('settings.paymentMobileWallet')}</option>
               </select>
             </div>
           </div>
@@ -193,91 +192,89 @@ export function SalesSettingsForm({
           <div className="space-y-3">
             <label className="p-3 bg-gray-50 rounded-2xl flex items-center justify-between cursor-pointer border border-gray-100 hover:bg-gray-100/60 transition-colors">
               <div>
-                <span className="text-xs font-bold text-gray-900 block">Allow Price Override</span>
+                <span className="text-xs font-bold text-gray-900 block">{t('settings.allowPriceOverride')}</span>
                 <span className="text-[11px] text-gray-500">
-                  Allow cashiers to change product prices at checkout.
+                  {t('settings.allowPriceOverrideDescription')}
                 </span>
               </div>
               <input
                 type="checkbox"
                 checked={form.allowPriceOverride}
                 onChange={(e) => setForm({ ...form, allowPriceOverride: e.target.checked })}
-                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                className="w-4 h-4 rounded text-gray-900 focus:ring-primary"
               />
             </label>
             
             <label className="p-3 bg-gray-50 rounded-2xl flex items-center justify-between cursor-pointer border border-gray-100 hover:bg-gray-100/60 transition-colors">
               <div>
-                <span className="text-xs font-bold text-gray-900 block">Auto-Print Receipt</span>
+                <span className="text-xs font-bold text-gray-900 block">{t('settings.autoPrintReceipt')}</span>
                 <span className="text-[11px] text-gray-500">
-                  Automatically open print dialog when sale is completed.
+                  {t('settings.autoPrintReceiptDescription')}
                 </span>
               </div>
               <input
                 type="checkbox"
                 checked={form.autoPrintReceipt}
                 onChange={(e) => setForm({ ...form, autoPrintReceipt: e.target.checked })}
-                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                className="w-4 h-4 rounded text-gray-900 focus:ring-primary"
               />
             </label>
           </div>
         </div>
 
-        {/* Section 4: Financial Safety Policies */}
         <div className="space-y-4 pt-4 border-t border-gray-100">
           <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5 text-gray-500" />
-            <span>4. Checkout & Credit Policies</span>
+            <span>{t('settings.creditPoliciesSection')}</span>
           </h2>
 
           <div className="space-y-3">
             <label className="p-3 bg-gray-50 rounded-2xl flex items-center justify-between cursor-pointer border border-gray-100 hover:bg-gray-100/60 transition-colors">
               <div>
-                <span className="text-xs font-bold text-gray-900 block">Require Customer for Credit (Udhaar) Sales</span>
+                <span className="text-xs font-bold text-gray-900 block">{t('settings.requireCustomerCredit')}</span>
                 <span className="text-[11px] text-gray-500">
-                  Prevents walk-in checkout without attaching a registered customer when unpaid balance &gt; 0.
+                  {t('settings.requireCustomerCreditDescription')}
                 </span>
               </div>
               <input
                 type="checkbox"
                 checked={form.requireCustomerForCredit}
                 onChange={(e) => setForm({ ...form, requireCustomerForCredit: e.target.checked })}
-                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                className="w-4 h-4 rounded text-gray-900 focus:ring-primary"
               />
             </label>
 
             <label className="p-3 bg-gray-50 rounded-2xl flex items-center justify-between cursor-pointer border border-gray-100 hover:bg-gray-100/60 transition-colors">
               <div>
-                <span className="text-xs font-bold text-gray-900 block">Require Written Reason to Cancel Sales</span>
+                <span className="text-xs font-bold text-gray-900 block">{t('settings.requireCancellationReason')}</span>
                 <span className="text-[11px] text-gray-500">
-                  Staff must provide a clear reason before voiding a completed transaction.
+                  {t('settings.requireCancellationReasonDescription')}
                 </span>
               </div>
               <input
                 type="checkbox"
                 checked={form.requireSaleCancellationReason}
                 onChange={(e) => setForm({ ...form, requireSaleCancellationReason: e.target.checked })}
-                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                className="w-4 h-4 rounded text-gray-900 focus:ring-primary"
               />
             </label>
           </div>
         </div>
 
-        {/* Submit */}
         <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
           <Link
             href="/dashboard/settings"
             className="px-4 py-2 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-xs font-semibold"
           >
-            Cancel
+            {t('common.cancel')}
           </Link>
           <button
             type="submit"
             disabled={saving}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5 disabled:opacity-50"
+            className="px-6 py-2 bg-primary hover:bg-primary-hover text-on-primary rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5 disabled:opacity-50"
           >
             <Save className="w-3.5 h-3.5" />
-            <span>{saving ? 'Saving Rules...' : 'Save Rules'}</span>
+            <span>{saving ? t('settings.savingRules') : t('settings.saveRules')}</span>
           </button>
         </div>
       </form>

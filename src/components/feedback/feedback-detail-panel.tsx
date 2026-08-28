@@ -1,19 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import {
   X,
   Star,
   MessageSquare,
   Lock,
   Send,
-  Loader2,
   FileText,
   Package,
   User,
   ShieldAlert,
   Trash2,
 } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/language-context';
+import { Badge, type BadgeTone } from '@/components/ui/badge';
+import { IconButton, buttonClasses } from '@/components/ui/button';
+import { inputClasses, Select } from '@/components/ui/input';
+import { cn } from '@/components/ui/cn';
 // Enum values mirrored as string constants + type-only import — the generated
 // Prisma client must never be bundled into client JS (Turbopack/node:module).
 const WORKFLOW_STATUSES = ['PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED'] as const;
@@ -31,18 +36,19 @@ import type {
   FeedbackPriority,
   FeedbackWorkflowStatus,
 } from '@/generated/prisma/client';
+import type { FeedbackRecordRow } from './feedback-hub';
 
-const TYPE_STYLES: Record<string, string> = {
-  FEEDBACK: 'bg-blue-100 text-blue-800',
-  COMPLAINT: 'bg-red-100 text-red-800',
-  REVIEW: 'bg-amber-100 text-amber-900',
+const TYPE_TONE: Record<string, BadgeTone> = {
+  FEEDBACK: 'info',
+  COMPLAINT: 'danger',
+  REVIEW: 'warning',
 };
 
-const STATUS_STYLES: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
-  IN_PROGRESS: 'bg-indigo-100 text-indigo-800',
-  RESOLVED: 'bg-green-100 text-green-800',
-  REJECTED: 'bg-gray-200 text-gray-700',
+const STATUS_TONE: Record<string, BadgeTone> = {
+  PENDING: 'warning',
+  IN_PROGRESS: 'info',
+  RESOLVED: 'success',
+  REJECTED: 'neutral',
 };
 
 export function FeedbackDetailPanel({
@@ -51,11 +57,17 @@ export function FeedbackDetailPanel({
   isOwnerOrManager,
   onClose,
 }: {
-  record: any;
+  record: FeedbackRecordRow;
   role: string;
   isOwnerOrManager: boolean;
   onClose: () => void;
 }) {
+  const { t, tm, language } = useTranslation();
+  const dateLocale = language === 'UR' ? 'ur-PK' : 'en-PK';
+  const typeLabel = (v: string) => t(`feedback.enums.types.${v}`, v);
+  const statusLabel = (v: string) => t(`feedback.enums.workflowStatuses.${v}`, v);
+  const priorityLabel = (v: string) => t(`feedback.enums.priorities.${v}`, v);
+
   const [busy, setBusy] = useState(false);
   const [responseText, setResponseText] = useState('');
   const [isInternalResponse, setIsInternalResponse] = useState(false);
@@ -64,128 +76,166 @@ export function FeedbackDetailPanel({
   const [notesDirty, setNotesDirty] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const run = async (fn: () => Promise<any>) => {
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [onClose]);
+
+  const run = async (fn: () => Promise<{ success: boolean; message?: string }>) => {
     setBusy(true);
     setError(null);
     const res = await fn();
     setBusy(false);
-    if (!res.success) setError(res.message || 'Action failed.');
+    if (!res.success) setError(res.message || t('feedback.detail.actionFailed'));
     return res;
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/30" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/50" onClick={onClose}>
       <div
-        className="w-full max-w-xl bg-white h-full overflow-y-auto shadow-2xl"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('feedback.detail.panelAria')}
+        className="h-full w-full max-w-xl overflow-y-auto bg-surface shadow-modal"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-100 p-5 flex items-start justify-between gap-3">
-          <div className="space-y-2 min-w-0">
+        <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-border bg-surface p-5">
+          <div className="min-w-0 space-y-2">
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${TYPE_STYLES[record.type] || 'bg-gray-100'}`}>
-                {record.type}
-              </span>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${STATUS_STYLES[record.status] || 'bg-gray-100'}`}>
-                {record.status.replace('_', ' ')}
-              </span>
+              <Badge tone={TYPE_TONE[record.type] ?? 'neutral'}>{typeLabel(record.type)}</Badge>
+              <Badge tone={STATUS_TONE[record.status] ?? 'neutral'}>{statusLabel(record.status)}</Badge>
+              <Badge tone={record.priority === 'CRITICAL' ? 'danger' : record.priority === 'HIGH' ? 'warning' : 'neutral'}>
+                {priorityLabel(record.priority)}
+              </Badge>
               {record.rating != null && (
-                <span className="flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 border border-amber-200 text-amber-900">
-                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {record.rating}/5
+                <span className="inline-flex items-center gap-1 rounded-full border border-warning/25 bg-warning-soft px-2.5 py-0.5 text-xs font-semibold text-warning">
+                  <Star className="h-3 w-3 fill-current" aria-hidden="true" />
+                  {record.rating}/5
                 </span>
               )}
             </div>
-            <h3 className="font-bold text-gray-900 leading-snug break-words">{record.title}</h3>
+            <h2 className="break-words text-base font-bold leading-snug text-gray-900">{record.title}</h2>
           </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-lg shrink-0">
-            <X className="w-4 h-4 text-gray-500" />
-          </button>
+          <IconButton aria-label={t('ui.closeDialog')} onClick={onClose} className="shrink-0">
+            <X className="h-4 w-4" />
+          </IconButton>
         </div>
 
-        <div className="p-5 space-y-5">
+        <div className="space-y-5 p-5">
           {error && (
-            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-800 font-medium">
-              {error}
+            <div role="alert" className="rounded-input border border-danger/25 bg-danger-soft p-3 text-xs font-medium text-danger">
+              {tm(error)}
             </div>
           )}
 
           {/* Description */}
-          <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{record.description}</p>
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{record.description}</p>
 
           {/* Linked entities */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             {record.customer && (
-              <a href={`/dashboard/customers/${record.customer.id}`} className="p-3 rounded-xl border border-gray-200 hover:border-blue-300 transition-colors space-y-1">
-                <span className="flex items-center gap-1 text-[10px] font-bold text-gray-400 uppercase"><User className="w-3 h-3" /> Customer</span>
-                <span className="text-xs font-semibold text-gray-900 block truncate">{record.customer.name}</span>
-                {record.customer.phone && <span className="text-[11px] text-gray-500 block">{record.customer.phone}</span>}
-              </a>
+              <Link
+                href={`/dashboard/customers/${record.customer.id}`}
+                className="space-y-1 rounded-input border border-border bg-surface p-3 transition-colors hover:border-border-strong"
+              >
+                <span className="flex items-center gap-1 text-[10px] font-bold uppercase text-muted">
+                  <User className="h-3 w-3" aria-hidden="true" /> {t('feedback.labels.customer')}
+                </span>
+                <span className="block truncate text-xs font-semibold text-gray-900">
+                  {record.customer.name || t('feedback.management.anonymous')}
+                </span>
+                {record.customer.phone && <span className="block text-xs text-muted">{record.customer.phone}</span>}
+              </Link>
             )}
             {record.sale && (
-              <a href={`/dashboard/sales/${record.sale.id}`} className="p-3 rounded-xl border border-gray-200 hover:border-blue-300 transition-colors space-y-1">
-                <span className="flex items-center gap-1 text-[10px] font-bold text-gray-400 uppercase"><FileText className="w-3 h-3" /> Sale</span>
-                <span className="text-xs font-semibold text-gray-900 font-mono">#{record.sale.invoiceNumber}</span>
-              </a>
+              <Link
+                href={`/dashboard/sales/${record.sale.id}`}
+                className="space-y-1 rounded-input border border-border bg-surface p-3 transition-colors hover:border-border-strong"
+              >
+                <span className="flex items-center gap-1 text-[10px] font-bold uppercase text-muted">
+                  <FileText className="h-3 w-3" aria-hidden="true" /> {t('feedback.labels.sale')}
+                </span>
+                <span className="font-mono text-xs font-semibold text-gray-900">#{record.sale.invoiceNumber}</span>
+              </Link>
             )}
             {record.product && (
-              <a href={`/dashboard/inventory/${record.product.id}`} className="p-3 rounded-xl border border-gray-200 hover:border-blue-300 transition-colors space-y-1">
-                <span className="flex items-center gap-1 text-[10px] font-bold text-gray-400 uppercase"><Package className="w-3 h-3" /> Product</span>
-                <span className="text-xs font-semibold text-gray-900 block truncate">{record.product.name}</span>
-              </a>
+              <Link
+                href={`/dashboard/inventory/${record.product.id}`}
+                className="space-y-1 rounded-input border border-border bg-surface p-3 transition-colors hover:border-border-strong"
+              >
+                <span className="flex items-center gap-1 text-[10px] font-bold uppercase text-muted">
+                  <Package className="h-3 w-3" aria-hidden="true" /> {t('feedback.labels.product')}
+                </span>
+                <span className="block truncate text-xs font-semibold text-gray-900">{record.product.name}</span>
+              </Link>
             )}
           </div>
 
           {/* Status / Priority actions */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="space-y-1">
-              <span className="text-[11px] font-bold text-gray-500">Status</span>
-              <select
+              <span className="text-xs font-medium text-gray-700">{t('feedback.labels.status')}</span>
+              <Select
                 value={record.status}
                 disabled={busy}
                 onChange={(e) => run(() => updateFeedbackStatusAction(record.id, e.target.value as FeedbackWorkflowStatus))}
-                className="w-full text-xs border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               >
                 {WORKFLOW_STATUSES.map((s) => (
-                  <option key={s} value={s}>{s.replace('_', ' ')}</option>
+                  <option key={s} value={s}>{statusLabel(s)}</option>
                 ))}
-              </select>
+              </Select>
             </label>
             <label className="space-y-1">
-              <span className="text-[11px] font-bold text-gray-500">Priority</span>
-              <select
+              <span className="text-xs font-medium text-gray-700">{t('feedback.labels.priority')}</span>
+              <Select
                 value={record.priority}
                 disabled={busy}
                 onChange={(e) => run(() => updateFeedbackPriorityAction(record.id, e.target.value as FeedbackPriority))}
-                className="w-full text-xs border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               >
                 {PRIORITIES.map((p) => (
-                  <option key={p} value={p}>{p}</option>
+                  <option key={p} value={p}>{priorityLabel(p)}</option>
                 ))}
-              </select>
+              </Select>
             </label>
           </div>
 
           {/* Response history */}
           <div className="space-y-2">
-            <span className="text-[11px] font-bold text-gray-500 uppercase flex items-center gap-1">
-              <MessageSquare className="w-3 h-3" /> Responses ({record.responses?.length || 0})
+            <span className="flex items-center gap-1 text-xs font-bold uppercase text-muted">
+              <MessageSquare className="h-3 w-3" aria-hidden="true" />
+              {t('feedback.detail.responses', { count: record.responses?.length || 0 })}
             </span>
             {(record.responses || []).length === 0 ? (
-              <p className="text-xs text-gray-400 py-2">No responses yet.</p>
+              <p className="py-2 text-xs text-muted">{t('feedback.detail.noResponses')}</p>
             ) : (
               <div className="space-y-2">
-                {record.responses.map((r: any) => (
-                  <div key={r.id} className={`p-3 rounded-xl border text-xs space-y-1 ${r.isInternal ? 'bg-purple-50 border-purple-200' : 'bg-gray-50 border-gray-200'}`}>
+                {record.responses.map((r) => (
+                  <div
+                    key={r.id}
+                    className={cn(
+                      'space-y-1 rounded-input border p-3 text-xs',
+                      r.isInternal ? 'border-primary/25 bg-primary-soft' : 'border-border bg-gray-50',
+                    )}
+                  >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-gray-800">{r.responder?.name || 'Staff'}</span>
+                      <span className="font-bold text-gray-800">{r.responder?.name || t('feedback.detail.staff')}</span>
                       {r.isInternal && (
-                        <span className="flex items-center gap-1 text-[10px] font-bold text-purple-700">
-                          <Lock className="w-3 h-3" /> Internal
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-primary">
+                          <Lock className="h-3 w-3" aria-hidden="true" /> {t('feedback.detail.internal')}
                         </span>
                       )}
                     </div>
-                    <p className="text-gray-700 whitespace-pre-wrap">{r.message}</p>
-                    <span className="text-[10px] text-gray-400">{new Date(r.createdAt).toLocaleString()}</span>
+                    <p className="whitespace-pre-wrap text-gray-700">{r.message}</p>
+                    <span className="text-[10px] text-muted">{new Date(r.createdAt).toLocaleString(dateLocale)}</span>
                   </div>
                 ))}
               </div>
@@ -193,36 +243,47 @@ export function FeedbackDetailPanel({
           </div>
 
           {/* Add response */}
-          <div className="space-y-2 p-3 rounded-xl border border-gray-200">
+          <div className="space-y-2 rounded-input border border-border p-3">
+            <label className="sr-only" htmlFor={`feedback-reply-${record.id}`}>
+              {t('feedback.detail.replyPlaceholder')}
+            </label>
             <textarea
+              id={`feedback-reply-${record.id}`}
               value={responseText}
               onChange={(e) => setResponseText(e.target.value)}
               rows={3}
-              placeholder="Write a reply to the customer..."
-              className="w-full text-xs border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              placeholder={t('feedback.detail.replyPlaceholder')}
+              className={inputClasses()}
             />
-            <div className="flex flex-wrap items-center gap-2 justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               {!isInternalResponse && record.customer?.phone && (
-                <select
-                  value={channel}
-                  onChange={(e) => setChannel(e.target.value as CommunicationChannel)}
-                  className="text-[11px] border border-gray-300 rounded-lg px-2 py-1.5"
-                >
-                  <option value="WHATSAPP">WhatsApp</option>
-                  <option value="SMS">SMS</option>
-                </select>
+                <>
+                  <label className="sr-only" htmlFor={`feedback-channel-${record.id}`}>
+                    {t('feedback.detail.channelAria')}
+                  </label>
+                  <Select
+                    id={`feedback-channel-${record.id}`}
+                    value={channel}
+                    onChange={(e) => setChannel(e.target.value as CommunicationChannel)}
+                    className="w-auto text-xs"
+                  >
+                    <option value="WHATSAPP">WhatsApp</option>
+                    <option value="SMS">SMS</option>
+                  </Select>
+                </>
               )}
-              <label className="flex items-center gap-1.5 text-[11px] font-semibold text-purple-700">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-primary">
                 <input
                   type="checkbox"
                   checked={isInternalResponse}
                   disabled={!isOwnerOrManager}
                   onChange={(e) => setIsInternalResponse(e.target.checked)}
-                  className="accent-purple-600"
+                  className="h-4 w-4 shrink-0 rounded border-gray-300 accent-primary"
                 />
-                <Lock className="w-3 h-3" /> Internal note only
+                <Lock className="h-3 w-3" aria-hidden="true" /> {t('feedback.detail.internalNoteOnly')}
               </label>
               <button
+                type="button"
                 disabled={busy || !responseText.trim()}
                 onClick={() =>
                   run(async () => {
@@ -231,32 +292,37 @@ export function FeedbackDetailPanel({
                     return res;
                   })
                 }
-                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold flex items-center gap-1.5"
+                className={buttonClasses('primary', 'sm')}
               >
-                {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                Send
+                <Send className="h-3.5 w-3.5" aria-hidden="true" />
+                {t('common.send')}
               </button>
             </div>
           </div>
 
           {/* Internal notes — OWNER/MANAGER only */}
           {isOwnerOrManager ? (
-            <div className="space-y-2 p-3 rounded-xl bg-amber-50 border border-amber-200">
-              <span className="flex items-center gap-1 text-[11px] font-bold text-amber-800 uppercase">
-                <Lock className="w-3 h-3" /> Internal Notes (staff only)
+            <div className="space-y-2 rounded-input border border-warning/25 bg-warning-soft p-3">
+              <span className="flex items-center gap-1 text-xs font-bold uppercase text-gray-900">
+                <Lock className="h-3 w-3" aria-hidden="true" /> {t('feedback.detail.internalNotesTitle')}
               </span>
+              <label className="sr-only" htmlFor={`feedback-notes-${record.id}`}>
+                {t('feedback.detail.internalNotesTitle')}
+              </label>
               <textarea
+                id={`feedback-notes-${record.id}`}
                 value={notesText ?? ''}
                 onChange={(e) => {
                   setNotesText(e.target.value);
                   setNotesDirty(true);
                 }}
                 rows={3}
-                placeholder="Private notes for your team — never visible to customers."
-                className="w-full text-xs border border-amber-300 rounded-lg px-3 py-2 bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
+                placeholder={t('feedback.detail.internalNotesPlaceholder')}
+                className={inputClasses()}
               />
               {notesDirty && (
                 <button
+                  type="button"
                   disabled={busy}
                   onClick={() =>
                     run(async () => {
@@ -265,25 +331,26 @@ export function FeedbackDetailPanel({
                       return res;
                     })
                   }
-                  className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold"
+                  className={buttonClasses('secondary', 'sm')}
                 >
-                  Save Notes
+                  {t('feedback.detail.saveNotes')}
                 </button>
               )}
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 text-[11px] text-gray-400 italic">
-              <ShieldAlert className="w-3.5 h-3.5" />
-              Internal notes are restricted to Owner / Manager ({role}s cannot view them).
+            <div className="flex items-center gap-1.5 text-xs italic text-muted">
+              <ShieldAlert className="h-3.5 w-3.5" aria-hidden="true" />
+              {t('feedback.detail.internalNotesRestricted', { role })}
             </div>
           )}
 
           {/* Delete */}
           {isOwnerOrManager && (
             <button
+              type="button"
               disabled={busy}
               onClick={() => {
-                if (confirm('Delete this feedback record permanently?')) {
+                if (confirm(t('feedback.detail.deleteConfirm'))) {
                   run(async () => {
                     const res = await deleteFeedbackAction(record.id);
                     if (res.success) onClose();
@@ -291,9 +358,10 @@ export function FeedbackDetailPanel({
                   });
                 }
               }}
-              className="w-full py-2 border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
+              className={buttonClasses('outline', 'md', 'w-full border-danger/25 text-danger hover:bg-danger-soft hover:text-danger')}
             >
-              <Trash2 className="w-3.5 h-3.5" /> Delete Record
+              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+              {t('feedback.detail.deleteRecord')}
             </button>
           )}
         </div>

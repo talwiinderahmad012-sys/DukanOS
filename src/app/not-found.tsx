@@ -1,7 +1,12 @@
+'use client';
+
 import Link from 'next/link';
 import { Store, Home, ArrowLeft } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export default function NotFound() {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen bg-linear-to-b from-gray-50 to-gray-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center space-y-6 bg-white p-8 rounded-3xl border border-gray-200/80 shadow-xl">
@@ -11,11 +16,11 @@ export default function NotFound() {
 
         <div className="space-y-2">
           <span className="inline-block text-xs font-semibold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
-            404 Error
+            {t('staticPages.notFoundBadge')}
           </span>
-          <h1 className="text-2xl font-bold text-gray-900">Page Not Found</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('staticPages.notFoundTitle')}</h1>
           <p className="text-sm text-gray-500">
-            The page or store resource you are looking for might have been moved, deleted, or does not exist.
+            {t('staticPages.notFoundDescription')}
           </p>
         </div>
 
@@ -25,19 +30,19 @@ export default function NotFound() {
             className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm rounded-xl transition-colors shadow-sm"
           >
             <Home className="w-4 h-4" />
-            Go to Dashboard
+            {t('staticPages.goToDashboard')}
           </Link>
           <Link
             href="/login"
             className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm rounded-xl transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Sign In
+            <ArrowLeft className="w-4 h-4 rtl-flip" />
+            {t('common.signIn')}
           </Link>
         </div>
 
         <div className="pt-4 border-t border-gray-100">
-          <p className="text-xs text-gray-400 font-mono">DukaanOS v1.0.0 — Retail Operating System</p>
+          <p className="text-xs text-gray-400 font-mono">DukaanOS v1.0.0 — {t('staticPages.versionTagline')}</p>
         </div>
       </div>
     </div>

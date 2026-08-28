@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { checkInAction, checkOutAction } from '@/app/actions/employee.actions';
 import { LogIn, LogOut } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 type Props = {
   businessId: string;
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export function SelfCheckButtons({ businessId, checkedIn, checkedOut }: Props) {
+  const { t, tm } = useTranslation();
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -21,10 +23,10 @@ export function SelfCheckButtons({ businessId, checkedIn, checkedOut }: Props) {
     startTransition(async () => {
       const result = await fn();
       if (result.success) {
-        setMessage('Done! Refreshing…');
+        setMessage(t('employees.doneRefreshing'));
         window.location.reload();
       } else {
-        setError(result.message || 'Something went wrong.');
+        setError(tm(result.message) || t('common.somethingWentWrong'));
       }
     });
   };
@@ -46,7 +48,7 @@ export function SelfCheckButtons({ businessId, checkedIn, checkedOut }: Props) {
           }`}
         >
           <LogIn className="w-4 h-4" />
-          {checkedIn ? 'Checked In' : 'Check In'}
+          {checkedIn ? t('employees.checkedInState') : t('employees.selfCheckIn')}
         </button>
 
         <button
@@ -59,8 +61,8 @@ export function SelfCheckButtons({ businessId, checkedIn, checkedOut }: Props) {
               : 'bg-red-600 text-white hover:bg-red-700'
           }`}
         >
-          <LogOut className="w-4 h-4" />
-          {checkedOut ? 'Checked Out' : 'Check Out'}
+          <LogOut className="w-4 h-4 rtl-flip" />
+          {checkedOut ? t('employees.checkedOutState') : t('employees.selfCheckOut')}
         </button>
       </div>
 

@@ -29,32 +29,17 @@ import { cn } from '@/components/ui/cn';
 import { RecordPaymentModal } from './record-payment-modal';
 import { CustomerEditDialog, type CustomerEditableData } from './customer-edit-dialog';
 import { generateFeedbackInviteAction } from '@/app/actions/feedback.actions';
-
-const fmt = (n: number) => `Rs. ${Math.round(Number(n || 0)).toLocaleString()}`;
-
-const fmtDate = (d: Date | string | null) =>
-  d
-    ? new Date(d).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
-    : '—';
-
-const fmtDateTime = (d: Date | string) =>
-  new Date(d).toLocaleDateString(undefined, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export type SerializableCustomer = CustomerEditableData & {
   isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type LedgerRow = {
   id: string;
-  date: Date;
+  date: string;
   type: 'CREDIT_SALE' | 'PAYMENT' | 'SALE_CANCELLED';
   description: string;
   debit: number;
@@ -66,7 +51,7 @@ export type LedgerRow = {
 export type SaleRow = {
   id: string;
   invoiceNumber: string;
-  saleDate: Date;
+  saleDate: string;
   status: 'COMPLETED' | 'CANCELLED' | 'REFUNDED';
   total: number;
   paidAmount: number;
@@ -75,7 +60,7 @@ export type SaleRow = {
 
 export type PaymentRow = {
   id: string;
-  date: Date;
+  date: string;
   amount: number;
   method: string;
   notes: string | null;
@@ -88,14 +73,14 @@ export type FeedbackRow = {
   status: string;
   message: string;
   resolutionNote: string | null;
-  createdAt: Date;
+  createdAt: string;
 };
 
 export type AuditRow = {
   id: string;
   action: string;
   metadata: string | null;
-  createdAt: Date;
+  createdAt: string;
 };
 
 export type TopProductRow = {
@@ -125,7 +110,7 @@ export type CustomerViewData = {
     totalSpend: number;
     totalPaid: number;
     outstanding: number;
-    lastPurchaseDate: Date | null;
+    lastPurchaseDate: string | null;
   };
   sales: SaleRow[];
   payments: PaymentRow[];
@@ -133,30 +118,47 @@ export type CustomerViewData = {
   feedbacks: FeedbackRow[];
 };
 
-const STATUS_BADGE: Record<CustomerEditableData['status'], { label: string; tone: BadgeTone }> = {
-  ACTIVE: { label: 'Active', tone: 'success' },
-  INACTIVE: { label: 'Inactive', tone: 'warning' },
-  ARCHIVED: { label: 'Archived', tone: 'neutral' },
+const STATUS_BADGE: Record<CustomerEditableData['status'], { labelKey: string; tone: BadgeTone }> = {
+  ACTIVE: { labelKey: 'customers.statusActive', tone: 'success' },
+  INACTIVE: { labelKey: 'customers.statusInactive', tone: 'warning' },
+  ARCHIVED: { labelKey: 'customers.statusArchived', tone: 'neutral' },
 };
 
-const LEDGER_TYPE: Record<LedgerRow['type'], { label: string; tone: BadgeTone }> = {
-  CREDIT_SALE: { label: 'Udhaar / Credit Sale', tone: 'warning' },
-  PAYMENT: { label: 'Payment Received', tone: 'success' },
-  SALE_CANCELLED: { label: 'Sale Reversal', tone: 'neutral' },
+const LEDGER_TYPE: Record<LedgerRow['type'], { labelKey: string; tone: BadgeTone }> = {
+  CREDIT_SALE: { labelKey: 'customers.ledgerTypeCreditSale', tone: 'warning' },
+  PAYMENT: { labelKey: 'customers.ledgerTypePayment', tone: 'success' },
+  SALE_CANCELLED: { labelKey: 'customers.ledgerTypeSaleReversal', tone: 'neutral' },
 };
 
-const PAYMENT_METHOD_LABEL: Record<string, string> = {
-  CASH: 'Cash',
-  CARD: 'Card',
-  BANK_TRANSFER: 'Bank Transfer',
-  MOBILE_WALLET: 'Mobile Wallet',
-  CREDIT: 'Credit',
+const PAYMENT_METHOD_LABEL_KEY: Record<string, string> = {
+  CASH: 'customers.methodCash',
+  CARD: 'customers.methodCard',
+  BANK_TRANSFER: 'customers.methodBankTransfer',
+  MOBILE_WALLET: 'customers.methodMobileWallet',
+  CREDIT: 'customers.methodCredit',
 };
 
-const SALE_STATUS: Record<SaleRow['status'], { label: string; tone: BadgeTone }> = {
-  COMPLETED: { label: 'Completed', tone: 'success' },
-  CANCELLED: { label: 'Cancelled', tone: 'neutral' },
-  REFUNDED: { label: 'Refunded', tone: 'danger' },
+const SALE_STATUS: Record<SaleRow['status'], { labelKey: string; tone: BadgeTone }> = {
+  COMPLETED: { labelKey: 'customers.saleCompleted', tone: 'success' },
+  CANCELLED: { labelKey: 'customers.saleCancelled', tone: 'neutral' },
+  REFUNDED: { labelKey: 'customers.saleRefunded', tone: 'danger' },
+};
+
+const FEEDBACK_STATUS_LABEL_KEY: Record<string, string> = {
+  NEW: 'customers.feedbackStatusNew',
+  REVIEWING: 'customers.feedbackStatusReviewing',
+  RESOLVED: 'customers.feedbackStatusResolved',
+  ARCHIVED: 'customers.feedbackStatusArchived',
+};
+
+const FEEDBACK_CATEGORY_LABEL_KEY: Record<string, string> = {
+  SERVICE: 'customers.categoryService',
+  PRODUCT: 'customers.categoryProduct',
+  PRICE: 'customers.categoryPrice',
+  STAFF: 'customers.categoryStaff',
+  CLEANLINESS: 'customers.categoryCleanliness',
+  DELIVERY: 'customers.categoryDelivery',
+  OTHER: 'customers.categoryOther',
 };
 
 function initials(name: string) {
@@ -185,12 +187,30 @@ export function CustomerProfileView({
   canManage: boolean;
   canPay: boolean;
 }) {
+  const { t, formatCurrency, language } = useTranslation();
   const { customer, summary, sales, payments, ledger, feedbacks } = data;
   const [activeTab, setActiveTab] = useState<TabKey>('purchases');
   const [editOpen, setEditOpen] = useState(false);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [generating, setGenerating] = useState(false);
+
+  const fmt = (n: number) => formatCurrency(Math.round(Number(n || 0)));
+
+  const dateLocale = language === 'UR' ? 'ur-PK' : 'en-PK';
+  const fmtDate = (d: string | null) =>
+    d
+      ? new Date(d).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short', year: 'numeric' })
+      : t('common.dash');
+
+  const fmtDateTime = (d: string) =>
+    new Date(d).toLocaleDateString(dateLocale, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
 
   const status = STATUS_BADGE[customer.status] ?? STATUS_BADGE.ACTIVE;
   const outstanding = Number(summary.outstanding || 0);
@@ -200,10 +220,10 @@ export function CustomerProfileView({
   const hasCreditHistory = ledger.some((entry) => entry.type !== 'PAYMENT');
   const udhaarState =
     outstanding > 0
-      ? { label: 'Outstanding', tone: 'warning' as BadgeTone }
+      ? { labelKey: 'customers.outstanding', tone: 'warning' as BadgeTone }
       : hasCreditHistory
-        ? { label: 'Settled', tone: 'info' as BadgeTone }
-        : { label: 'Clear', tone: 'success' as BadgeTone };
+        ? { labelKey: 'customers.settled', tone: 'info' as BadgeTone }
+        : { labelKey: 'customers.clear', tone: 'success' as BadgeTone };
 
   async function handleGenerateFeedbackInvite() {
     setGenerating(true);
@@ -223,16 +243,15 @@ export function CustomerProfileView({
   }
 
   const tabs: { key: TabKey; label: string; icon: typeof Package }[] = [
-    { key: 'purchases', label: `Purchases (${sales.length})`, icon: ShoppingCart },
-    { key: 'payments', label: `Payments (${payments.length})`, icon: Banknote },
-    { key: 'insights', label: 'Insights', icon: Package },
-    { key: 'feedback', label: `Feedback (${feedbacks.length})`, icon: Star },
-    { key: 'activity', label: 'Activity', icon: Activity },
+    { key: 'purchases', label: t('customers.tabPurchases', { count: sales.length }), icon: ShoppingCart },
+    { key: 'payments', label: t('customers.tabPayments', { count: payments.length }), icon: Banknote },
+    { key: 'insights', label: t('customers.tabInsights'), icon: Package },
+    { key: 'feedback', label: t('customers.tabFeedback', { count: feedbacks.length }), icon: Star },
+    { key: 'activity', label: t('customers.tabActivity'), icon: Activity },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Customer header */}
       <Card padded className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-start gap-4">
           <div
@@ -244,8 +263,8 @@ export function CustomerProfileView({
           <div className="min-w-0 space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-xl font-bold text-gray-900">{customer.name}</h1>
-              <Badge tone={status.tone}>{status.label}</Badge>
-              <Badge tone={udhaarState.tone}>{udhaarState.label}</Badge>
+              <Badge tone={status.tone}>{t(status.labelKey)}</Badge>
+              <Badge tone={udhaarState.tone}>{t(udhaarState.labelKey)}</Badge>
             </div>
             <dl className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
               {customer.phone && (
@@ -266,16 +285,16 @@ export function CustomerProfileView({
                   <span>{customer.address}</span>
                 </div>
               )}
-              <div>Customer since {fmtDate(customer.createdAt)}</div>
+              <div>{t('customers.customerSinceDate', { date: fmtDate(customer.createdAt) })}</div>
             </dl>
             {customer.notes && <p className="max-w-xl text-sm text-gray-600">{customer.notes}</p>}
           </div>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-          <div className="rounded-card border border-border bg-gray-50 px-4 py-3 sm:text-right">
+          <div className="rounded-card border border-border bg-gray-50 px-4 py-3 sm:text-end">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted">
-              Outstanding Udhaar
+              {t('customers.tableOutstandingUdhaar')}
             </p>
             <p
               className={cn(
@@ -286,14 +305,14 @@ export function CustomerProfileView({
               {fmt(outstanding)}
             </p>
             <p className="text-xs text-muted">
-              {outstanding > 0 ? 'Payment pending' : 'All clear'}
+              {outstanding > 0 ? t('customers.paymentPending') : t('customers.allClear')}
             </p>
           </div>
           <div className="flex items-center gap-2">
             {canManage && (
               <Button variant="outline" onClick={() => setEditOpen(true)}>
                 <Pencil className="h-4 w-4" aria-hidden="true" />
-                Edit
+                {t('common.edit')}
               </Button>
             )}
             {canPay && (
@@ -316,27 +335,29 @@ export function CustomerProfileView({
         />
       )}
 
-      {/* Financial summary */}
       <Card className="overflow-hidden">
         <div className="grid grid-cols-2 gap-px bg-border lg:grid-cols-4">
           <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted">Total Sales</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.totalSalesLabel')}</p>
             <div>
               <p className="text-2xl font-bold leading-tight text-gray-900">{fmt(totalSpend)}</p>
               <p className="mt-1 text-xs text-muted">
-                across {summary.totalSalesCount} completed {summary.totalSalesCount === 1 ? 'sale' : 'sales'}
+                {t('customers.completedSalesSummary', {
+                  count: summary.totalSalesCount,
+                  sales: summary.totalSalesCount === 1 ? t('common.sale') : t('common.sales'),
+                })}
               </p>
             </div>
           </div>
           <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted">Total Paid</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.totalPaidLabel')}</p>
             <div>
               <p className="text-2xl font-bold leading-tight text-success">{fmt(totalPaid)}</p>
-              <p className="mt-1 text-xs text-muted">advance + payments received</p>
+              <p className="mt-1 text-xs text-muted">{t('customers.totalPaidDescription')}</p>
             </div>
           </div>
           <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted">Outstanding Udhaar</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.tableOutstandingUdhaar')}</p>
             <div>
               <p
                 className={cn(
@@ -347,33 +368,34 @@ export function CustomerProfileView({
                 {fmt(outstanding)}
               </p>
               <p className="mt-1 text-xs text-muted">
-                <Badge tone={udhaarState.tone}>{udhaarState.label}</Badge>
+                <Badge tone={udhaarState.tone}>{t(udhaarState.labelKey)}</Badge>
               </p>
             </div>
           </div>
           <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted">Payments Received</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.paymentsReceivedLabel')}</p>
             <div>
               <p className="text-2xl font-bold leading-tight text-gray-900">{payments.length}</p>
               <p className="mt-1 text-xs text-muted">
-                last {payments[0] ? fmtDate(payments[0].date) : 'none'}
+                {t('customers.lastPaymentShort', {
+                  date: payments[0] ? fmtDate(payments[0].date) : t('common.none'),
+                })}
               </p>
             </div>
           </div>
         </div>
       </Card>
 
-      {/* Udhaar ledger — always visible, the primary section */}
       <Card>
         <div className="flex flex-col gap-2 border-b border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-base font-bold text-gray-900">Udhaar Ledger (Khata)</h2>
+            <h2 className="text-base font-bold text-gray-900">{t('customers.udhaarLedgerTitle')}</h2>
             <p className="text-sm text-muted">
-              Credit sales add to the balance, payments reduce it. Running balance shown for each entry.
+              {t('customers.udhaarLedgerDescription')}
             </p>
           </div>
-          <div className="text-left sm:text-right">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted">Running Balance</p>
+          <div className="text-start sm:text-end">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.runningBalance')}</p>
             <p
               className={cn(
                 'text-xl font-bold leading-tight',
@@ -388,23 +410,22 @@ export function CustomerProfileView({
         {ledger.length === 0 ? (
           <EmptyState
             icon={FileText}
-            title="No udhaar or payments yet"
-            description="Credit sales and received payments will appear here as a running ledger."
+            title={t('customers.ledgerEmptyTitle')}
+            description={t('customers.ledgerEmptyDescription')}
             compact
           />
         ) : (
           <>
-            {/* Desktop / tablet ledger table */}
             <TableWrap className="hidden md:block">
               <Table className="min-w-[680px]">
                 <TableHead>
                   <tr>
-                    <Th>Date</Th>
-                    <Th>Transaction</Th>
-                    <Th>Type</Th>
-                    <Th className="text-right text-warning">Debit (Udhaar)</Th>
-                    <Th className="text-right text-success">Credit (Paid)</Th>
-                    <Th className="text-right">Balance</Th>
+                    <Th>{t('common.date')}</Th>
+                    <Th>{t('customers.transaction')}</Th>
+                    <Th>{t('common.type')}</Th>
+                    <Th className="text-end text-warning">{t('customers.debitUdhaar')}</Th>
+                    <Th className="text-end text-success">{t('customers.creditPaid')}</Th>
+                    <Th className="text-end">{t('common.balance')}</Th>
                   </tr>
                 </TableHead>
                 <tbody>
@@ -421,24 +442,24 @@ export function CustomerProfileView({
                               className="flex items-center gap-1 font-medium text-gray-800 hover:text-primary"
                             >
                               <span className="truncate">{entry.description}</span>
-                              <ArrowUpRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                              <ArrowUpRight className="h-3.5 w-3.5 rtl-flip shrink-0" aria-hidden="true" />
                             </Link>
                           ) : (
                             <span className="block truncate text-gray-800">{entry.description}</span>
                           )}
                         </Td>
                         <Td>
-                          <Badge tone={type.tone}>{type.label}</Badge>
+                          <Badge tone={type.tone}>{t(type.labelKey)}</Badge>
                         </Td>
-                        <Td className="text-right font-medium text-warning">
-                          {entry.debit > 0 ? fmt(entry.debit) : '—'}
+                        <Td className="text-end font-medium text-warning">
+                          {entry.debit > 0 ? fmt(entry.debit) : t('common.dash')}
                         </Td>
-                        <Td className="text-right font-medium text-success">
-                          {entry.credit > 0 ? fmt(entry.credit) : '—'}
+                        <Td className="text-end font-medium text-success">
+                          {entry.credit > 0 ? fmt(entry.credit) : t('common.dash')}
                         </Td>
                         <Td
                           className={cn(
-                            'text-right font-mono font-semibold',
+                            'text-end font-mono font-semibold',
                             entry.runningBalance > 0 ? 'text-warning' : 'text-success',
                           )}
                         >
@@ -451,7 +472,6 @@ export function CustomerProfileView({
               </Table>
             </TableWrap>
 
-            {/* Mobile ledger cards */}
             <ul className="divide-y divide-border md:hidden">
               {ledger.map((entry) => {
                 const type = LEDGER_TYPE[entry.type];
@@ -459,7 +479,7 @@ export function CustomerProfileView({
                 return (
                   <li key={entry.id} className="space-y-2 p-4">
                     <div className="flex items-start justify-between gap-3">
-                      <Badge tone={type.tone}>{type.label}</Badge>
+                      <Badge tone={type.tone}>{t(type.labelKey)}</Badge>
                       <span className="text-xs text-muted">{fmtDateTime(entry.date)}</span>
                     </div>
                     {linksToSale ? (
@@ -468,7 +488,7 @@ export function CustomerProfileView({
                         className="flex items-center gap-1 text-sm font-medium text-gray-800"
                       >
                         <span className="break-words">{entry.description}</span>
-                        <ArrowUpRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                        <ArrowUpRight className="h-3.5 w-3.5 rtl-flip shrink-0" aria-hidden="true" />
                       </Link>
                     ) : (
                       <p className="break-words text-sm text-gray-800">{entry.description}</p>
@@ -477,19 +497,19 @@ export function CustomerProfileView({
                       <span className="flex items-center gap-1.5 text-sm">
                         {entry.debit > 0 ? (
                           <>
-                            <ArrowDownLeft className="h-4 w-4 text-warning" aria-hidden="true" />
+                            <ArrowDownLeft className="h-4 w-4 rtl-flip text-warning" aria-hidden="true" />
                             <span className="font-semibold text-warning">+ {fmt(entry.debit)}</span>
                           </>
                         ) : (
                           <>
-                            <ArrowUpRight className="h-4 w-4 text-success" aria-hidden="true" />
+                            <ArrowUpRight className="h-4 w-4 rtl-flip text-success" aria-hidden="true" />
                             <span className="font-semibold text-success">− {fmt(entry.credit)}</span>
                           </>
                         )}
                       </span>
-                      <span className="text-right">
+                      <span className="text-end">
                         <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted">
-                          Balance
+                          {t('common.balance')}
                         </span>
                         <span
                           className={cn(
@@ -509,9 +529,8 @@ export function CustomerProfileView({
         )}
       </Card>
 
-      {/* Secondary tabs */}
       <Card>
-        <nav aria-label="Customer sections" className="overflow-x-auto border-b border-border px-2">
+        <nav aria-label={t('customers.customerSectionsAria')} className="overflow-x-auto border-b border-border px-2">
           <ul className="inline-flex min-w-full items-center gap-1 sm:min-w-0">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -538,13 +557,12 @@ export function CustomerProfileView({
           </ul>
         </nav>
 
-        {/* Purchases */}
         {activeTab === 'purchases' &&
           (sales.length === 0 ? (
             <EmptyState
               icon={ShoppingCart}
-              title="No purchases yet"
-              description="Sales created for this customer will show up here."
+              title={t('customers.noPurchasesYet')}
+              description={t('customers.noPurchasesDescription')}
               compact
             />
           ) : (
@@ -553,13 +571,13 @@ export function CustomerProfileView({
                 <Table className="min-w-[720px]">
                   <TableHead>
                     <tr>
-                      <Th>Invoice</Th>
-                      <Th>Date</Th>
-                      <Th>Items</Th>
-                      <Th className="text-right">Total</Th>
-                      <Th className="text-right">Paid</Th>
-                      <Th className="text-right">Due</Th>
-                      <Th>Status</Th>
+                      <Th>{t('customers.invoice')}</Th>
+                      <Th>{t('common.date')}</Th>
+                      <Th>{t('common.items')}</Th>
+                      <Th className="text-end">{t('common.total')}</Th>
+                      <Th className="text-end">{t('common.paid')}</Th>
+                      <Th className="text-end">{t('customers.due')}</Th>
+                      <Th>{t('common.status')}</Th>
                     </tr>
                   </TableHead>
                   <tbody>
@@ -579,16 +597,16 @@ export function CustomerProfileView({
                           </Td>
                           <Td className="whitespace-nowrap text-xs text-muted">{fmtDate(sale.saleDate)}</Td>
                           <Td className="text-xs text-gray-700">
-                            {sale.itemCount} {sale.itemCount === 1 ? 'item' : 'items'}
+                            {sale.itemCount} {sale.itemCount === 1 ? t('common.item') : t('common.items')}
                           </Td>
-                          <Td className="text-right font-semibold text-gray-900">{fmt(saleTotal)}</Td>
-                          <Td className="text-right font-medium text-success">{fmt(salePaid)}</Td>
-                          <Td className="text-right font-semibold text-warning">
-                            {saleDue > 0 ? fmt(saleDue) : '—'}
+                          <Td className="text-end font-semibold text-gray-900">{fmt(saleTotal)}</Td>
+                          <Td className="text-end font-medium text-success">{fmt(salePaid)}</Td>
+                          <Td className="text-end font-semibold text-warning">
+                            {saleDue > 0 ? fmt(saleDue) : t('common.dash')}
                           </Td>
                           <Td>
                             <Badge tone={SALE_STATUS[sale.status].tone}>
-                              {SALE_STATUS[sale.status].label}
+                              {t(SALE_STATUS[sale.status].labelKey)}
                             </Badge>
                           </Td>
                         </Tr>
@@ -613,18 +631,18 @@ export function CustomerProfileView({
                           {sale.invoiceNumber}
                         </Link>
                         <Badge tone={SALE_STATUS[sale.status].tone}>
-                          {SALE_STATUS[sale.status].label}
+                          {t(SALE_STATUS[sale.status].labelKey)}
                         </Badge>
                       </div>
                       <p className="text-xs text-muted">
-                        {fmtDate(sale.saleDate)} · {sale.itemCount} {sale.itemCount === 1 ? 'item' : 'items'}
+                        {fmtDate(sale.saleDate)} · {sale.itemCount} {sale.itemCount === 1 ? t('common.item') : t('common.items')}
                       </p>
                       <div className="flex items-center justify-between gap-3 rounded-input bg-gray-50 px-3 py-2 text-sm">
                         <span>
-                          Total <span className="font-semibold text-gray-900">{fmt(saleTotal)}</span>
+                          {t('common.total')} <span className="font-semibold text-gray-900">{fmt(saleTotal)}</span>
                         </span>
                         <span className={cn('font-semibold', saleDue > 0 ? 'text-warning' : 'text-success')}>
-                          {saleDue > 0 ? `Due ${fmt(saleDue)}` : 'Paid in full'}
+                          {saleDue > 0 ? t('customers.dueAmount', { amount: fmt(saleDue) }) : t('customers.paidInFull')}
                         </span>
                       </div>
                     </li>
@@ -634,16 +652,15 @@ export function CustomerProfileView({
             </>
           ))}
 
-        {/* Payments */}
         {activeTab === 'payments' &&
           (payments.length === 0 ? (
             <EmptyState
               icon={Banknote}
-              title="No payments recorded"
+              title={t('customers.noPaymentsYet')}
               description={
                 canPay
-                  ? 'Record a payment from this customer to reduce their outstanding udhaar.'
-                  : 'Payments recorded for this customer will appear here.'
+                  ? t('customers.noPaymentsActionable')
+                  : t('customers.noPaymentsDescription')
               }
               action={
                 canPay ? (
@@ -663,7 +680,7 @@ export function CustomerProfileView({
                 <li key={payment.id} className="flex items-center justify-between gap-3 p-4">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-gray-900">
-                      {PAYMENT_METHOD_LABEL[payment.method] ?? payment.method}
+                      {t(PAYMENT_METHOD_LABEL_KEY[payment.method] ?? '', payment.method)}
                     </p>
                     <p className="truncate text-xs text-muted">
                       {fmtDateTime(payment.date)}
@@ -671,7 +688,7 @@ export function CustomerProfileView({
                     </p>
                   </div>
                   <span className="flex shrink-0 items-center gap-1 font-semibold text-success">
-                    <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                    <ArrowUpRight className="h-4 w-4 rtl-flip" aria-hidden="true" />
                     {fmt(payment.amount)}
                   </span>
                 </li>
@@ -679,30 +696,29 @@ export function CustomerProfileView({
             </ul>
           ))}
 
-        {/* Insights */}
         {activeTab === 'insights' && (
           <div className="space-y-6 p-5">
             <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div className="rounded-card border border-border bg-gray-50 p-3">
-                <dt className="text-xs font-semibold uppercase tracking-wider text-muted">Avg Order Value</dt>
+                <dt className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.avgOrderValue')}</dt>
                 <dd className="mt-1 text-lg font-bold text-gray-900">{fmt(insights.averageOrderValue)}</dd>
               </div>
               <div className="rounded-card border border-border bg-gray-50 p-3">
-                <dt className="text-xs font-semibold uppercase tracking-wider text-muted">Purchase Frequency</dt>
+                <dt className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.purchaseFrequencyLabel')}</dt>
                 <dd className="mt-1 text-lg font-bold text-gray-900">
                   {insights.purchaseFrequencyDays != null
-                    ? `Every ${insights.purchaseFrequencyDays}d`
-                    : '—'}
+                    ? t('customers.everyNDays', { days: insights.purchaseFrequencyDays })
+                    : t('common.dash')}
                 </dd>
               </div>
               <div className="rounded-card border border-border bg-gray-50 p-3">
-                <dt className="text-xs font-semibold uppercase tracking-wider text-muted">Days Active</dt>
+                <dt className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.daysActiveLabel')}</dt>
                 <dd className="mt-1 text-lg font-bold text-gray-900">{insights.daysActive}</dd>
               </div>
               <div className="rounded-card border border-border bg-gray-50 p-3">
-                <dt className="text-xs font-semibold uppercase tracking-wider text-muted">Customer Rating</dt>
+                <dt className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.customerRatingLabel')}</dt>
                 <dd className="mt-1 flex items-center gap-1 text-lg font-bold text-gray-900">
-                  {insights.averageRating != null ? insights.averageRating.toFixed(1) : '—'}
+                  {insights.averageRating != null ? insights.averageRating.toFixed(1) : t('common.dash')}
                   {insights.averageRating != null && (
                     <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden="true" />
                   )}
@@ -711,9 +727,9 @@ export function CustomerProfileView({
             </dl>
 
             <div>
-              <h3 className="text-sm font-bold text-gray-900">Top Purchased Products</h3>
+              <h3 className="text-sm font-bold text-gray-900">{t('customers.topPurchasedProducts')}</h3>
               {insights.topProducts.length === 0 ? (
-                <p className="mt-3 text-sm text-muted">No completed purchase history yet.</p>
+                <p className="mt-3 text-sm text-muted">{t('customers.noPurchaseHistory')}</p>
               ) : (
                 <ul className="mt-3 divide-y divide-border rounded-card border border-border">
                   {insights.topProducts.map((prod, idx) => (
@@ -723,10 +739,13 @@ export function CustomerProfileView({
                           {idx + 1}. {prod.name}
                         </p>
                         <p className="text-xs text-muted">
-                          in {prod.orderCount} {prod.orderCount === 1 ? 'sale' : 'sales'}
+                          {t('customers.inNSales', {
+                            count: prod.orderCount,
+                            sales: prod.orderCount === 1 ? t('common.sale') : t('common.sales'),
+                          })}
                         </p>
                       </div>
-                      <div className="shrink-0 text-right">
+                      <div className="shrink-0 text-end">
                         <p className="text-sm font-semibold text-gray-900">
                           {prod.totalQuantity} {prod.unit}
                         </p>
@@ -740,12 +759,11 @@ export function CustomerProfileView({
           </div>
         )}
 
-        {/* Feedback */}
         {activeTab === 'feedback' && (
           <div className="space-y-4 p-5">
             <div className="flex flex-col gap-3 rounded-card border border-border bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-gray-700">
-                Generate a secure feedback link to collect ratings from this customer.
+                {t('customers.feedbackInviteHint')}
               </p>
               {inviteLink ? (
                 <button
@@ -754,12 +772,12 @@ export function CustomerProfileView({
                   className={buttonClasses('outline', 'sm', 'shrink-0')}
                 >
                   {copied ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <Copy className="h-3.5 w-3.5" aria-hidden="true" />}
-                  {copied ? 'Copied' : 'Copy Link'}
+                  {copied ? t('customers.linkCopied') : t('customers.copyLink')}
                 </button>
               ) : (
                 <Button size="sm" onClick={handleGenerateFeedbackInvite} loading={generating}>
                   {!generating && <Plus className="h-3.5 w-3.5" aria-hidden="true" />}
-                  Generate Feedback Link
+                  {t('customers.generateFeedbackLink')}
                 </Button>
               )}
             </div>
@@ -773,8 +791,8 @@ export function CustomerProfileView({
             {feedbacks.length === 0 ? (
               <EmptyState
                 icon={Star}
-                title="No feedback yet"
-                description="Feedback submitted by this customer will appear here."
+                title={t('customers.noFeedbackYet')}
+                description={t('customers.noFeedbackDescription')}
                 compact
               />
             ) : (
@@ -787,23 +805,25 @@ export function CustomerProfileView({
                           <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden="true" />
                           {f.rating}.0
                         </Badge>
-                        <span className="text-sm font-semibold text-gray-900">{f.category}</span>
+                        <span className="text-sm font-semibold text-gray-900">
+                          {t(FEEDBACK_CATEGORY_LABEL_KEY[f.category] ?? '', f.category)}
+                        </span>
                       </div>
                       <Badge
                         tone={
                           f.status === 'RESOLVED' ? 'success' : f.status === 'REVIEWING' ? 'warning' : 'info'
                         }
                       >
-                        {f.status}
+                        {t(FEEDBACK_STATUS_LABEL_KEY[f.status] ?? '', f.status)}
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-700">“{f.message}”</p>
                     {f.resolutionNote && (
-                      <Alert tone="success" title="Resolution">
+                      <Alert tone="success" title={t('customers.resolutionTitle')}>
                         {f.resolutionNote}
                       </Alert>
                     )}
-                    <p className="text-xs text-muted">Submitted {fmtDate(f.createdAt)}</p>
+                    <p className="text-xs text-muted">{t('customers.submittedDate', { date: fmtDate(f.createdAt) })}</p>
                   </li>
                 ))}
               </ul>
@@ -811,13 +831,12 @@ export function CustomerProfileView({
           </div>
         )}
 
-        {/* Activity */}
         {activeTab === 'activity' &&
           (auditLogs.length === 0 ? (
             <EmptyState
               icon={Activity}
-              title="No activity recorded"
-              description="Audit events for this customer will appear here."
+              title={t('customers.noActivityTitle')}
+              description={t('customers.noActivityDescription')}
               compact
             />
           ) : (

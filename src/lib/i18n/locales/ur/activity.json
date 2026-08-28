@@ -1,0 +1,43 @@
+{
+  "title": "سرگرمی مرکز اور آڈٹ اسٹریم",
+  "subtitle": "آپریشنل فروخت، انوینٹری کی نقل و حرکت، اسٹاف مینجمنٹ اور سسٹم ایونٹس کا حقیقی وقتی زمانی ریکارڈ۔",
+  "categories": {
+    "ALL": "تمام سرگرمیاں",
+    "SALES": "فروخت اور POS",
+    "INVENTORY": "انوینٹری اور خریداری",
+    "STAFF": "اسٹاف اور HR",
+    "CUSTOMER": "گاہک اور ادھار",
+    "ADMIN": "انتظامی"
+  },
+  "noEventsFound": "کوئی ایونٹ نہیں ملا",
+  "noEventsFoundDesc": "اس زمرے میں ابھی کوئی حالیہ سرگرمی درج نہیں ہے۔",
+  "byActor": "از {name}",
+  "statuses": {
+    "NEW": "نیا",
+    "PENDING": "زیر التوا",
+    "APPROVED": "منظور شدہ",
+    "REJECTED": "مسترد شدہ",
+    "CANCELLED": "منسوخ شدہ",
+    "RESOLVED": "حل شدہ"
+  },
+  "events": {
+    "saleCheckout": "سیل چیک آؤٹ",
+    "saleCancelled": "فروخت منسوخ ہوئی",
+    "purchaseRecorded": "خریداری درج کی گئی",
+    "purchaseCancelled": "خریداری منسوخ ہوئی",
+    "stockAdjusted": "انوینٹری اسٹاک ایڈجسٹمنٹ",
+    "customerPayment": "گاہک کی ادھار ادائیگی",
+    "customerCreated": "نیا گاہک رجسٹرڈ ہوا",
+    "customerUpdated": "گاہک اپ ڈیٹ ہوا",
+    "employeeLeave": "ملازم کی رخصت {status}",
+    "employeeLeaveBase": "ملازم کی رخصت",
+    "leaveRequested": "ملازم کی رخصت کی درخواست",
+    "leaveCancelled": "ملازم کی رخصت منسوخ ہوئی",
+    "salaryPaid": "تنخواہ ادا کی گئی",
+    "salaryRecordCreated": "تنخواہ کا ریکارڈ بنایا گیا",
+    "customerFeedback": "گاہک کا فیڈ بیک {status}",
+    "customerFeedbackBase": "گاہک کا فیڈ بیک",
+    "announcementPublished": "اعلان شائع ہوا",
+    "announcementArchived": "اعلان آرکائیو کیا گیا"
+  }
+}

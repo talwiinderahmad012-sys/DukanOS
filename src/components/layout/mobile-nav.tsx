@@ -5,6 +5,7 @@ import { Menu, X, Store, LogOut } from 'lucide-react';
 import { DashboardNavSections } from '@/components/layout/nav-sections';
 import { NotificationBell } from '@/components/notifications/notification-bell';
 import { LanguageToggle } from '@/components/layout/language-toggle';
+import { useRoleLabel } from '@/components/layout/sidebar-business-header';
 import { useTranslation } from '@/lib/i18n/language-context';
 
 export function MobileNav({
@@ -22,6 +23,8 @@ export function MobileNav({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const { t, isRTL } = useTranslation();
+  const roleLabel = useRoleLabel();
+  const displayName = userName || t('ui.userFallback');
 
   useEffect(() => {
     if (!isOpen) return;
@@ -50,7 +53,7 @@ export function MobileNav({
               onClick={() => setIsOpen(!isOpen)}
               aria-expanded={isOpen}
               aria-controls="mobile-drawer"
-              aria-label={isOpen ? t('common.close', 'Close navigation menu') : t('nav.overview', 'Open navigation menu')}
+              aria-label={isOpen ? t('nav.closeMenu') : t('nav.openMenu')}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
             >
               <Menu className="h-6 w-6" aria-hidden="true" />
@@ -92,7 +95,7 @@ export function MobileNav({
             <h2 className="truncate text-sm font-bold text-gray-900" title={businessName}>
               {businessName}
             </h2>
-            <p className="truncate text-xs font-medium capitalize text-muted">{role.toLowerCase()}</p>
+            <p className="truncate text-xs font-medium capitalize text-muted">{roleLabel(role)}</p>
           </div>
           <button
             type="button"
@@ -113,13 +116,13 @@ export function MobileNav({
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-sm font-bold text-primary"
               aria-hidden="true"
             >
-              {userName.charAt(0).toUpperCase() || 'U'}
+              {displayName.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-gray-900" title={userName}>
-                {userName}
+              <p className="truncate text-sm font-semibold text-gray-900" title={displayName}>
+                {displayName}
               </p>
-              <p className="truncate text-xs font-medium capitalize text-muted">{role.toLowerCase()}</p>
+              <p className="truncate text-xs font-medium capitalize text-muted">{roleLabel(role)}</p>
             </div>
           </div>
           <form action={logoutAction} className="mt-1">
@@ -127,7 +130,7 @@ export function MobileNav({
               type="submit"
               className="group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-danger-soft hover:text-danger"
             >
-              <LogOut className="h-5 w-5 shrink-0 text-gray-400 transition-colors group-hover:text-danger" aria-hidden="true" />
+              <LogOut className="h-5 w-5 shrink-0 text-gray-400 transition-colors group-hover:text-danger rtl-flip" aria-hidden="true" />
               <span>{t('nav.signOut', 'Sign out')}</span>
             </button>
           </form>

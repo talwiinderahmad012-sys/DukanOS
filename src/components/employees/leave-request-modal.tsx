@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Calendar, AlertCircle, X } from 'lucide-react';
 import { createLeaveRequestAction, reviewLeaveAction } from '@/app/actions/employee.actions';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 type LeaveTypeVal = 'CASUAL' | 'SICK' | 'ANNUAL' | 'UNPAID' | 'OTHER';
 
@@ -19,6 +20,7 @@ export function RequestLeaveModal({
   onClose: () => void;
 }) {
   const router = useRouter();
+  const { t, tm } = useTranslation();
   const [leaveType, setLeaveType] = useState<LeaveTypeVal>('CASUAL');
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
   const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
@@ -45,7 +47,7 @@ export function RequestLeaveModal({
       router.refresh();
       onClose();
     } else {
-      setError(res.message || 'Failed to submit leave request');
+      setError(tm(res.message) || t('employees.failedToSubmitLeaveRequest'));
       setLoading(false);
     }
   };
@@ -53,17 +55,21 @@ export function RequestLeaveModal({
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+        <button
+          onClick={onClose}
+          className="absolute top-4 end-4 text-gray-400 hover:text-gray-600"
+          aria-label={t('common.close')}
+        >
           <X className="w-5 h-5" />
         </button>
 
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-primary-soft text-gray-900 flex items-center justify-center">
             <Calendar className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-bold text-gray-900 text-base">Request Leave</h3>
-            <p className="text-xs text-gray-500">Submit an official leave application for manager approval</p>
+            <h3 className="font-bold text-gray-900 text-base">{t('employees.requestLeave')}</h3>
+            <p className="text-xs text-gray-500">{t('employees.requestLeaveSubtitle')}</p>
           </div>
         </div>
 
@@ -76,52 +82,52 @@ export function RequestLeaveModal({
 
         <form onSubmit={handleSubmit} className="space-y-3.5">
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">Leave Type</label>
+            <label className="text-xs font-semibold text-gray-700">{t('employees.leaveType')}</label>
             <select
               value={leaveType}
               onChange={(e) => setLeaveType(e.target.value as LeaveTypeVal)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
             >
-              <option value="CASUAL">Casual Leave</option>
-              <option value="SICK">Sick Leave</option>
-              <option value="ANNUAL">Annual Vacation</option>
-              <option value="UNPAID">Unpaid Leave</option>
-              <option value="OTHER">Other / Emergency</option>
+              <option value="CASUAL">{t('employees.casualLeave')}</option>
+              <option value="SICK">{t('employees.sickLeave')}</option>
+              <option value="ANNUAL">{t('employees.annualLeave')}</option>
+              <option value="UNPAID">{t('employees.unpaidLeave')}</option>
+              <option value="OTHER">{t('employees.otherEmergencyLeave')}</option>
             </select>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700">Start Date</label>
+              <label className="text-xs font-semibold text-gray-700">{t('common.startDate')}</label>
               <input
                 type="date"
                 required
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-primary focus:outline-none"
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700">End Date</label>
+              <label className="text-xs font-semibold text-gray-700">{t('common.endDate')}</label>
               <input
                 type="date"
                 required
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-primary focus:outline-none"
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">Reason</label>
+            <label className="text-xs font-semibold text-gray-700">{t('employees.reason')}</label>
             <textarea
               required
               rows={3}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Provide reason for the requested leave..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder={t('employees.reasonPlaceholder')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-primary focus:outline-none"
             />
           </div>
 
@@ -131,14 +137,14 @@ export function RequestLeaveModal({
               onClick={onClose}
               className="px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-xs transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-xs font-semibold bg-primary hover:bg-primary-hover text-on-primary rounded-xl shadow-xs transition-colors disabled:opacity-50"
             >
-              {loading ? 'Submitting...' : 'Submit Request'}
+              {loading ? t('common.submitting') : t('employees.submitRequest')}
             </button>
           </div>
         </form>
@@ -161,6 +167,7 @@ export function ReviewLeaveModal({
   onClose: () => void;
 }) {
   const router = useRouter();
+  const { t, tm } = useTranslation();
   const [status, setStatus] = useState<'APPROVED' | 'REJECTED'>('APPROVED');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
@@ -183,7 +190,7 @@ export function ReviewLeaveModal({
       router.refresh();
       onClose();
     } else {
-      setError(res.message || 'Failed to review leave');
+      setError(tm(res.message) || t('employees.failedToReviewLeave'));
       setLoading(false);
     }
   };
@@ -191,7 +198,11 @@ export function ReviewLeaveModal({
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+        <button
+          onClick={onClose}
+          className="absolute top-4 end-4 text-gray-400 hover:text-gray-600"
+          aria-label={t('common.close')}
+        >
           <X className="w-5 h-5" />
         </button>
 
@@ -200,7 +211,7 @@ export function ReviewLeaveModal({
             <Calendar className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-bold text-gray-900 text-base">Review Leave Application</h3>
+            <h3 className="font-bold text-gray-900 text-base">{t('employees.reviewLeaveApplication')}</h3>
             <p className="text-xs text-gray-500">{employeeName}</p>
           </div>
         </div>
@@ -214,7 +225,7 @@ export function ReviewLeaveModal({
 
         <form onSubmit={handleSubmit} className="space-y-3.5">
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">Decision</label>
+            <label className="text-xs font-semibold text-gray-700">{t('employees.decision')}</label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
@@ -225,7 +236,7 @@ export function ReviewLeaveModal({
                     : 'border-gray-200 text-gray-600'
                 }`}
               >
-                Approve Leave
+                {t('employees.approveLeave')}
               </button>
               <button
                 type="button"
@@ -236,19 +247,19 @@ export function ReviewLeaveModal({
                     : 'border-gray-200 text-gray-600'
                 }`}
               >
-                Reject Leave
+                {t('employees.rejectLeave')}
               </button>
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">Manager Notes (Optional)</label>
+            <label className="text-xs font-semibold text-gray-700">{t('employees.managerNotesLabel')}</label>
             <textarea
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. Approved. Please hand over cash register to Bilal."
-              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder={t('employees.managerNotesPlaceholder')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-primary focus:outline-none"
             />
           </div>
 
@@ -258,7 +269,7 @@ export function ReviewLeaveModal({
               onClick={onClose}
               className="px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -267,7 +278,7 @@ export function ReviewLeaveModal({
                 status === 'APPROVED' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
               }`}
             >
-              {loading ? 'Submitting...' : `Confirm ${status === 'APPROVED' ? 'Approval' : 'Rejection'}`}
+              {loading ? t('common.submitting') : status === 'APPROVED' ? t('employees.confirmApproval') : t('employees.confirmRejection')}
             </button>
           </div>
         </form>

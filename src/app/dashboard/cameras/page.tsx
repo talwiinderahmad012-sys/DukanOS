@@ -1,10 +1,10 @@
 import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { listCameras } from '@/services/cctv/cameras';
-import { CameraListView } from '@/components/cctv/camera-list-view';
 import { redirect } from 'next/navigation';
+import { CamerasPageClient, type CameraPageItem } from './cameras-page-client';
 
 export default async function CamerasPage() {
-  const { user, business, membership } = await getActiveBusiness().catch(() =>
+  const { business, membership } = await getActiveBusiness().catch(() =>
     redirect('/onboarding')
   );
 
@@ -16,13 +16,23 @@ export default async function CamerasPage() {
   const isOwner = membership.role === 'OWNER';
   const cameras = await listCameras(business.id);
 
+  const items: CameraPageItem[] = cameras.map((camera) => ({
+    id: camera.id,
+    name: camera.name,
+    location: camera.location,
+    branchName: camera.branchName,
+    type: camera.type,
+    status: camera.status,
+    isEnabled: camera.isEnabled,
+    protocol: camera.protocol,
+    host: camera.host,
+    port: camera.port,
+    lastError: camera.lastError,
+    lastCheckedAt: camera.lastCheckedAt ? camera.lastCheckedAt.toISOString() : null,
+    lastOnlineAt: camera.lastOnlineAt ? camera.lastOnlineAt.toISOString() : null,
+  }));
+
   return (
-    <div className="max-w-6xl mx-auto">
-      <CameraListView
-        businessId={business.id}
-        initialCameras={cameras}
-        isOwner={isOwner}
-      />
-    </div>
+    <CamerasPageClient businessId={business.id} initialCameras={items} isOwner={isOwner} />
   );
 }

@@ -7,6 +7,7 @@ import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
 import { Field, Input, Select, Textarea } from '@/components/ui/input';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export type CustomerEditableData = {
   id: string;
@@ -28,6 +29,7 @@ export function CustomerEditDialog({
   onClose: () => void;
 }) {
   const router = useRouter();
+  const { t, tm } = useTranslation();
   const idPrefix = useId();
   const fieldId = (name: string) => `${idPrefix}-${name}`;
 
@@ -57,7 +59,7 @@ export function CustomerEditDialog({
         const fieldError = res.fieldErrors
           ? Object.values(res.fieldErrors).flat().find(Boolean)
           : undefined;
-        setError(res.message || fieldError || 'Failed to update customer');
+        setError(tm(res.message || fieldError) || t('customers.updateCustomerFailed'));
         setLoading(false);
         return;
       }
@@ -65,7 +67,7 @@ export function CustomerEditDialog({
       router.refresh();
       onClose();
     } catch {
-      setError('An unexpected error occurred.');
+      setError(t('customers.unexpectedError'));
       setLoading(false);
     }
   }
@@ -76,28 +78,28 @@ export function CustomerEditDialog({
       onClose={() => {
         if (!loading) onClose();
       }}
-      title="Edit Customer"
-      description={`Update profile details for ${customer.name}.`}
+      title={t('customers.editCustomer')}
+      description={t('customers.editDialogDescription', { name: customer.name })}
       size="lg"
       footer={
         <>
           <Button variant="outline" onClick={onClose} disabled={loading}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button type="submit" form="customer-edit-form" loading={loading}>
-            Save Changes
+            {t('customers.saveChanges')}
           </Button>
         </>
       }
     >
       <form id="customer-edit-form" onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <Alert tone="danger" title="Could not save customer">
+          <Alert tone="danger" title={t('customers.couldNotSaveCustomer')}>
             {error}
           </Alert>
         )}
 
-        <Field label="Customer Name" htmlFor={fieldId('name')} required>
+        <Field label={t('customers.customerName')} htmlFor={fieldId('name')} required>
           <Input
             id={fieldId('name')}
             name="name"
@@ -105,12 +107,12 @@ export function CustomerEditDialog({
             minLength={2}
             maxLength={100}
             defaultValue={customer.name}
-            placeholder="e.g. Tariq Mehmood"
+            placeholder={t('customers.namePlaceholder')}
           />
         </Field>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Phone" htmlFor={fieldId('phone')}>
+          <Field label={t('common.phone')} htmlFor={fieldId('phone')}>
             <Input
               id={fieldId('phone')}
               name="phone"
@@ -121,7 +123,7 @@ export function CustomerEditDialog({
             />
           </Field>
 
-          <Field label="Email" htmlFor={fieldId('email')}>
+          <Field label={t('common.email')} htmlFor={fieldId('email')}>
             <Input
               id={fieldId('email')}
               name="email"
@@ -133,37 +135,37 @@ export function CustomerEditDialog({
           </Field>
         </div>
 
-        <Field label="Address" htmlFor={fieldId('address')}>
+        <Field label={t('common.address')} htmlFor={fieldId('address')}>
           <Textarea
             id={fieldId('address')}
             name="address"
             maxLength={300}
             rows={2}
             defaultValue={customer.address ?? ''}
-            placeholder="Shop / home address"
+            placeholder={t('customers.addressPlaceholder')}
           />
         </Field>
 
-        <Field label="Notes" htmlFor={fieldId('notes')}>
+        <Field label={t('common.notes')} htmlFor={fieldId('notes')}>
           <Textarea
             id={fieldId('notes')}
             name="notes"
             maxLength={500}
             rows={2}
             defaultValue={customer.notes ?? ''}
-            placeholder="Optional notes about this customer"
+            placeholder={t('customers.notesPlaceholder')}
           />
         </Field>
 
         <Field
-          label="Status"
+          label={t('common.status')}
           htmlFor={fieldId('status')}
-          hint="Inactive and archived customers stay in history but are flagged as not active."
+          hint={t('customers.statusHint')}
         >
           <Select id={fieldId('status')} name="status" defaultValue={customer.status}>
-            <option value="ACTIVE">Active</option>
-            <option value="INACTIVE">Inactive</option>
-            <option value="ARCHIVED">Archived</option>
+            <option value="ACTIVE">{t('customers.statusActive')}</option>
+            <option value="INACTIVE">{t('customers.statusInactive')}</option>
+            <option value="ARCHIVED">{t('customers.statusArchived')}</option>
           </Select>
         </Field>
       </form>

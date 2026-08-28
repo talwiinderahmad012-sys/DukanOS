@@ -21,7 +21,7 @@ export function AddCustomerButton({
   size?: ButtonSize;
 }) {
   const router = useRouter();
-  const { t, language } = useTranslation();
+  const { t, tm } = useTranslation();
   const idPrefix = useId();
   const fieldId = (name: string) => `${idPrefix}-${name}`;
 
@@ -56,7 +56,7 @@ export function AddCustomerButton({
         const fieldError = res.fieldErrors
           ? Object.values(res.fieldErrors).flat().find(Boolean)
           : undefined;
-        setError(res.message || fieldError || (language === 'UR' ? 'گاہک شامل کرنے میں ناکامی' : 'Failed to create customer'));
+        setError(tm(res.message || fieldError) || t('customers.createCustomerFailed'));
         setLoading(false);
         return;
       }
@@ -64,7 +64,7 @@ export function AddCustomerButton({
       setIsOpen(false);
       router.refresh();
     } catch {
-      setError(language === 'UR' ? 'غیر متوقع خرابی پیش آ گئی' : 'An unexpected error occurred.');
+      setError(t('customers.unexpectedError'));
       setLoading(false);
     }
   }
@@ -73,34 +73,34 @@ export function AddCustomerButton({
     <>
       <Button size={size} variant={variant} onClick={() => setIsOpen(true)}>
         <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-        {t('customers.addCustomer', 'Add Customer')}
+        {t('customers.addCustomer')}
       </Button>
 
       <Modal
         open={isOpen}
         onClose={close}
-        title={t('customers.addCustomer', 'Add Customer')}
-        description={language === 'UR' ? 'فروخت، ادھار اور ادائیگیوں کے حساب کے لیے گاہک کا پروفائل بنائیں۔' : 'Create a customer profile to track sales, udhaar and payments.'}
+        title={t('customers.addCustomer')}
+        description={t('customers.addDialogDescription')}
         size="lg"
         footer={
           <>
             <Button variant="outline" onClick={() => setIsOpen(false)} disabled={loading}>
-              {t('common.cancel', 'Cancel')}
+              {t('common.cancel')}
             </Button>
             <Button type="submit" form="customer-create-form" loading={loading}>
-              {loading ? (language === 'UR' ? 'محفوظ ہو رہا ہے…' : 'Saving…') : (language === 'UR' ? 'گاہک محفوظ کریں' : 'Save Customer')}
+              {loading ? t('common.saving') : t('customers.saveCustomer')}
             </Button>
           </>
         }
       >
         <form id="customer-create-form" onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <Alert tone="danger" title={language === 'UR' ? 'گاہک شامل نہیں ہو سکا' : 'Could not create customer'}>
+            <Alert tone="danger" title={t('customers.couldNotCreateCustomer')}>
               {error}
             </Alert>
           )}
 
-          <Field label={t('customers.customerName', 'Customer Name')} htmlFor={fieldId('name')} required>
+          <Field label={t('customers.customerName')} htmlFor={fieldId('name')} required>
             <Input
               id={fieldId('name')}
               name="name"
@@ -108,12 +108,12 @@ export function AddCustomerButton({
               minLength={2}
               maxLength={100}
               autoFocus
-              placeholder={language === 'UR' ? 'مثلاً طارق محمود' : 'e.g. Tariq Mehmood'}
+              placeholder={t('customers.namePlaceholder')}
             />
           </Field>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label={t('customers.phoneNumber', 'Phone')} htmlFor={fieldId('phone')}>
+            <Field label={t('customers.phoneNumber')} htmlFor={fieldId('phone')}>
               <Input
                 id={fieldId('phone')}
                 name="phone"
@@ -123,7 +123,7 @@ export function AddCustomerButton({
               />
             </Field>
 
-            <Field label={t('common.email', 'Email')} htmlFor={fieldId('email')}>
+            <Field label={t('common.email')} htmlFor={fieldId('email')}>
               <Input
                 id={fieldId('email')}
                 name="email"
@@ -134,23 +134,23 @@ export function AddCustomerButton({
             </Field>
           </div>
 
-          <Field label={t('common.address', 'Address')} htmlFor={fieldId('address')}>
+          <Field label={t('common.address')} htmlFor={fieldId('address')}>
             <Textarea
               id={fieldId('address')}
               name="address"
               maxLength={300}
               rows={2}
-              placeholder={language === 'UR' ? 'دکان / رہائشی پتہ' : 'Shop / home address'}
+              placeholder={t('customers.addressPlaceholder')}
             />
           </Field>
 
-          <Field label={t('common.notes', 'Notes')} htmlFor={fieldId('notes')}>
+          <Field label={t('common.notes')} htmlFor={fieldId('notes')}>
             <Textarea
               id={fieldId('notes')}
               name="notes"
               maxLength={500}
               rows={2}
-              placeholder={language === 'UR' ? 'گاہک کے بارے میں کوئی اضافی نوٹ' : 'Optional notes about this customer'}
+              placeholder={t('customers.notesPlaceholder')}
             />
           </Field>
         </form>

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '@/lib/i18n/language-context';
 
 export function LanguageToggle() {
-  const { language, setLanguage } = useTranslation();
+  const { language, setLanguage, t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -35,8 +35,8 @@ export function LanguageToggle() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex h-9 items-center justify-center gap-1.5 px-3 rounded-full text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary font-bold text-xs shadow-sm"
-        title="زبان تبدیل کریں / Switch Language"
-        aria-label="زبان کا انتخاب"
+        title={t('nav.switchLanguage')}
+        aria-label={t('nav.selectLanguage')}
         aria-expanded={isOpen}
         aria-haspopup="menu"
       >
@@ -53,24 +53,24 @@ export function LanguageToggle() {
               onClick={() => handleSelect('EN')}
               className={`w-full text-start px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
                 language === 'EN' 
-                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 font-semibold' 
+                  ? 'bg-primary-soft text-gray-950 dark:bg-blue-900/20 dark:text-blue-400 font-semibold' 
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
               }`}
               role="menuitem"
             >
-              <span>English</span>
+              <span>{t('common.english')}</span>
               {language === 'EN' && <span className="text-xs">✓</span>}
             </button>
             <button
               onClick={() => handleSelect('UR')}
               className={`w-full text-start px-4 py-2.5 text-sm transition-colors flex items-center justify-between font-medium ${
                 language === 'UR' 
-                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 font-semibold' 
+                  ? 'bg-primary-soft text-gray-950 dark:bg-blue-900/20 dark:text-blue-400 font-semibold' 
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
               }`}
               role="menuitem"
             >
-              <span>اردو (مستند)</span>
+              <span className="urdu-font">{t('common.urdu')}</span>
               {language === 'UR' && <span className="text-xs">✓</span>}
             </button>
           </div>

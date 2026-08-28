@@ -26,7 +26,7 @@ export function DashboardNavSections({
   const touch = variant === 'drawer';
 
   return (
-    <nav aria-label="Dashboard navigation" className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
+    <nav aria-label={t('nav.dashboardNavigation')} className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
       {sections.map((section, index) => {
         const translatedSectionLabel = section.translationKey 
           ? t(section.translationKey, section.label)

@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { 
-  Database, 
   ArrowLeft, 
   Download, 
   CheckCircle2, 
@@ -13,7 +12,18 @@ import {
   ShieldCheck,
   HardDrive
 } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/language-context';
 import { exportDataAction } from '@/app/actions/settings.actions';
+
+const MODULE_LABEL_KEYS: Record<string, string> = {
+  products: 'settingsAdmin.export.moduleProducts',
+  customers: 'settingsAdmin.export.moduleCustomers',
+  suppliers: 'settingsAdmin.export.moduleSuppliers',
+  sales: 'settingsAdmin.export.moduleSales',
+  purchases: 'settingsAdmin.export.modulePurchases',
+  expenses: 'settingsAdmin.export.moduleExpenses',
+  feedbacks: 'settingsAdmin.export.moduleFeedbacks',
+};
 
 export function DataExportView({
   businessId,
@@ -22,6 +32,7 @@ export function DataExportView({
   businessId: string;
   isBackupPage?: boolean;
 }) {
+  const { t, tm } = useTranslation();
   const [format, setFormat] = useState<'JSON' | 'CSV'>('JSON');
   const [selectedModules, setSelectedModules] = useState<string[]>([
     'products',
@@ -65,7 +76,7 @@ export function DataExportView({
       const url = URL.createObjectURL(blob);
       setDownloadReady({ url, filename: data.filename });
     } else {
-      setErrorMsg(res.message || 'Failed to export business data.');
+      setErrorMsg(tm(res.message) || t('settingsAdmin.export.exportFailed'));
     }
     setExporting(false);
   };
@@ -78,27 +89,29 @@ export function DataExportView({
           href="/dashboard/settings"
           className="text-xs text-gray-500 hover:text-gray-900 font-semibold flex items-center gap-1 mb-2"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Settings</span>
+          <ArrowLeft className="w-3.5 h-3.5 rtl-flip" />
+          <span>{t('settingsAdmin.backToSettings')}</span>
         </Link>
         <h1 className="text-2xl font-bold text-gray-900">
-          {isBackupPage ? 'Backup & Data Management' : 'Business Data Export'}
+          {isBackupPage ? t('settingsAdmin.export.backupTitle') : t('settingsAdmin.export.exportTitle')}
         </h1>
         <p className="text-gray-500 text-sm mt-0.5">
           {isBackupPage
-            ? 'Review database backup recommendations and download tenant data snapshots.'
-            : 'Download clean, sanitized CSV or JSON exports of your catalog, sales, and customers.'}
+            ? t('settingsAdmin.export.backupDescription')
+            : t('settingsAdmin.export.exportDescription')}
         </p>
       </div>
 
       {isBackupPage && (
-        <div className="bg-blue-50 border border-blue-200 rounded-3xl p-5 text-xs text-blue-900 space-y-2">
+        <div className="bg-primary-soft border border-blue-200 rounded-3xl p-5 text-xs text-blue-900 space-y-2">
           <div className="flex items-center gap-2 font-bold text-sm">
-            <HardDrive className="w-4 h-4 text-blue-700" />
-            <span>Database Backup Architecture</span>
+            <HardDrive className="w-4 h-4 text-gray-950" />
+            <span>{t('settingsAdmin.export.backupArchitectureTitle')}</span>
           </div>
           <p className="leading-relaxed">
-            DukaanOS uses a resilient PostgreSQL 16 database. Application-level JSON exports below provide portable catalog and ledger records. For full disaster recovery (including indexes, foreign keys, and audit sequences), automated nightly database snapshots or infrastructure-level <code className="bg-blue-100 px-1 py-0.5 rounded font-mono">pg_dump</code> utilities are recommended.
+            {t('settingsAdmin.export.backupArchitectureBody1')}{' '}
+            <code className="bg-blue-100 px-1 py-0.5 rounded font-mono">pg_dump</code>{' '}
+            {t('settingsAdmin.export.backupArchitectureBody2')}
           </p>
         </div>
       )}
@@ -114,7 +127,7 @@ export function DataExportView({
         <div className="p-5 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-3xl space-y-3">
           <div className="flex items-center gap-2 font-bold text-xs">
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>Export generated successfully!</span>
+            <span>{t('settingsAdmin.export.exportSuccess')}</span>
           </div>
           <p className="text-xs text-emerald-800 font-mono">{downloadReady.filename}</p>
           <a
@@ -123,7 +136,7 @@ export function DataExportView({
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs"
           >
             <Download className="w-4 h-4" />
-            <span>Click to Download File</span>
+            <span>{t('settingsAdmin.export.downloadFile')}</span>
           </a>
         </div>
       )}
@@ -132,7 +145,7 @@ export function DataExportView({
         {/* Step 1: Format */}
         <div className="space-y-3">
           <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
-            1. Select Export Format
+            {t('settingsAdmin.export.stepFormat')}
           </h2>
 
           <div className="grid grid-cols-2 gap-4">
@@ -146,7 +159,7 @@ export function DataExportView({
               }`}
             >
               <FileJson className="w-4 h-4" />
-              <span>JSON (Raw Structured Data)</span>
+              <span>{t('settingsAdmin.export.formatJson')}</span>
             </button>
 
             <button
@@ -159,7 +172,7 @@ export function DataExportView({
               }`}
             >
               <FileSpreadsheet className="w-4 h-4" />
-              <span>CSV (Excel Compatible Tables)</span>
+              <span>{t('settingsAdmin.export.formatCsv')}</span>
             </button>
           </div>
         </div>
@@ -167,18 +180,18 @@ export function DataExportView({
         {/* Step 2: Modules */}
         <div className="space-y-3 pt-4 border-t border-gray-100">
           <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
-            2. Choose Modules to Include
+            {t('settingsAdmin.export.stepModules')}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {[
-              { id: 'products', label: 'Products & Inventory Stocks' },
-              { id: 'customers', label: 'Customers & Credit (Khata) Balances' },
-              { id: 'suppliers', label: 'Suppliers & Balance Records' },
-              { id: 'sales', label: 'Sales History & Invoice Records' },
-              { id: 'purchases', label: 'Purchases & Purchase Orders' },
-              { id: 'expenses', label: 'Operating Expenses' },
-              { id: 'feedbacks', label: 'Customer Reviews & Feedback' },
+              { id: 'products' },
+              { id: 'customers' },
+              { id: 'suppliers' },
+              { id: 'sales' },
+              { id: 'purchases' },
+              { id: 'expenses' },
+              { id: 'feedbacks' },
             ].map((m) => {
               const isSelected = selectedModules.includes(m.id);
 
@@ -187,17 +200,17 @@ export function DataExportView({
                   key={m.id}
                   type="button"
                   onClick={() => toggleModule(m.id)}
-                  className={`p-3 rounded-xl border text-xs font-semibold text-left flex items-center justify-between transition-all ${
+                  className={`p-3 rounded-xl border text-xs font-semibold text-start flex items-center justify-between transition-all ${
                     isSelected
-                      ? 'border-blue-500 bg-blue-50/50 text-blue-900'
+                      ? 'border-blue-500 bg-primary-soft/50 text-blue-900'
                       : 'border-gray-200 bg-gray-50/50 text-gray-600 hover:bg-gray-100/50'
                   }`}
                 >
-                  <span>{m.label}</span>
+                  <span>{t(MODULE_LABEL_KEYS[m.id])}</span>
                   <span
                     className={`w-4 h-4 rounded-full border flex items-center justify-center text-[10px] ${
                       isSelected
-                        ? 'border-blue-600 bg-blue-600 text-white'
+                        ? 'border-primary bg-primary text-on-primary'
                         : 'border-gray-300'
                     }`}
                   >
@@ -213,7 +226,7 @@ export function DataExportView({
         <div className="p-3 bg-gray-50 rounded-2xl border border-gray-100 flex items-center gap-2 text-[11px] text-gray-600">
           <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>
-            Security Sanitized: Password hashes, external API tokens, and camera credentials are automatically excluded from export files.
+            {t('settingsAdmin.export.securityNote')}
           </span>
         </div>
 
@@ -222,10 +235,10 @@ export function DataExportView({
           <button
             onClick={handleExport}
             disabled={exporting || selectedModules.length === 0}
-            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5 disabled:opacity-50"
+            className="px-6 py-2.5 bg-primary hover:bg-primary-hover text-on-primary rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5 disabled:opacity-50"
           >
             <Download className="w-4 h-4" />
-            <span>{exporting ? 'Generating Export...' : 'Generate & Download Export'}</span>
+            <span>{exporting ? t('settingsAdmin.export.generating') : t('settingsAdmin.export.generate')}</span>
           </button>
         </div>
       </div>

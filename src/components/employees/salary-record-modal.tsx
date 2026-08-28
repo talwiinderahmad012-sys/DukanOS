@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DollarSign, AlertCircle, X, CreditCard } from 'lucide-react';
 import { createSalaryRecordAction, recordSalaryPaymentAction } from '@/app/actions/employee.actions';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 type PaymentMethodType = 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'MOBILE_WALLET';
 
@@ -21,7 +22,8 @@ export function CreateSalaryModal({
   onClose: () => void;
 }) {
   const router = useRouter();
-  const currentPeriod = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+  const { t, tm, formatCurrency } = useTranslation();
+  const currentPeriod = new Date().toISOString().slice(0, 7);
   const [period, setPeriod] = useState(currentPeriod);
   const [baseSalary, setBaseSalary] = useState(defaultBaseSalary);
   const [overtime, setOvertime] = useState(0);
@@ -56,7 +58,7 @@ export function CreateSalaryModal({
       router.refresh();
       onClose();
     } else {
-      setError(res.message || 'Failed to generate salary record');
+      setError(tm(res.message) || t('employees.failedToGenerateSalaryRecord'));
       setLoading(false);
     }
   };
@@ -64,7 +66,11 @@ export function CreateSalaryModal({
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+        <button
+          onClick={onClose}
+          className="absolute top-4 end-4 text-gray-400 hover:text-gray-600"
+          aria-label={t('common.close')}
+        >
           <X className="w-5 h-5" />
         </button>
 
@@ -73,8 +79,8 @@ export function CreateSalaryModal({
             <DollarSign className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-bold text-gray-900 text-base">Generate Monthly Payroll Record</h3>
-            <p className="text-xs text-gray-500">Calculate net salary with overtime, bonuses, deductions, and advances</p>
+            <h3 className="font-bold text-gray-900 text-base">{t('employees.generatePayrollRecord')}</h3>
+            <p className="text-xs text-gray-500">{t('employees.generatePayrollSubtitle')}</p>
           </div>
         </div>
 
@@ -88,18 +94,18 @@ export function CreateSalaryModal({
         <form onSubmit={handleSubmit} className="space-y-3.5">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700">Salary Period (YYYY-MM)</label>
+              <label className="text-xs font-semibold text-gray-700">{t('employees.salaryPeriodLabel')}</label>
               <input
                 type="month"
                 required
                 value={period}
                 onChange={(e) => setPeriod(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-primary focus:outline-none"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700">Base Salary (Rs.)</label>
+              <label className="text-xs font-semibold text-gray-700">{t('employees.baseSalaryLabel')}</label>
               <input
                 type="number"
                 min="0"
@@ -107,79 +113,78 @@ export function CreateSalaryModal({
                 required
                 value={baseSalary}
                 onChange={(e) => setBaseSalary(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-bold text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-bold text-gray-900 focus:ring-2 focus:ring-primary focus:outline-none"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700">Overtime / Extra (Rs.)</label>
+              <label className="text-xs font-semibold text-gray-700">{t('employees.overtimeLabel')}</label>
               <input
                 type="number"
                 min="0"
                 step="any"
                 value={overtime}
                 onChange={(e) => setOvertime(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs text-green-700 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs text-green-700 font-medium focus:ring-2 focus:ring-primary focus:outline-none"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700">Bonus / Incentive (Rs.)</label>
+              <label className="text-xs font-semibold text-gray-700">{t('employees.bonusLabel')}</label>
               <input
                 type="number"
                 min="0"
                 step="any"
                 value={bonus}
                 onChange={(e) => setBonus(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs text-green-700 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs text-green-700 font-medium focus:ring-2 focus:ring-primary focus:outline-none"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700">Deductions (Rs.)</label>
+              <label className="text-xs font-semibold text-gray-700">{t('employees.deductionsLabel')}</label>
               <input
                 type="number"
                 min="0"
                 step="any"
                 value={deductions}
                 onChange={(e) => setDeductions(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs text-red-600 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs text-red-600 font-medium focus:ring-2 focus:ring-primary focus:outline-none"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700">Advance Deducted (Rs.)</label>
+              <label className="text-xs font-semibold text-gray-700">{t('employees.advanceLabel')}</label>
               <input
                 type="number"
                 min="0"
                 step="any"
                 value={advance}
                 onChange={(e) => setAdvance(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs text-red-600 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs text-red-600 font-medium focus:ring-2 focus:ring-primary focus:outline-none"
               />
             </div>
           </div>
 
-          {/* Net Salary Summary Box */}
           <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
-            <span className="text-xs font-bold text-emerald-900">Calculated Net Payable:</span>
+            <span className="text-xs font-bold text-emerald-900">{t('employees.calculatedNetPayable')}</span>
             <span className="text-lg font-extrabold text-emerald-700">
-              Rs. {netSalary.toLocaleString()}
+              {formatCurrency(netSalary)}
             </span>
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">Notes (Optional)</label>
+            <label className="text-xs font-semibold text-gray-700">{t('employees.notesOptional')}</label>
             <input
               type="text"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. Eid bonus included + 2 days unpaid leave deducted"
-              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder={t('employees.salaryNotesPlaceholder')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-primary focus:outline-none"
             />
           </div>
 
@@ -189,14 +194,14 @@ export function CreateSalaryModal({
               onClick={onClose}
               className="px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={loading}
               className="px-4 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs transition-colors disabled:opacity-50"
             >
-              {loading ? 'Generating...' : 'Save Salary Record'}
+              {loading ? t('employees.generating') : t('employees.saveSalaryRecord')}
             </button>
           </div>
         </form>
@@ -221,6 +226,7 @@ export function RecordPaymentModal({
   onClose: () => void;
 }) {
   const router = useRouter();
+  const { t, tm, formatCurrency } = useTranslation();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('CASH');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
@@ -243,7 +249,7 @@ export function RecordPaymentModal({
       router.refresh();
       onClose();
     } else {
-      setError(res.message || 'Failed to record payment');
+      setError(tm(res.message) || t('employees.failedToRecordPayment'));
       setLoading(false);
     }
   };
@@ -251,7 +257,11 @@ export function RecordPaymentModal({
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+        <button
+          onClick={onClose}
+          className="absolute top-4 end-4 text-gray-400 hover:text-gray-600"
+          aria-label={t('common.close')}
+        >
           <X className="w-5 h-5" />
         </button>
 
@@ -260,8 +270,10 @@ export function RecordPaymentModal({
             <CreditCard className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-bold text-gray-900 text-base">Disburse Salary Payment</h3>
-            <p className="text-xs text-gray-500">Period: {period} • Amount: Rs. {netSalary.toLocaleString()}</p>
+            <h3 className="font-bold text-gray-900 text-base">{t('employees.disburseSalaryPayment')}</h3>
+            <p className="text-xs text-gray-500">
+              {t('employees.paymentSummary', { period, amount: formatCurrency(netSalary) })}
+            </p>
           </div>
         </div>
 
@@ -274,27 +286,27 @@ export function RecordPaymentModal({
 
         <form onSubmit={handleSubmit} className="space-y-3.5">
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">Payment Channel</label>
+            <label className="text-xs font-semibold text-gray-700">{t('employees.paymentChannel')}</label>
             <select
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value as PaymentMethodType)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
             >
-              <option value="CASH">Cash in Hand</option>
-              <option value="BANK_TRANSFER">Bank Transfer</option>
-              <option value="MOBILE_WALLET">EasyPaisa / JazzCash</option>
-              <option value="CARD">Company Card / Check</option>
+              <option value="CASH">{t('employees.cashInHand')}</option>
+              <option value="BANK_TRANSFER">{t('employees.bankTransfer')}</option>
+              <option value="MOBILE_WALLET">{t('employees.mobileWalletOption')}</option>
+              <option value="CARD">{t('employees.companyCardCheck')}</option>
             </select>
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">Payment Reference / Notes</label>
+            <label className="text-xs font-semibold text-gray-700">{t('employees.paymentReferenceLabel')}</label>
             <input
               type="text"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. Paid in cash by Ahmad, receipt signed"
-              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder={t('employees.paymentReferencePlaceholder')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-primary focus:outline-none"
             />
           </div>
 
@@ -304,14 +316,14 @@ export function RecordPaymentModal({
               onClick={onClose}
               className="px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={loading}
               className="px-4 py-2 text-xs font-semibold bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-xs transition-colors disabled:opacity-50"
             >
-              {loading ? 'Processing...' : 'Confirm Paid'}
+              {loading ? t('employees.processing') : t('employees.confirmPaid')}
             </button>
           </div>
         </form>

@@ -1,0 +1,43 @@
+{
+  "title": "Activity Center & Audit Stream",
+  "subtitle": "Real-time chronological record of operational sales, inventory movements, staff management, and system events.",
+  "categories": {
+    "ALL": "All Activities",
+    "SALES": "Sales & POS",
+    "INVENTORY": "Inventory & Purchases",
+    "STAFF": "Staff & HR",
+    "CUSTOMER": "Customers & Udhaar",
+    "ADMIN": "Administrative"
+  },
+  "noEventsFound": "No events found",
+  "noEventsFoundDesc": "No recent activity recorded for this category yet.",
+  "byActor": "by {name}",
+  "statuses": {
+    "NEW": "New",
+    "PENDING": "Pending",
+    "APPROVED": "Approved",
+    "REJECTED": "Rejected",
+    "CANCELLED": "Cancelled",
+    "RESOLVED": "Resolved"
+  },
+  "events": {
+    "saleCheckout": "Sale Checkout",
+    "saleCancelled": "Sale Cancelled",
+    "purchaseRecorded": "Purchase Recorded",
+    "purchaseCancelled": "Purchase Cancelled",
+    "stockAdjusted": "Inventory Stock Adjustment",
+    "customerPayment": "Customer Udhaar Payment",
+    "customerCreated": "New Customer Registered",
+    "customerUpdated": "Customer Updated",
+    "employeeLeave": "Employee Leave {status}",
+    "employeeLeaveBase": "Employee Leave",
+    "leaveRequested": "Employee Leave Requested",
+    "leaveCancelled": "Employee Leave Cancelled",
+    "salaryPaid": "Salary Disbursed",
+    "salaryRecordCreated": "Salary Record Created",
+    "customerFeedback": "Customer Feedback {status}",
+    "customerFeedbackBase": "Customer Feedback",
+    "announcementPublished": "Announcement Published",
+    "announcementArchived": "Announcement Archived"
+  }
+}

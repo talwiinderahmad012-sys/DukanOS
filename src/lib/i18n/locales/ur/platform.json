@@ -1,0 +1,18 @@
+{
+  "restrictedTitle": "پلیٹ فارم ایڈمن رسائی محدود ہے",
+  "restrictedDescription": "یہ حصہ صرف پلیٹ فارم ایڈمنسٹریٹرز اور اسٹور مالکان کے لیے ہے۔",
+  "returnToDashboard": "ڈیش بورڈ پر واپس جائیں",
+  "chip": "پلیٹ فارم گورننس",
+  "title": "پلیٹ فارم پلانز اور مراعات",
+  "subtitle": "معیاری ٹئیر کی تعریفیں، فیچر فلیگز، اور طے شدہ کوٹہ کی ترتیبات۔",
+  "myStorePlan": "میرے اسٹور کا پلان",
+  "codeLabel": "کوڈ: {code}",
+  "defaultDescription": "معیاری پلان ٹئیر۔",
+  "subscriptionsLabel": "فعال اسٹور سبسکرپشنز:",
+  "storesCount": "{count} اسٹورز",
+  "featureFlagsTitle": "فیچر فلیگز ({count})",
+  "moreFeatures": "+{count} مزید",
+  "quotaLimitsTitle": "کوٹہ کی حدیں",
+  "quotaNotePrefix": "تمام معیاری حدیں مقرر ہیں",
+  "unlimitedToken": "-1 (لامحدود)"
+}

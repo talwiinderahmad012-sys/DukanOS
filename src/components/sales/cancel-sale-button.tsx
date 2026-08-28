@@ -9,6 +9,7 @@ import { Button, buttonClasses } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/input';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export function CancelSaleButton({
   businessId,
@@ -22,6 +23,7 @@ export function CancelSaleButton({
   isCancelled: boolean;
 }) {
   const router = useRouter();
+  const { t, tm } = useTranslation();
   const reasonId = useId();
   const [isOpen, setIsOpen] = useState(false);
   const [reason, setReason] = useState('');
@@ -32,7 +34,7 @@ export function CancelSaleButton({
     return (
       <Badge tone="neutral" className="print:hidden">
         <Ban className="h-3.5 w-3.5" aria-hidden="true" />
-        Cancelled Sale
+        {t('sales.cancelledSaleBadge')}
       </Badge>
     );
   }
@@ -46,7 +48,7 @@ export function CancelSaleButton({
   const handleConfirmCancel = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!reason.trim() || reason.trim().length < 3) {
-      setError('Please provide a reason for cancelling this sale (minimum 3 characters).');
+      setError(t('sales.reasonTooShort'));
       return;
     }
 
@@ -57,7 +59,7 @@ export function CancelSaleButton({
       const res = await cancelSaleAction(businessId, saleId, reason.trim());
 
       if (!res.success) {
-        setError(res.message || 'Failed to cancel sale.');
+        setError(tm(res.message) || t('sales.cancelFallback'));
         setLoading(false);
         return;
       }
@@ -66,7 +68,7 @@ export function CancelSaleButton({
       router.refresh();
     } catch (err) {
       const e = err as Error;
-      setError(e.message || 'An unexpected error occurred during cancellation.');
+      setError(tm(e.message) || t('sales.cancelUnexpected'));
       setLoading(false);
     }
   };
@@ -79,29 +81,29 @@ export function CancelSaleButton({
         className={buttonClasses('outline', 'md', 'text-danger border-danger/30 hover:bg-danger-soft hover:text-danger print:hidden')}
       >
         <Ban className="h-4 w-4" aria-hidden="true" />
-        Cancel Sale
+        {t('sales.cancelSale')}
       </button>
 
       <Modal
         open={isOpen}
         onClose={close}
-        title="Cancel Sale Invoice"
+        title={t('sales.cancelModalTitle')}
         description={
           <>
-            Are you sure you want to cancel invoice{' '}
+            {t('sales.cancelConfirmPrefix')}{' '}
             <span className="font-mono font-semibold text-gray-900">
               {invoiceNumber || `#${saleId.slice(0, 8)}`}
             </span>
-            ?
+            {t('sales.cancelConfirmSuffix')}
           </>
         }
       >
         <form onSubmit={handleConfirmCancel} className="space-y-4">
-          <Alert tone="warning" title="Reversal effects">
+          <Alert tone="warning" title={t('sales.reversalTitle')}>
             <ul className="list-inside list-disc space-y-0.5 text-xs">
-              <li>Sold items will be automatically returned to your stock.</li>
-              <li>Any unpaid Udhaar added to the customer will be reversed.</li>
-              <li>Previously collected cash is not automatically refunded.</li>
+              <li>{t('sales.reversalItem1')}</li>
+              <li>{t('sales.reversalItem2')}</li>
+              <li>{t('sales.reversalItem3')}</li>
             </ul>
           </Alert>
 
@@ -109,8 +111,8 @@ export function CancelSaleButton({
 
           <div className="space-y-1">
             <label htmlFor={reasonId} className="block text-sm font-medium text-gray-700">
-              Reason for Cancellation
-              <span className="ml-0.5 text-red-500" aria-hidden="true">
+              {t('sales.reasonLabel')}
+              <span className="ms-0.5 text-red-500" aria-hidden="true">
                 *
               </span>
             </label>
@@ -120,16 +122,16 @@ export function CancelSaleButton({
               rows={2}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="e.g. Customer returned items, billing error"
+              placeholder={t('sales.reasonPlaceholder')}
             />
           </div>
 
           <div className="flex justify-end gap-2 border-t border-border pt-4">
             <Button variant="outline" type="button" disabled={loading} onClick={close}>
-              Close
+              {t('common.close')}
             </Button>
             <Button variant="destructive" type="submit" loading={loading}>
-              {loading ? 'Restoring Stock…' : 'Confirm Cancellation'}
+              {loading ? t('sales.restoringStock') : t('sales.confirmCancellation')}
             </Button>
           </div>
         </form>

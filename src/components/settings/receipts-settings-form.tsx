@@ -13,6 +13,7 @@ import {
   QrCode
 } from 'lucide-react';
 import { updateReceiptSettingsAction } from '@/app/actions/settings.actions';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export function ReceiptsSettingsForm({
   businessId,
@@ -24,6 +25,7 @@ export function ReceiptsSettingsForm({
   initialSettings: any;
 }) {
   const router = useRouter();
+  const { t, tm, language, formatCurrency } = useTranslation();
 
   const [form, setForm] = useState({
     receiptHeader: initialSettings.receiptHeader || '',
@@ -46,10 +48,10 @@ export function ReceiptsSettingsForm({
     const res = await updateReceiptSettingsAction(businessId, form);
 
     if (res.success) {
-      setSuccessMsg('Receipt template updated successfully.');
+      setSuccessMsg(t('settings.receiptTemplateSaved'));
       router.refresh();
     } else {
-      setErrorMsg(res.message || 'Failed to update receipt settings.');
+      setErrorMsg(res.message ? tm(res.message) : t('settings.receiptSaveFailed'));
     }
     setSaving(false);
   };
@@ -61,12 +63,12 @@ export function ReceiptsSettingsForm({
           href="/dashboard/settings"
           className="text-xs text-gray-500 hover:text-gray-900 font-semibold flex items-center gap-1 mb-2"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Settings</span>
+          <ArrowLeft className="w-3.5 h-3.5 rtl-flip" />
+          <span>{t('settings.backToSettings')}</span>
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Receipts & Thermal Invoices</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('settings.receiptsPageTitle')}</h1>
         <p className="text-gray-500 text-sm mt-0.5">
-          Customize the layout, header/footer messages, and QR codes printed on customer receipts.
+          {t('settings.receiptsPageSubtitle')}
         </p>
       </div>
 
@@ -85,41 +87,40 @@ export function ReceiptsSettingsForm({
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Form (7 cols) */}
         <form
           onSubmit={handleSubmit}
           className="lg:col-span-7 bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-5"
         >
           <div className="space-y-4">
             <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
-              1. Receipt Header & Notes
+              {t('settings.receiptHeaderSection')}
             </h2>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">Header Subtext / Notice</label>
+              <label className="text-xs font-semibold text-gray-700 block">{t('settings.receiptHeaderNoticeLabel')}</label>
               <textarea
                 rows={2}
                 value={form.receiptHeader}
                 onChange={(e) => setForm({ ...form, receiptHeader: e.target.value })}
-                placeholder="e.g. NTN: 1234567-8 | Return policy: 3 days"
-                className="w-full p-3 border border-gray-200 rounded-2xl text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                placeholder={t('settings.receiptHeaderPlaceholder')}
+                className="w-full p-3 border border-gray-200 rounded-2xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
               />
             </div>
           </div>
 
           <div className="space-y-4 pt-4 border-t border-gray-100">
             <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
-              2. Footer & Feedback QR
+              {t('settings.receiptFooterSection')}
             </h2>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">Footer Farewell Message</label>
+              <label className="text-xs font-semibold text-gray-700 block">{t('settings.receiptFarewellLabel')}</label>
               <textarea
                 rows={2}
                 value={form.receiptFooter}
                 onChange={(e) => setForm({ ...form, receiptFooter: e.target.value })}
-                placeholder="Thank you for shopping with us!"
-                className="w-full p-3 border border-gray-200 rounded-2xl text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                placeholder={t('settings.receiptFooterPlaceholder')}
+                className="w-full p-3 border border-gray-200 rounded-2xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
               />
             </div>
 
@@ -127,17 +128,17 @@ export function ReceiptsSettingsForm({
               <div>
                 <span className="text-xs font-bold text-gray-900 block flex items-center gap-1">
                   <QrCode className="w-3.5 h-3.5 text-purple-600" />
-                  <span>Print Customer Feedback QR Code</span>
+                  <span>{t('settings.feedbackQrLabel')}</span>
                 </span>
                 <span className="text-[11px] text-gray-500">
-                  Adds a scanable review link on the bottom of thermal receipts.
+                  {t('settings.feedbackQrDescription')}
                 </span>
               </div>
               <input
                 type="checkbox"
                 checked={form.showFeedbackQr}
                 onChange={(e) => setForm({ ...form, showFeedbackQr: e.target.checked })}
-                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                className="w-4 h-4 rounded text-gray-900 focus:ring-primary"
               />
             </label>
           </div>
@@ -146,24 +147,23 @@ export function ReceiptsSettingsForm({
             <button
               type="submit"
               disabled={saving}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5 disabled:opacity-50"
+              className="px-6 py-2 bg-primary hover:bg-primary-hover text-on-primary rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5 disabled:opacity-50"
             >
               <Save className="w-3.5 h-3.5" />
-              <span>{saving ? 'Saving...' : 'Save Template'}</span>
+              <span>{saving ? t('common.saving') : t('settings.saveTemplate')}</span>
             </button>
           </div>
         </form>
 
-        {/* Right Live Thermal Preview (5 cols) */}
         <div className="lg:col-span-5 space-y-2">
           <div className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
-            <Eye className="w-3.5 h-3.5" /> Live Thermal Slip Preview (80mm)
+            <Eye className="w-3.5 h-3.5" /> {t('settings.thermalPreviewTitle')}
           </div>
 
           <div className="bg-white border border-gray-300 rounded-2xl p-5 shadow-xs font-mono text-[11px] space-y-3 max-w-xs mx-auto text-gray-800">
             <div className="text-center space-y-0.5 border-b border-dashed pb-2">
               <div className="font-bold text-sm text-black">{businessName}</div>
-              <div className="text-[10px] text-gray-500">Main Commercial Branch</div>
+              <div className="text-[10px] text-gray-500">{t('settings.previewBranch')}</div>
               {form.receiptHeader && (
                 <div className="text-[10px] text-gray-600 pt-1 whitespace-pre-wrap">{form.receiptHeader}</div>
               )}
@@ -171,42 +171,42 @@ export function ReceiptsSettingsForm({
 
             <div className="space-y-1 text-[10px] border-b border-dashed pb-2">
               <div className="flex justify-between">
-                <span>Inv: #INV-1042</span>
-                <span>{new Date().toLocaleDateString()}</span>
+                <span>{t('settings.previewInvoice')}</span>
+                <span>{new Date().toLocaleDateString(language === 'UR' ? 'ur-PK' : 'en-PK')}</span>
               </div>
               <div className="flex justify-between">
-                <span>Cashier: Counter 1</span>
-                <span>Walk-in</span>
+                <span>{t('settings.previewCashier')}</span>
+                <span>{t('settings.previewWalkIn')}</span>
               </div>
             </div>
 
             <div className="space-y-1 border-b border-dashed pb-2">
               <div className="flex justify-between font-bold text-[10px]">
-                <span>ITEM</span>
-                <span>QTY x PRICE = TOTAL</span>
+                <span>{t('settings.previewItemHeader')}</span>
+                <span>{t('settings.previewColumnsHeader')}</span>
               </div>
               <div className="flex justify-between text-[10px]">
-                <span>Milk Pack 1L</span>
+                <span>{t('settings.previewItemMilk')}</span>
                 <span>2 x 280 = 560</span>
               </div>
               <div className="flex justify-between text-[10px]">
-                <span>Basmati Rice 5kg</span>
+                <span>{t('settings.previewItemRice')}</span>
                 <span>1 x 1200 = 1200</span>
               </div>
             </div>
 
-            <div className="space-y-1 font-bold text-xs border-b border-dashed pb-2 text-right">
+            <div className="space-y-1 font-bold text-xs border-b border-dashed pb-2 text-end">
               <div className="flex justify-between">
-                <span>TOTAL:</span>
-                <span>Rs. 1,760</span>
+                <span>{t('settings.previewTotalLabel')}</span>
+                <span>{formatCurrency(1760)}</span>
               </div>
               <div className="flex justify-between text-[10px] font-normal text-gray-600">
-                <span>PAID (CASH):</span>
-                <span>Rs. 2,000</span>
+                <span>{t('settings.previewPaidCashLabel')}</span>
+                <span>{formatCurrency(2000)}</span>
               </div>
               <div className="flex justify-between text-[10px] font-normal text-gray-600">
-                <span>CHANGE:</span>
-                <span>Rs. 240</span>
+                <span>{t('settings.previewChangeLabel')}</span>
+                <span>{formatCurrency(240)}</span>
               </div>
             </div>
 
@@ -215,7 +215,7 @@ export function ReceiptsSettingsForm({
                 <div className="w-12 h-12 bg-gray-100 border border-gray-300 rounded-lg mx-auto flex items-center justify-center text-[8px] font-bold text-gray-400">
                   [ QR ]
                 </div>
-                <div className="text-[9px] text-gray-500">Scan to rate your shopping experience</div>
+                <div className="text-[9px] text-gray-500">{t('settings.previewQrCaption')}</div>
               </div>
             )}
 

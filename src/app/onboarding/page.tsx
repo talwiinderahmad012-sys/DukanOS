@@ -4,10 +4,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Store, MapPin, Settings } from 'lucide-react';
 import { submitOnboardingAction } from '@/app/actions/onboarding.actions';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { t, tm } = useTranslation();
   const [error, setError] = useState('');
+  const [serverError, setServerError] = useState('');
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
 
@@ -15,6 +18,7 @@ export default function OnboardingPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setServerError('');
 
     const formData = new FormData(e.currentTarget);
     const payload = Object.fromEntries(formData.entries());
@@ -23,7 +27,11 @@ export default function OnboardingPage() {
       const res = await submitOnboardingAction(payload);
       
       if (!res.success) {
-        setError(res.message || 'Onboarding failed. Check inputs.');
+        if (res.message) {
+          setServerError(res.message);
+        } else {
+          setError('onboarding.setupFailed');
+        }
         setLoading(false);
         return;
       }
@@ -31,7 +39,7 @@ export default function OnboardingPage() {
       router.push('/dashboard');
       router.refresh();
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError('onboarding.genericError');
       setLoading(false);
     }
   };
@@ -41,33 +49,33 @@ export default function OnboardingPage() {
       <div className="max-w-2xl w-full bg-white rounded-xl shadow-sm border border-gray-100 p-8">
         
         <div className="mb-8 border-b pb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Set up your business</h1>
-          <p className="text-gray-500 mt-1">Let's get your store ready for DukaanOS.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('onboarding.setupTitle')}</h1>
+          <p className="text-gray-500 mt-1">{t('onboarding.setupSubtitle')}</p>
         </div>
 
-        {error && (
+        {(error || serverError) && (
           <div className="mb-6 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
-            {error}
+            {error ? t(error) : tm(serverError)}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <h2 className="text-lg font-semibold flex items-center gap-2">
-              <Store className="w-5 h-5 text-blue-600" /> Business Details
+              <Store className="w-5 h-5 text-gray-900" /> {t('onboarding.businessDetails')}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
-                <input required name="businessName" type="text" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. Ahmad General Store" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('onboarding.businessName')}</label>
+                <input required name="businessName" type="text" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary" placeholder={t('onboarding.businessNamePlaceholder')} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Business Type</label>
-                <select name="businessType" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="RETAIL">General / Retail Store</option>
-                  <option value="WHOLESALE">Wholesale</option>
-                  <option value="SERVICES">Services</option>
-                  <option value="OTHER">Other</option>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('onboarding.businessType')}</label>
+                <select name="businessType" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary">
+                  <option value="RETAIL">{t('onboarding.typeRetail')}</option>
+                  <option value="WHOLESALE">{t('onboarding.typeWholesale')}</option>
+                  <option value="SERVICES">{t('onboarding.typeServices')}</option>
+                  <option value="OTHER">{t('onboarding.typeOther')}</option>
                 </select>
               </div>
             </div>
@@ -75,25 +83,25 @@ export default function OnboardingPage() {
 
           <div className="space-y-4 pt-4 border-t">
             <h2 className="text-lg font-semibold flex items-center gap-2">
-              <Settings className="w-5 h-5 text-blue-600" /> Locale & Currency
+              <Settings className="w-5 h-5 text-gray-900" /> {t('onboarding.localeAndCurrency')}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
-                <select name="currency" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="PKR">Pakistani Rupee (PKR)</option>
-                  <option value="USD">US Dollar (USD)</option>
-                  <option value="EUR">Euro (EUR)</option>
-                  <option value="GBP">British Pound (GBP)</option>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('onboarding.currency')}</label>
+                <select name="currency" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary">
+                  <option value="PKR">{t('onboarding.currencyPkr')}</option>
+                  <option value="USD">{t('onboarding.currencyUsd')}</option>
+                  <option value="EUR">{t('onboarding.currencyEur')}</option>
+                  <option value="GBP">{t('onboarding.currencyGbp')}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
-                <select name="timezone" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="Asia/Karachi">Asia/Karachi (PKT)</option>
-                  <option value="Asia/Dubai">Asia/Dubai (GST)</option>
-                  <option value="Europe/London">Europe/London (GMT)</option>
-                  <option value="America/New_York">America/New_York (EST)</option>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('onboarding.timezone')}</label>
+                <select name="timezone" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary">
+                  <option value="Asia/Karachi">{t('onboarding.timezoneKarachi')}</option>
+                  <option value="Asia/Dubai">{t('onboarding.timezoneDubai')}</option>
+                  <option value="Europe/London">{t('onboarding.timezoneLondon')}</option>
+                  <option value="America/New_York">{t('onboarding.timezoneNewYork')}</option>
                 </select>
               </div>
             </div>
@@ -101,16 +109,16 @@ export default function OnboardingPage() {
 
           <div className="space-y-4 pt-4 border-t">
             <h2 className="text-lg font-semibold flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-blue-600" /> First Branch Location
+              <MapPin className="w-5 h-5 text-gray-900" /> {t('onboarding.firstBranch')}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Branch Name</label>
-                <input name="branchName" type="text" defaultValue="Main Branch" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('onboarding.branchName')}</label>
+                <input name="branchName" type="text" defaultValue="Main Branch" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                <input name="city" type="text" placeholder="Lahore" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.city')}</label>
+                <input name="city" type="text" placeholder={t('onboarding.cityPlaceholder')} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary" />
               </div>
             </div>
           </div>
@@ -119,9 +127,9 @@ export default function OnboardingPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full md:w-auto md:px-8 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors disabled:opacity-50 float-right"
+              className="w-full md:w-auto md:px-8 bg-primary hover:bg-primary-hover text-on-primary font-medium py-2.5 rounded-lg transition-colors disabled:opacity-50 float-end"
             >
-              {loading ? 'Creating...' : 'Finish Setup'}
+              {loading ? t('onboarding.creating') : t('onboarding.finishSetup')}
             </button>
             <div className="clear-both"></div>
           </div>

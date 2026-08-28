@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
 import { Field, Input, Select, Textarea } from '@/components/ui/input';
 import { cn } from '@/components/ui/cn';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export type ProductEditData = {
   id: string;
@@ -35,6 +36,7 @@ export function ProductEditDialog({
   onClose: () => void;
 }) {
   const router = useRouter();
+  const { t, tm, formatCurrency } = useTranslation();
   const idPrefix = useId();
   const fieldId = (name: string) => `${idPrefix}-${name}`;
 
@@ -77,7 +79,7 @@ export function ProductEditDialog({
         const fieldError = res.fieldErrors
           ? Object.values(res.fieldErrors).flat().find(Boolean)
           : undefined;
-        setError(res.message || fieldError || 'Failed to update product');
+        setError(tm(res.message) || tm(fieldError) || t('products.updateFailed'));
         setLoading(false);
         return;
       }
@@ -85,7 +87,7 @@ export function ProductEditDialog({
       router.refresh();
       onClose();
     } catch {
-      setError('An unexpected error occurred.');
+      setError(t('products.unexpectedError'));
       setLoading(false);
     }
   }
@@ -96,23 +98,23 @@ export function ProductEditDialog({
       onClose={() => {
         if (!loading) onClose();
       }}
-      title="Edit Product"
-      description={`Update details, pricing and reorder level for ${product.name}.`}
+      title={t('products.editProduct')}
+      description={t('products.editDescription', { name: product.name })}
       size="xl"
       footer={
         <>
           <Button variant="outline" onClick={onClose} disabled={loading}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button type="submit" form="product-edit-form" loading={loading}>
-            Save Changes
+            {t('products.saveChanges')}
           </Button>
         </>
       }
     >
       <form id="product-edit-form" onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <Alert tone="danger" title="Could not save product">
+          <Alert tone="danger" title={t('products.couldNotSaveProduct')}>
             {error}
           </Alert>
         )}
@@ -120,27 +122,27 @@ export function ProductEditDialog({
         <section className="space-y-4" aria-labelledby={`${idPrefix}-basic`}>
           <div>
             <h3 id={`${idPrefix}-basic`} className="text-sm font-bold text-gray-900">
-              Basic Information
+              {t('products.basicInformation')}
             </h3>
-            <p className="text-xs text-muted">Name and identifiers used on invoices and barcode scans.</p>
+            <p className="text-xs text-muted">{t('products.basicInformationDescription')}</p>
           </div>
 
-          <Field label="Product Name" htmlFor={fieldId('name')} required>
+          <Field label={t('products.productName')} htmlFor={fieldId('name')} required>
             <Input id={fieldId('name')} name="name" required defaultValue={product.name} maxLength={100} />
           </Field>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="SKU" htmlFor={fieldId('sku')}>
+            <Field label={t('products.sku')} htmlFor={fieldId('sku')}>
               <Input
                 id={fieldId('sku')}
                 name="sku"
                 defaultValue={product.sku ?? ''}
                 maxLength={50}
-                placeholder="e.g. ITEM-001"
+                placeholder={t('products.skuPlaceholder')}
                 className="font-mono"
               />
             </Field>
-            <Field label="Barcode" htmlFor={fieldId('barcode')}>
+            <Field label={t('products.barcode')} htmlFor={fieldId('barcode')}>
               <Input
                 id={fieldId('barcode')}
                 name="barcode"
@@ -152,9 +154,9 @@ export function ProductEditDialog({
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Category" htmlFor={fieldId('categoryId')}>
+            <Field label={t('common.category')} htmlFor={fieldId('categoryId')}>
               <Select id={fieldId('categoryId')} name="categoryId" defaultValue={product.categoryId ?? ''}>
-                <option value="">No Category</option>
+                <option value="">{t('products.noCategory')}</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -162,19 +164,19 @@ export function ProductEditDialog({
                 ))}
               </Select>
             </Field>
-            <Field label="Unit" htmlFor={fieldId('unit')} required hint="e.g. pcs, kg, box">
+            <Field label={t('inventory.unit')} htmlFor={fieldId('unit')} required hint={t('products.unitHint')}>
               <Input id={fieldId('unit')} name="unit" required defaultValue={product.unit} maxLength={20} />
             </Field>
           </div>
 
-          <Field label="Description" htmlFor={fieldId('description')}>
+          <Field label={t('common.description')} htmlFor={fieldId('description')}>
             <Textarea
               id={fieldId('description')}
               name="description"
               defaultValue={product.description ?? ''}
               maxLength={500}
               rows={2}
-              placeholder="Optional notes about this product"
+              placeholder={t('products.descriptionPlaceholder')}
             />
           </Field>
         </section>
@@ -182,16 +184,16 @@ export function ProductEditDialog({
         <section className="space-y-4" aria-labelledby={`${idPrefix}-pricing`}>
           <div>
             <h3 id={`${idPrefix}-pricing`} className="text-sm font-bold text-gray-900">
-              Pricing
+              {t('products.pricing')}
             </h3>
-            <p className="text-xs text-muted">Cost price you pay suppliers and the price customers pay.</p>
+            <p className="text-xs text-muted">{t('products.pricingDescription')}</p>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Purchase Price" htmlFor={fieldId('purchasePrice')} required>
+            <Field label={t('products.purchasePrice')} htmlFor={fieldId('purchasePrice')} required>
               <div className="relative">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                  Rs.
+                <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                  {t('common.pkr')}
                 </span>
                 <Input
                   id={fieldId('purchasePrice')}
@@ -202,14 +204,14 @@ export function ProductEditDialog({
                   required
                   value={purchasePrice}
                   onChange={(e) => setPurchasePrice(Number(e.target.value))}
-                  className="pl-11"
+                  className="ps-11"
                 />
               </div>
             </Field>
-            <Field label="Selling Price" htmlFor={fieldId('sellingPrice')} required>
+            <Field label={t('products.sellingPrice')} htmlFor={fieldId('sellingPrice')} required>
               <div className="relative">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                  Rs.
+                <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                  {t('common.pkr')}
                 </span>
                 <Input
                   id={fieldId('sellingPrice')}
@@ -220,7 +222,7 @@ export function ProductEditDialog({
                   required
                   value={sellingPrice}
                   onChange={(e) => setSellingPrice(Number(e.target.value))}
-                  className="pl-11"
+                  className="ps-11"
                 />
               </div>
             </Field>
@@ -228,13 +230,13 @@ export function ProductEditDialog({
 
           <div className="flex items-center justify-between rounded-card border border-border bg-gray-50 p-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted">Expected Profit</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('products.expectedProfit')}</p>
               <p className={cn('text-lg font-bold', profit >= 0 ? 'text-success' : 'text-danger')}>
-                Rs. {profit.toLocaleString()}
+                {formatCurrency(profit)}
               </p>
             </div>
-            <div className="text-right">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted">Margin</p>
+            <div className="text-end">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('products.margin')}</p>
               <p className={cn('text-lg font-bold', profit >= 0 ? 'text-success' : 'text-danger')}>{margin}%</p>
             </div>
           </div>
@@ -243,15 +245,15 @@ export function ProductEditDialog({
         <section className="space-y-4" aria-labelledby={`${idPrefix}-inventory`}>
           <div>
             <h3 id={`${idPrefix}-inventory`} className="text-sm font-bold text-gray-900">
-              Inventory
+              {t('products.inventorySection')}
             </h3>
             <p className="text-xs text-muted">
-              Current stock is managed from the Inventory page. The reorder level controls low-stock alerts.
+              {t('products.editInventoryDescription')}
             </p>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Current Stock" htmlFor={fieldId('currentStock')} hint="Adjusted via stock movements">
+            <Field label={t('inventory.currentStock')} htmlFor={fieldId('currentStock')} hint={t('products.adjustedViaMovements')}>
               <Input
                 id={fieldId('currentStock')}
                 value={`${product.currentStock} ${product.unit}`}
@@ -260,9 +262,9 @@ export function ProductEditDialog({
               />
             </Field>
             <Field
-              label="Minimum Stock Threshold"
+              label={t('products.minStockThreshold')}
               htmlFor={fieldId('minStockThreshold')}
-              hint="You will be alerted when stock falls below this level."
+              hint={t('products.minStockHint')}
             >
               <Input
                 id={fieldId('minStockThreshold')}

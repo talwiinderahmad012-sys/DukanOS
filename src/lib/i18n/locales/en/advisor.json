@@ -1,0 +1,19 @@
+{
+  "pageTitle": "DukaanOS Business Advisor",
+  "deterministicAi": "Deterministic AI",
+  "subtitle": "Real-time automated financial analysis, risk detection, and growth recommendations.",
+  "healthIndex": "Business Health Index",
+  "pillars": "5 Strategic Financial Pillars",
+  "findingsHeading": "Actionable Intelligence & Recommendations ({count})",
+  "prioritizedBy": "Prioritized by business risk",
+  "peakHealthTitle": "Your Store is Operating at Peak Health!",
+  "peakHealthDescription": "No stockouts, severe margin declines, or credit risks detected. Continue processing daily transactions normally.",
+  "adviceLabel": "Advice:",
+  "orderStock": "Order Stock",
+  "collectUdhaar": "Collect Udhaar",
+  "reviewStock": "Review Stock",
+  "viewReport": "View Report",
+  "runScan": "Run Advisor Scan",
+  "analyzing": "Analyzing Business...",
+  "synced": "Advisor Synced!"
+}

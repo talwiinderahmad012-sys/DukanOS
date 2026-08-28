@@ -19,8 +19,55 @@ import {
   RotateCcw,
   Info
 } from 'lucide-react';
-import { SanitizedCamera, CameraStreamInfo } from '@/services/cctv/types';
 import { checkCameraHealthAction, archiveCameraAction } from '@/app/actions/cctv.actions';
+import { useTranslation } from '@/lib/i18n/language-context';
+
+export type CameraDetailItem = {
+  id: string;
+  name: string;
+  location: string | null;
+  type: string;
+  status: string;
+  isEnabled: boolean;
+  protocol: string;
+  host: string | null;
+  port: number | null;
+  path: string | null;
+  lastError: string | null;
+  lastCheckedAt: string | null;
+  lastOnlineAt: string | null;
+};
+
+export type CameraStreamData = {
+  streamAvailable: boolean;
+  streamUrl?: string;
+  message: string;
+};
+
+export type HealthHistoryEntry = {
+  id: string;
+  status: string;
+  responseTimeMs: number | null;
+  checkedAt: string;
+};
+
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  ONLINE: 'cctv.statusOnline',
+  OFFLINE: 'cctv.statusOffline',
+  DEGRADED: 'cctv.statusDegraded',
+  UNKNOWN: 'cctv.statusUnknown',
+  DISABLED: 'cctv.statusDisabled',
+};
+
+const TYPE_LABEL_KEYS: Record<string, string> = {
+  IP_CAMERA: 'cctv.types.IP_CAMERA',
+  NVR: 'cctv.types.NVR',
+  DVR: 'cctv.types.DVR',
+  ONVIF: 'cctv.types.ONVIF',
+  RTSP: 'cctv.types.RTSP',
+  CLOUD_CAMERA: 'cctv.types.CLOUD_CAMERA',
+  OTHER: 'cctv.types.OTHER',
+};
 
 export function CameraDetailView({
   businessId,
@@ -30,16 +77,21 @@ export function CameraDetailView({
   isOwner,
 }: {
   businessId: string;
-  camera: SanitizedCamera;
-  streamInfo: CameraStreamInfo;
-  healthHistory: any[];
+  camera: CameraDetailItem;
+  streamInfo: CameraStreamData;
+  healthHistory: HealthHistoryEntry[];
   isOwner: boolean;
 }) {
   const router = useRouter();
-  const [camera, setCamera] = useState<SanitizedCamera>(initialCamera);
+  const { t, tm, language } = useTranslation();
+  const locale = language === 'UR' ? 'ur-PK' : 'en-PK';
+  const [camera, setCamera] = useState<CameraDetailItem>(initialCamera);
   const [checking, setChecking] = useState(false);
   const [healthMsg, setHealthMsg] = useState<string | null>(null);
   const [archiving, setArchiving] = useState(false);
+
+  const statusLabel = (status: string) => t(STATUS_LABEL_KEYS[status] ?? 'cctv.statusUnknown');
+  const typeLabel = (type: string) => t(TYPE_LABEL_KEYS[type] ?? 'cctv.types.OTHER');
 
   const handleHealthCheck = async () => {
     setChecking(true);
@@ -49,7 +101,10 @@ export function CameraDetailView({
     if (res.success && res.data) {
       const data = res.data as any;
       setHealthMsg(
-        `Health Check Result: ${data.camera.status} (${data.responseTimeMs ? `${data.responseTimeMs}ms` : 'online'})`
+        t('cctv.healthCheckDetail', {
+          status: statusLabel(data.camera.status),
+          latency: data.responseTimeMs ? `${data.responseTimeMs}ms` : t('cctv.online'),
+        })
       );
       setCamera((prev) => ({
         ...prev,
@@ -59,13 +114,13 @@ export function CameraDetailView({
         lastError: data.camera.lastError,
       }));
     } else {
-      setHealthMsg(res.message || 'Health check failed.');
+      setHealthMsg(tm(res.message) || t('cctv.healthCheckFailed'));
     }
     setChecking(false);
   };
 
   const handleArchive = async () => {
-    if (!confirm(`Are you sure you want to archive "${camera.name}"? This camera will be disabled from monitoring.`)) {
+    if (!confirm(t('cctv.archiveConfirm', { name: camera.name }))) {
       return;
     }
 
@@ -75,7 +130,7 @@ export function CameraDetailView({
       router.push('/dashboard/cameras');
       router.refresh();
     } else {
-      alert(res.message || 'Failed to archive camera.');
+      alert(tm(res.message) || t('cctv.archiveFailed'));
       setArchiving(false);
     }
   };
@@ -89,8 +144,8 @@ export function CameraDetailView({
             href="/dashboard/cameras"
             className="text-xs text-gray-500 hover:text-gray-900 font-semibold flex items-center gap-1 mb-2"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Cameras</span>
+            <ArrowLeft className="w-3.5 h-3.5 rtl-flip" />
+            <span>{t('cctv.backToCameras')}</span>
           </Link>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-gray-900">{camera.name}</h1>
@@ -103,7 +158,7 @@ export function CameraDetailView({
                   : 'bg-amber-50 text-amber-700 border border-amber-200'
               }`}
             >
-              {camera.status}
+              {statusLabel(camera.status)}
             </span>
           </div>
         </div>
@@ -115,7 +170,7 @@ export function CameraDetailView({
             className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 disabled:opacity-50"
           >
             <Activity className="w-3.5 h-3.5" />
-            <span>{checking ? 'Checking Health...' : 'Check Health'}</span>
+            <span>{checking ? t('cctv.checkingHealth') : t('cctv.checkHealth')}</span>
           </button>
 
           {isOwner && (
@@ -125,14 +180,14 @@ export function CameraDetailView({
               className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 disabled:opacity-50"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              <span>Archive Camera</span>
+              <span>{t('cctv.archiveCamera')}</span>
             </button>
           )}
         </div>
       </div>
 
       {healthMsg && (
-        <div className="p-3.5 bg-blue-50 border border-blue-200 text-blue-800 rounded-2xl text-xs font-semibold flex items-center gap-2">
+        <div className="p-3.5 bg-primary-soft border border-blue-200 text-gray-900 rounded-2xl text-xs font-semibold flex items-center gap-2">
           <Info className="w-4 h-4 shrink-0" />
           <span>{healthMsg}</span>
         </div>
@@ -150,9 +205,9 @@ export function CameraDetailView({
               playsInline
               className="w-full h-full object-contain"
             />
-            <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-mono text-emerald-400 font-bold flex items-center gap-1.5">
+            <div className="absolute top-4 start-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-mono text-emerald-400 font-bold flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-              <span>LIVE FEED</span>
+              <span>{t('cctv.liveFeed')}</span>
             </div>
           </div>
         ) : (
@@ -162,14 +217,14 @@ export function CameraDetailView({
             </div>
 
             <div className="max-w-md space-y-1.5">
-              <h3 className="text-sm font-bold text-white">Live Stream Gateway Required</h3>
+              <h3 className="text-sm font-bold text-white">{t('cctv.liveStreamRequired')}</h3>
               <p className="text-xs text-gray-400 leading-relaxed font-sans">
-                {streamInfo.message}
+                {tm(streamInfo.message)}
               </p>
             </div>
 
             <div className="bg-gray-800/80 border border-gray-700 rounded-2xl p-3 max-w-md text-[11px] text-gray-300 font-mono flex items-center justify-between gap-4">
-              <span className="text-gray-500">Source RTSP:</span>
+              <span className="text-gray-500">{t('cctv.sourceRtsp')}</span>
               <span className="truncate">rtsp://{camera.host || '127.0.0.1'}:{camera.port || 554}{camera.path || ''}</span>
             </div>
           </div>
@@ -180,30 +235,30 @@ export function CameraDetailView({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-4">
           <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
-            Device Metadata
+            {t('cctv.deviceMetadata')}
           </h2>
 
           <div className="space-y-3 text-xs divide-y divide-gray-100">
             <div className="flex justify-between py-1.5">
-              <span className="text-gray-500">Location Zone:</span>
-              <span className="font-bold text-gray-900">{camera.location || 'Main Store'}</span>
+              <span className="text-gray-500">{t('cctv.locationZoneLabel')}</span>
+              <span className="font-bold text-gray-900">{camera.location || t('cctv.mainStore')}</span>
             </div>
             <div className="flex justify-between py-1.5">
-              <span className="text-gray-500">Hardware Type:</span>
-              <span className="font-bold text-gray-900">{camera.type}</span>
+              <span className="text-gray-500">{t('cctv.hardwareTypeLabel')}</span>
+              <span className="font-bold text-gray-900">{typeLabel(camera.type)}</span>
             </div>
             <div className="flex justify-between py-1.5">
-              <span className="text-gray-500">Protocol:</span>
+              <span className="text-gray-500">{t('cctv.protocolLabel')}</span>
               <span className="font-bold text-gray-900">{camera.protocol}</span>
             </div>
             <div className="flex justify-between py-1.5">
-              <span className="text-gray-500">Host / IP:</span>
-              <span className="font-mono text-gray-800">{camera.host || 'N/A'}:{camera.port || 554}</span>
+              <span className="text-gray-500">{t('cctv.hostIpLabel')}</span>
+              <span className="font-mono text-gray-800">{camera.host || t('cctv.notAvailable')}:{camera.port || 554}</span>
             </div>
             <div className="flex justify-between py-1.5">
-              <span className="text-gray-500">Last Seen Online:</span>
+              <span className="text-gray-500">{t('cctv.lastSeenOnline')}</span>
               <span className="text-gray-700">
-                {camera.lastOnlineAt ? new Date(camera.lastOnlineAt).toLocaleString() : 'Never'}
+                {camera.lastOnlineAt ? new Date(camera.lastOnlineAt).toLocaleString(locale) : t('cctv.never')}
               </span>
             </div>
           </div>
@@ -212,11 +267,11 @@ export function CameraDetailView({
         {/* Recent Health History Log */}
         <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-4">
           <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
-            Recent Health Checks
+            {t('cctv.recentHealthChecks')}
           </h2>
 
           {healthHistory.length === 0 ? (
-            <p className="text-xs text-gray-400 py-4 text-center">No health checks logged yet.</p>
+            <p className="text-xs text-gray-400 py-4 text-center">{t('cctv.noHealthChecks')}</p>
           ) : (
             <div className="space-y-2.5">
               {healthHistory.map((h) => (
@@ -230,11 +285,11 @@ export function CameraDetailView({
                         h.status === 'ONLINE' ? 'bg-emerald-500' : 'bg-red-500'
                       }`}
                     ></span>
-                    <span className="font-bold text-gray-800">{h.status}</span>
+                    <span className="font-bold text-gray-800">{statusLabel(h.status)}</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-500 text-[11px]">
                     {h.responseTimeMs && <span>{h.responseTimeMs}ms</span>}
-                    <span>{new Date(h.checkedAt).toLocaleTimeString()}</span>
+                    <span>{new Date(h.checkedAt).toLocaleTimeString(locale)}</span>
                   </div>
                 </div>
               ))}

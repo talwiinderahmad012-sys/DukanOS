@@ -1,0 +1,18 @@
+{
+  "restrictedTitle": "Platform Admin Access Restricted",
+  "restrictedDescription": "This section is restricted to platform administrators and store owners.",
+  "returnToDashboard": "Return to Dashboard",
+  "chip": "Platform Governance",
+  "title": "Platform Plans & Entitlements",
+  "subtitle": "Standard tier definitions, feature flags, and default quota configuration.",
+  "myStorePlan": "My Store Plan",
+  "codeLabel": "CODE: {code}",
+  "defaultDescription": "Standard plan tier.",
+  "subscriptionsLabel": "Active Store Subscriptions:",
+  "storesCount": "{count} stores",
+  "featureFlagsTitle": "Feature Flags ({count})",
+  "moreFeatures": "+{count} more",
+  "quotaLimitsTitle": "Quota Limits",
+  "quotaNotePrefix": "All standard limits set to",
+  "unlimitedToken": "-1 (Unlimited)"
+}

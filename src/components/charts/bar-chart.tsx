@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export type BarChartItem = {
   label: string;
@@ -15,7 +16,7 @@ export function SimpleBarChart({
   label1 = 'Revenue',
   label2 = 'Gross Profit',
   label3 = 'Expenses',
-  color1 = '#2563eb', // blue
+  color1 = '#aff33e', // blue
   color2 = '#16a34a', // green
   color3 = '#dc2626', // red
 }: {
@@ -28,10 +29,35 @@ export function SimpleBarChart({
   color2?: string;
   color3?: string;
 }) {
+  const { t, formatCurrency } = useTranslation();
+
+  const resolveSeriesLabel = (value: string): string => {
+    switch (value) {
+      case 'Revenue':
+        return t('charts.revenue');
+      case 'Gross Profit':
+        return t('charts.grossProfit');
+      case 'Profit':
+        return t('charts.profit');
+      case 'Expenses':
+        return t('charts.expenses');
+      case 'Sales Revenue':
+        return t('charts.salesRevenue');
+      case 'Order Volume (x100)':
+        return t('charts.orderVolume100');
+      default:
+        return value;
+    }
+  };
+
+  const seriesLabel1 = resolveSeriesLabel(label1);
+  const seriesLabel2 = resolveSeriesLabel(label2);
+  const seriesLabel3 = resolveSeriesLabel(label3);
+
   if (!data || data.length === 0) {
     return (
       <div className="h-48 flex items-center justify-center text-gray-400 text-xs">
-        No chart data available for selected period.
+        {t('charts.noChartData')}
       </div>
     );
   }
@@ -48,18 +74,18 @@ export function SimpleBarChart({
       <div className="flex flex-wrap items-center gap-4 text-xs">
         <div className="flex items-center gap-1.5 font-medium text-gray-700">
           <span className="w-3 h-3 rounded-xs" style={{ backgroundColor: color1 }} />
-          <span>{label1}</span>
+          <span>{seriesLabel1}</span>
         </div>
         {data.some((d) => d.value2 !== undefined) && (
           <div className="flex items-center gap-1.5 font-medium text-gray-700">
             <span className="w-3 h-3 rounded-xs" style={{ backgroundColor: color2 }} />
-            <span>{label2}</span>
+            <span>{seriesLabel2}</span>
           </div>
         )}
         {data.some((d) => d.value3 !== undefined) && (
           <div className="flex items-center gap-1.5 font-medium text-gray-700">
             <span className="w-3 h-3 rounded-xs" style={{ backgroundColor: color3 }} />
-            <span>{label3}</span>
+            <span>{seriesLabel3}</span>
           </div>
         )}
       </div>
@@ -90,15 +116,15 @@ export function SimpleBarChart({
                 <span className="font-bold border-b border-gray-700 pb-0.5 mb-1">
                   {item.label}
                 </span>
-                <span>{label1}: Rs. {item.value1.toLocaleString()}</span>
+                <span>{seriesLabel1}: {formatCurrency(item.value1)}</span>
                 {item.value2 !== undefined && (
                   <span className="text-green-400">
-                    {label2}: Rs. {item.value2.toLocaleString()}
+                    {seriesLabel2}: {formatCurrency(item.value2)}
                   </span>
                 )}
                 {item.value3 !== undefined && (
                   <span className="text-red-400">
-                    {label3}: Rs. {item.value3.toLocaleString()}
+                    {seriesLabel3}: {formatCurrency(item.value3)}
                   </span>
                 )}
               </div>

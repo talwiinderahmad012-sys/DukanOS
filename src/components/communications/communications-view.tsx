@@ -27,6 +27,56 @@ import {
 } from '@/app/actions/communication.actions';
 import { NewConversationModal } from './new-conversation-modal';
 import { NewAnnouncementModal } from './new-announcement-modal';
+import { useTranslation } from '@/lib/i18n/language-context';
+
+export type ConversationData = {
+  id: string;
+  type: string;
+  title: string | null;
+  updatedAt: string | Date;
+  otherUser: {
+    id: string;
+    name: string;
+    email: string | null;
+    position: string | null;
+    employeeCode: string | null;
+  } | null;
+  lastMessage: {
+    content: string;
+    createdAt: string | Date;
+    senderId: string;
+  } | null;
+  unreadCount: number;
+};
+
+export type AnnouncementData = {
+  id: string;
+  title: string;
+  message: string;
+  priority: string;
+  targetRole: string;
+  expiresAt: string | null;
+  isArchived: boolean;
+  createdAt: string | Date;
+  authorName: string;
+  branchName: string | null;
+  isRead: boolean;
+  readAt: string | null;
+};
+
+const PRIORITY_LABEL_KEYS: Record<string, string> = {
+  NORMAL: 'communications.priorities.NORMAL',
+  IMPORTANT: 'communications.priorities.IMPORTANT',
+  URGENT: 'communications.priorities.URGENT',
+};
+
+const ROLE_LABEL_KEYS: Record<string, string> = {
+  ALL: 'communications.roles.ALL',
+  OWNER: 'communications.roles.OWNER',
+  MANAGER: 'communications.roles.MANAGER',
+  CASHIER: 'communications.roles.CASHIER',
+  EMPLOYEE: 'communications.roles.EMPLOYEE',
+};
 
 export function CommunicationsView({
   businessId,
@@ -38,12 +88,14 @@ export function CommunicationsView({
   businessId: string;
   currentUserId: string;
   userRole: string;
-  initialConversations: any[];
-  initialAnnouncements: any[];
+  initialConversations: ConversationData[];
+  initialAnnouncements: AnnouncementData[];
 }) {
+  const { t, language } = useTranslation();
+  const locale = language === 'UR' ? 'ur-PK' : 'en-PK';
   const [activeTab, setActiveTab] = useState<'messages' | 'announcements'>('messages');
-  const [conversations, setConversations] = useState<any[]>(initialConversations);
-  const [announcements, setAnnouncements] = useState<any[]>(initialAnnouncements);
+  const [conversations, setConversations] = useState<ConversationData[]>(initialConversations);
+  const [announcements, setAnnouncements] = useState<AnnouncementData[]>(initialAnnouncements);
 
   const [activeConversationId, setActiveConversationId] = useState<string | null>(
     initialConversations[0]?.id || null
@@ -60,6 +112,10 @@ export function CommunicationsView({
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isOwnerOrManager = userRole === 'OWNER' || userRole === 'MANAGER';
+
+  const priorityLabel = (priority: string) =>
+    t(PRIORITY_LABEL_KEYS[priority] ?? 'common.info');
+  const roleLabel = (role: string) => t(ROLE_LABEL_KEYS[role] ?? 'common.other');
 
   // Load messages when activeConversationId changes
   useEffect(() => {
@@ -100,7 +156,7 @@ export function CommunicationsView({
     const optimisticMsg = {
       id: tempId,
       senderId: currentUserId,
-      senderName: 'You',
+      senderName: t('communications.you'),
       content,
       createdAt: new Date().toISOString(),
       isMe: true,
@@ -155,9 +211,9 @@ export function CommunicationsView({
       {/* Top Header & Tab Toggle */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Internal Communications</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('communications.pageTitle')}</h1>
           <p className="text-gray-500 text-sm mt-0.5">
-            Internal direct messaging, team discussions, and store announcements.
+            {t('communications.pageSubtitle')}
           </p>
         </div>
 
@@ -172,9 +228,9 @@ export function CommunicationsView({
             }`}
           >
             <MessageSquare className="w-3.5 h-3.5" />
-            <span>Messages</span>
+            <span>{t('communications.tabMessages')}</span>
             {conversations.some((c) => c.unreadCount > 0) && (
-              <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+              <span className="w-2 h-2 rounded-full bg-primary"></span>
             )}
           </button>
 
@@ -187,7 +243,7 @@ export function CommunicationsView({
             }`}
           >
             <Megaphone className="w-3.5 h-3.5" />
-            <span>Announcements ({announcements.length})</span>
+            <span>{t('communications.tabAnnouncements', { count: announcements.length })}</span>
             {announcements.some((a) => !a.isRead) && (
               <span className="w-2 h-2 rounded-full bg-amber-500"></span>
             )}
@@ -199,26 +255,26 @@ export function CommunicationsView({
       {activeTab === 'messages' && (
         <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden grid grid-cols-1 md:grid-cols-12 min-h-[580px] max-h-[700px]">
           {/* Left: Conversations Sidebar */}
-          <div className={`md:col-span-4 border-r border-gray-200 flex flex-col h-full ${activeConversationId && 'hidden md:flex'}`}>
+          <div className={`md:col-span-4 border-e border-gray-200 flex flex-col h-full ${activeConversationId && 'hidden md:flex'}`}>
             <div className="p-4 border-b border-gray-100 space-y-3">
               <div className="flex justify-between items-center">
-                <span className="font-bold text-gray-900 text-xs uppercase tracking-wider">Chats</span>
+                <span className="font-bold text-gray-900 text-xs uppercase tracking-wider">{t('communications.chats')}</span>
                 <button
                   onClick={() => setShowNewChatModal(true)}
-                  className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+                  className="px-2.5 py-1 bg-primary hover:bg-primary-hover text-on-primary rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
                 >
-                  <Plus className="w-3.5 h-3.5" /> New
+                  <Plus className="w-3.5 h-3.5" /> {t('communications.new')}
                 </button>
               </div>
 
               <div className="relative">
-                <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-3.5 h-3.5 text-gray-400 absolute start-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Search chats..."
+                  placeholder={t('communications.searchChats')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full ps-8 pe-3 py-1.5 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
             </div>
@@ -227,7 +283,7 @@ export function CommunicationsView({
             <div className="flex-1 overflow-y-auto divide-y divide-gray-100">
               {filteredConversations.length === 0 ? (
                 <div className="p-8 text-center text-xs text-gray-400">
-                  No conversations found. Start a new chat!
+                  {t('communications.noConversations')}
                 </div>
               ) : (
                 filteredConversations.map((conv) => {
@@ -236,18 +292,18 @@ export function CommunicationsView({
                     <button
                       key={conv.id}
                       onClick={() => setActiveConversationId(conv.id)}
-                      className={`w-full p-4 text-left flex items-start justify-between transition-colors ${
-                        isSelected ? 'bg-blue-50/70 border-l-4 border-blue-600' : 'hover:bg-gray-50'
+                      className={`w-full p-4 text-start flex items-start justify-between transition-colors ${
+                        isSelected ? 'bg-primary-soft/70 border-s-4 border-primary' : 'hover:bg-gray-50'
                       }`}
                     >
                       <div className="flex items-start gap-3 min-w-0">
-                        <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-blue-100 text-gray-950 font-bold text-xs flex items-center justify-center shrink-0">
                           {conv.otherUser?.name.slice(0, 2).toUpperCase() || 'U'}
                         </div>
                         <div className="min-w-0 space-y-0.5">
                           <div className="flex items-center gap-1.5">
                             <span className="font-bold text-xs text-gray-900 truncate">
-                              {conv.otherUser?.name || 'Store Colleague'}
+                              {conv.otherUser?.name || t('communications.storeColleague')}
                             </span>
                             {conv.otherUser?.position && (
                               <span className="text-[10px] text-gray-400 truncate">
@@ -256,22 +312,22 @@ export function CommunicationsView({
                             )}
                           </div>
                           <p className="text-xs text-gray-500 truncate max-w-[180px]">
-                            {conv.lastMessage ? conv.lastMessage.content : 'No messages yet'}
+                            {conv.lastMessage ? conv.lastMessage.content : t('communications.noMessagesYet')}
                           </p>
                         </div>
                       </div>
 
-                      <div className="text-right shrink-0 space-y-1">
+                      <div className="text-end shrink-0 space-y-1">
                         {conv.lastMessage && (
                           <span className="text-[10px] text-gray-400 block font-mono">
-                            {new Date(conv.lastMessage.createdAt).toLocaleTimeString([], {
+                            {new Date(conv.lastMessage.createdAt).toLocaleTimeString(locale, {
                               hour: '2-digit',
                               minute: '2-digit',
                             })}
                           </span>
                         )}
                         {conv.unreadCount > 0 && (
-                          <span className="inline-flex items-center justify-center px-1.5 py-0.5 bg-blue-600 text-white rounded-full text-[10px] font-bold">
+                          <span className="inline-flex items-center justify-center px-1.5 py-0.5 bg-primary text-on-primary rounded-full text-[10px] font-bold">
                             {conv.unreadCount}
                           </span>
                         )}
@@ -294,19 +350,19 @@ export function CommunicationsView({
                       onClick={() => setActiveConversationId(null)}
                       className="md:hidden p-1 text-gray-500 hover:text-gray-900"
                     >
-                      <ArrowLeft className="w-5 h-5" />
+                      <ArrowLeft className="w-5 h-5 rtl-flip" />
                     </button>
 
-                    <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-xl bg-blue-100 text-gray-950 font-bold text-xs flex items-center justify-center">
                       {activeConversation.otherUser?.name.slice(0, 2).toUpperCase() || 'U'}
                     </div>
 
                     <div>
                       <h3 className="font-bold text-gray-900 text-xs">
-                        {activeConversation.otherUser?.name || 'Store Colleague'}
+                        {activeConversation.otherUser?.name || t('communications.storeColleague')}
                       </h3>
                       <span className="text-[11px] text-gray-400">
-                        {activeConversation.otherUser?.position || 'Internal Member'}
+                        {activeConversation.otherUser?.position || t('communications.internalMember')}
                       </span>
                     </div>
                   </div>
@@ -316,11 +372,11 @@ export function CommunicationsView({
                 <div className="flex-1 p-4 overflow-y-auto space-y-3">
                   {loadingMessages ? (
                     <div className="h-full flex items-center justify-center text-xs text-gray-400">
-                      Loading conversation...
+                      {t('communications.loadingConversation')}
                     </div>
                   ) : messages.length === 0 ? (
                     <div className="h-full flex items-center justify-center text-xs text-gray-400">
-                      Send a message to start this internal conversation.
+                      {t('communications.threadEmpty')}
                     </div>
                   ) : (
                     messages.map((m) => (
@@ -331,22 +387,22 @@ export function CommunicationsView({
                         <div
                           className={`max-w-sm sm:max-w-md p-3 rounded-2xl text-xs space-y-1 leading-relaxed ${
                             m.isMe
-                              ? 'bg-blue-600 text-white rounded-br-none shadow-xs'
-                              : 'bg-white text-gray-800 border border-gray-200 rounded-bl-none shadow-xs'
+                              ? 'bg-primary text-on-primary rounded-ee-none shadow-xs'
+                              : 'bg-white text-gray-800 border border-gray-200 rounded-es-none shadow-xs'
                           }`}
                         >
                           {!m.isMe && (
-                            <span className="block font-bold text-[10px] text-blue-600 mb-0.5">
+                            <span className="block font-bold text-[10px] text-gray-900 mb-0.5">
                               {m.senderName}
                             </span>
                           )}
                           <p className="whitespace-pre-wrap">{m.content}</p>
                           <span
-                            className={`block text-[9px] text-right font-mono ${
+                            className={`block text-[9px] text-end font-mono ${
                               m.isMe ? 'text-blue-200' : 'text-gray-400'
                             }`}
                           >
-                            {new Date(m.createdAt).toLocaleTimeString([], {
+                            {new Date(m.createdAt).toLocaleTimeString(locale, {
                               hour: '2-digit',
                               minute: '2-digit',
                             })}
@@ -366,24 +422,24 @@ export function CommunicationsView({
                   <input
                     type="text"
                     required
-                    placeholder="Type an internal message..."
+                    placeholder={t('communications.composerPlaceholder')}
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
-                    className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   <button
                     type="submit"
                     disabled={sending || !messageInput.trim()}
-                    className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1 shadow-xs transition-colors disabled:opacity-50"
+                    className="px-4 py-2.5 bg-primary hover:bg-primary-hover text-on-primary rounded-xl text-xs font-semibold flex items-center gap-1 shadow-xs transition-colors disabled:opacity-50"
                   >
                     <Send className="w-3.5 h-3.5" />
-                    <span>Send</span>
+                    <span>{t('common.send')}</span>
                   </button>
                 </form>
               </>
             ) : (
               <div className="h-full flex items-center justify-center p-8 text-center text-xs text-gray-400">
-                Select a conversation or start a new one to begin messaging.
+                {t('communications.selectConversation')}
               </div>
             )}
           </div>
@@ -394,13 +450,13 @@ export function CommunicationsView({
       {activeTab === 'announcements' && (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <span className="text-xs font-bold text-gray-500 uppercase">Store Broadcasts</span>
+            <span className="text-xs font-bold text-gray-500 uppercase">{t('communications.storeBroadcasts')}</span>
             {isOwnerOrManager && (
               <button
                 onClick={() => setShowNewAnnouncementModal(true)}
-                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
+                className="px-3 py-1.5 bg-primary hover:bg-primary-hover text-on-primary rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
               >
-                <Plus className="w-3.5 h-3.5" /> Publish Announcement
+                <Plus className="w-3.5 h-3.5" /> {t('communications.publishAnnouncement')}
               </button>
             )}
           </div>
@@ -410,9 +466,9 @@ export function CommunicationsView({
               <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto">
                 <Megaphone className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-gray-900">No active announcements</h3>
+              <h3 className="text-base font-bold text-gray-900">{t('communications.noAnnouncementsTitle')}</h3>
               <p className="text-xs text-gray-500 max-w-sm mx-auto">
-                Use announcements to share store operating updates, policy changes, or urgent notices with staff.
+                {t('communications.noAnnouncementsDescription')}
               </p>
             </div>
           ) : (
@@ -440,21 +496,22 @@ export function CommunicationsView({
                               ? 'bg-red-100 text-red-800'
                               : isImportant
                               ? 'bg-amber-100 text-amber-800'
-                              : 'bg-blue-50 text-blue-800'
+                              : 'bg-primary-soft text-gray-900'
                           }`}
                         >
-                          {a.priority}
+                          {priorityLabel(a.priority)}
                         </span>
 
                         <div className="flex items-center gap-2">
                           <span className="text-[11px] text-gray-400">
-                            Audience: <strong className="text-gray-700">{a.targetRole}</strong>
+                            {t('communications.audienceLabel')}{' '}
+                            <strong className="text-gray-700">{roleLabel(a.targetRole)}</strong>
                           </span>
                           {isOwnerOrManager && (
                             <button
                               onClick={() => handleArchiveAnnouncement(a.id)}
                               className="text-gray-400 hover:text-red-600 p-1"
-                              title="Archive Announcement"
+                              title={t('communications.archiveAnnouncement')}
                             >
                               <Archive className="w-3.5 h-3.5" />
                             </button>
@@ -470,19 +527,22 @@ export function CommunicationsView({
 
                     <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
                       <div className="text-[11px] text-gray-400">
-                        <span>By {a.authorName} • {new Date(a.createdAt).toLocaleDateString()}</span>
+                        <span>
+                          {t('communications.byAuthor', { name: a.authorName })} •{' '}
+                          {new Date(a.createdAt).toLocaleDateString(locale)}
+                        </span>
                       </div>
 
                       {a.isRead ? (
                         <span className="text-green-600 flex items-center gap-1 font-semibold text-[11px]">
-                          <CheckCheck className="w-3.5 h-3.5" /> Acknowledged
+                          <CheckCheck className="w-3.5 h-3.5" /> {t('communications.acknowledged')}
                         </span>
                       ) : (
                         <button
                           onClick={() => handleAcknowledgeAnnouncement(a.id)}
                           className="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg text-[11px] transition-colors"
                         >
-                          Mark as Read
+                          {t('communications.markAsRead')}
                         </button>
                       )}
                     </div>

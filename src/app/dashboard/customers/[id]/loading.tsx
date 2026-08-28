@@ -1,8 +1,13 @@
+'use client';
+
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export default function CustomerDetailLoading() {
+  const { t } = useTranslation();
+
   return (
-    <div className="mx-auto max-w-6xl space-y-6" aria-busy="true" aria-label="Loading customer">
+    <div className="mx-auto max-w-6xl space-y-6" aria-busy="true" aria-label={t('customers.loadingCustomer')}>
       <div className="flex items-center gap-2">
         <Skeleton className="h-4 w-28" />
         <Skeleton className="h-4 w-4" />

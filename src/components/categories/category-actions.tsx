@@ -8,6 +8,7 @@ import { Modal } from '@/components/ui/modal';
 import { Button, IconButton, type ButtonSize } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
 import { CategoryFormDialog, type CategoryEditData } from './category-form-dialog';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export function CategoryActions({
   businessId,
@@ -23,6 +24,7 @@ export function CategoryActions({
   size?: ButtonSize;
 }) {
   const router = useRouter();
+  const { t, tm } = useTranslation();
   const [dialog, setDialog] = useState<'none' | 'edit' | 'archive'>('none');
   const [archiving, setArchiving] = useState(false);
   const [archiveError, setArchiveError] = useState('');
@@ -37,14 +39,14 @@ export function CategoryActions({
     try {
       const res = await archiveCategoryAction(businessId, category.id);
       if (!res.success) {
-        setArchiveError(res.message || 'Failed to archive category');
+        setArchiveError(tm(res.message) || t('categories.archiveFailed'));
         setArchiving(false);
         return;
       }
       setDialog('none');
       router.refresh();
     } catch {
-      setArchiveError('An unexpected error occurred.');
+      setArchiveError(t('categories.unexpectedError'));
       setArchiving(false);
     }
   }
@@ -53,8 +55,8 @@ export function CategoryActions({
     <div className="flex items-center gap-1">
       <IconButton
         size={size}
-        aria-label={`Edit ${category.name}`}
-        title="Edit category"
+        aria-label={t('categories.editAria', { name: category.name })}
+        title={t('categories.editTitle')}
         onClick={() => setDialog('edit')}
       >
         <Pencil className={iconSize} aria-hidden="true" />
@@ -62,8 +64,8 @@ export function CategoryActions({
       {category.isActive && (
         <IconButton
           size={size}
-          aria-label={`Archive ${category.name}`}
-          title="Archive category"
+          aria-label={t('categories.archiveAria', { name: category.name })}
+          title={t('categories.archiveTitle')}
           onClick={() => {
             setArchiveError('');
             setDialog('archive');
@@ -83,31 +85,30 @@ export function CategoryActions({
           onClose={() => {
             if (!archiving) setDialog('none');
           }}
-          title="Archive category?"
-          description="Archived categories are hidden from active lists."
+          title={t('categories.archiveConfirm')}
+          description={t('categories.archiveDescription')}
           footer={
             <>
               <Button variant="outline" onClick={() => setDialog('none')} disabled={archiving}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button variant="destructive" onClick={handleArchive} loading={archiving}>
-                Archive
+                {t('categories.archive')}
               </Button>
             </>
           }
         >
           <div className="space-y-3">
             {archiveError && (
-              <Alert tone="danger" title="Could not archive category">
+              <Alert tone="danger" title={t('categories.couldNotArchiveCategory')}>
                 {archiveError}
               </Alert>
             )}
             <p className="text-sm text-gray-600">
-              <span className="font-semibold text-gray-900">“{category.name}”</span> will be marked
-              as archived.{' '}
+              {t('categories.archiveDetailPrefix', { name: category.name })}{' '}
               {productCount > 0
-                ? `${productCount} assigned product${productCount === 1 ? '' : 's'} remain${productCount === 1 ? 's' : ''} in your catalog and keep their records, but the category will no longer appear in active category lists.`
-                : 'No products are assigned to this category, so nothing else is affected.'}
+                ? t('categories.archiveWithProducts', { count: productCount })
+                : t('categories.archiveNoProducts')}
             </p>
           </div>
         </Modal>

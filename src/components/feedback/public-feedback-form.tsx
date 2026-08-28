@@ -2,19 +2,12 @@
 
 import { useState } from 'react';
 import { Star, CheckCircle2, AlertCircle, Heart, Store, Send, UserX } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/language-context';
 import { submitFeedbackAction } from '@/app/actions/feedback.actions';
 
 type CategoryOption = 'SERVICE' | 'PRODUCT' | 'PRICE' | 'STAFF' | 'CLEANLINESS' | 'DELIVERY' | 'OTHER';
 
-const categories: { id: CategoryOption; label: string; desc: string }[] = [
-  { id: 'SERVICE', label: 'Store Service', desc: 'Overall shopping experience' },
-  { id: 'PRODUCT', label: 'Product Quality', desc: 'Item freshness & quality' },
-  { id: 'PRICE', label: 'Pricing & Value', desc: 'Fairness of product prices' },
-  { id: 'STAFF', label: 'Staff Behavior', desc: 'Courtesy and helpfulness' },
-  { id: 'CLEANLINESS', label: 'Store Cleanliness', desc: 'Store environment' },
-  { id: 'DELIVERY', label: 'Order & Packaging', desc: 'Packing & handling' },
-  { id: 'OTHER', label: 'Other Feedback', desc: 'General comments' },
-];
+const categories: CategoryOption[] = ['SERVICE', 'PRODUCT', 'PRICE', 'STAFF', 'CLEANLINESS', 'DELIVERY', 'OTHER'];
 
 export function PublicFeedbackForm({
   token,
@@ -27,6 +20,7 @@ export function PublicFeedbackForm({
   customerName?: string | null;
   invoiceNumber?: string | null;
 }) {
+  const { t, tm, language, toggleLanguage } = useTranslation();
   const [rating, setRating] = useState<number>(5);
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [category, setCategory] = useState<CategoryOption>('SERVICE');
@@ -52,7 +46,7 @@ export function PublicFeedbackForm({
     if (res.success) {
       setSubmitted(true);
     } else {
-      setError(res.message || 'Failed to submit your feedback. Please try again.');
+      setError(res.message ? tm(res.message) : t('feedback.publicForm.submitFailed'));
       setLoading(false);
     }
   };
@@ -65,9 +59,11 @@ export function PublicFeedbackForm({
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-2xl font-black text-gray-900">Thank you! ❤️</h2>
+          <h2 className="text-2xl font-black text-gray-900">{t('feedback.publicForm.thankYouTitle')}</h2>
           <p className="text-gray-600 text-sm leading-relaxed">
-            Your feedback helps <span className="font-bold text-gray-900">{businessName}</span> continually improve our products and service.
+            {t('feedback.publicForm.thankYouDesc').split('{business}')[0]}
+            <span className="font-bold text-gray-900">{businessName}</span>
+            {t('feedback.publicForm.thankYouDesc').split('{business}')[1]}
           </p>
         </div>
 
@@ -80,13 +76,13 @@ export function PublicFeedbackForm({
               }`}
             />
           ))}
-          <span className="text-xs font-bold text-gray-700 ml-2">
-            ({rating} / 5 Stars)
+          <span className="text-xs font-bold text-gray-700 ms-2">
+            {t('feedback.publicForm.yourRating', { rating })}
           </span>
         </div>
 
         <p className="text-xs text-gray-400">
-          We appreciate your patronage and look forward to serving you again!
+          {t('feedback.publicForm.thankYouFooter')}
         </p>
       </div>
     );
@@ -95,14 +91,21 @@ export function PublicFeedbackForm({
   return (
     <div className="bg-white rounded-3xl border border-gray-200/80 shadow-xl overflow-hidden max-w-lg mx-auto">
       {/* Top Banner */}
-      <div className="bg-linear-to-r from-blue-600 to-indigo-600 p-6 sm:p-8 text-white space-y-2 text-center">
+      <div className="relative bg-linear-to-r from-blue-600 to-indigo-600 p-6 sm:p-8 text-white space-y-2 text-center">
+        <button
+          type="button"
+          onClick={toggleLanguage}
+          className="absolute top-3 end-3 px-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 text-[11px] font-semibold backdrop-blur-xs transition-colors"
+        >
+          {language === 'EN' ? <span className="urdu-font">اردو</span> : 'English'}
+        </button>
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold backdrop-blur-xs">
           <Store className="w-3.5 h-3.5" /> {businessName}
         </div>
-        <h1 className="text-2xl font-extrabold tracking-tight">How was your experience?</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight">{t('feedback.publicForm.heading')}</h1>
         <p className="text-blue-100 text-xs max-w-sm mx-auto">
-          {customerName ? `Hi ${customerName}, please` : 'Please'} take 30 seconds to share your honest rating.
-          {invoiceNumber && <span className="block font-mono text-[11px] mt-1 text-white/80">Invoice #{invoiceNumber}</span>}
+          {customerName ? t('feedback.publicForm.introNamed', { name: customerName }) : t('feedback.publicForm.introAnonymous')}
+          {invoiceNumber && <span className="block font-mono text-[11px] mt-1 text-white/80">{t('feedback.publicForm.invoice', { number: invoiceNumber })}</span>}
         </p>
       </div>
 
@@ -118,7 +121,7 @@ export function PublicFeedbackForm({
         {/* 1. Interactive Star Rating */}
         <div className="space-y-2 text-center">
           <label className="text-xs font-bold uppercase tracking-wider text-gray-500 block">
-            Overall Rating
+            {t('feedback.publicForm.overallRating')}
           </label>
           <div className="flex items-center justify-center gap-2 py-2">
             {[1, 2, 3, 4, 5].map((star) => {
@@ -144,35 +147,35 @@ export function PublicFeedbackForm({
             })}
           </div>
           <span className="text-xs font-bold text-gray-700 block">
-            {rating === 5 && '⭐️ Excellent! Loved everything.'}
-            {rating === 4 && '👍 Good experience, mostly satisfied.'}
-            {rating === 3 && '👌 Average, room for improvement.'}
-            {rating === 2 && '👎 Dissatisfied, had issues.'}
-            {rating === 1 && '⚠️ Very poor, need resolution.'}
+            {rating === 5 && t('feedback.publicForm.rating5')}
+            {rating === 4 && t('feedback.publicForm.rating4')}
+            {rating === 3 && t('feedback.publicForm.rating3')}
+            {rating === 2 && t('feedback.publicForm.rating2')}
+            {rating === 1 && t('feedback.publicForm.rating1')}
           </span>
         </div>
 
         {/* 2. Feedback Category */}
         <div className="space-y-2">
           <label className="text-xs font-bold text-gray-700 block">
-            What is this feedback primarily about?
+            {t('feedback.publicForm.categoryQuestion')}
           </label>
           <div className="grid grid-cols-2 gap-2">
-            {categories.map((cat) => (
+            {categories.map((id) => (
               <button
                 type="button"
-                key={cat.id}
-                onClick={() => setCategory(cat.id)}
-                className={`p-3 rounded-2xl border text-left transition-all ${
-                  category === cat.id
-                    ? 'border-blue-600 bg-blue-50/60 ring-2 ring-blue-500'
+                key={id}
+                onClick={() => setCategory(id)}
+                className={`p-3 rounded-2xl border text-start transition-all ${
+                  category === id
+                    ? 'border-primary bg-primary-soft/60 ring-2 ring-primary'
                     : 'border-gray-200 bg-white hover:bg-gray-50'
                 }`}
               >
-                <span className={`text-xs font-bold block ${category === cat.id ? 'text-blue-900' : 'text-gray-800'}`}>
-                  {cat.label}
+                <span className={`text-xs font-bold block ${category === id ? 'text-blue-900' : 'text-gray-800'}`}>
+                  {t(`feedback.enums.categories.${id}.label`)}
                 </span>
-                <span className="text-[11px] text-gray-400 block truncate">{cat.desc}</span>
+                <span className="text-[11px] text-gray-400 block truncate">{t(`feedback.enums.categories.${id}.desc`)}</span>
               </button>
             ))}
           </div>
@@ -181,15 +184,15 @@ export function PublicFeedbackForm({
         {/* 3. Detailed Message */}
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-gray-700 block">
-            Your Comments & Suggestions
+            {t('feedback.publicForm.commentsLabel')}
           </label>
           <textarea
             required
             rows={4}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Tell us what you liked or what we can do better..."
-            className="w-full px-4 py-3 border border-gray-300 rounded-2xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            placeholder={t('feedback.publicForm.commentsPlaceholder')}
+            className="w-full px-4 py-3 border border-gray-300 rounded-2xl text-xs focus:ring-2 focus:ring-primary focus:outline-none"
           />
         </div>
 
@@ -199,11 +202,11 @@ export function PublicFeedbackForm({
             type="checkbox"
             checked={isAnonymous}
             onChange={(e) => setIsAnonymous(e.target.checked)}
-            className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4"
+            className="rounded text-gray-900 focus:ring-primary h-4 w-4"
           />
           <div className="text-xs text-gray-700 select-none">
-            <span className="font-semibold block">Submit as Anonymous</span>
-            <span className="text-[11px] text-gray-400">Do not attach my name or customer identity to this review</span>
+            <span className="font-semibold block">{t('feedback.publicForm.anonymousTitle')}</span>
+            <span className="text-[11px] text-gray-400">{t('feedback.publicForm.anonymousDesc')}</span>
           </div>
         </div>
 
@@ -211,9 +214,9 @@ export function PublicFeedbackForm({
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+          className="w-full py-3.5 bg-primary hover:bg-primary-hover text-on-primary font-bold text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
         >
-          <Send className="w-4 h-4" /> {loading ? 'Submitting...' : 'Submit Review'}
+          <Send className="w-4 h-4" /> {loading ? t('common.submitting') : t('feedback.publicForm.submitReview')}
         </button>
       </form>
     </div>

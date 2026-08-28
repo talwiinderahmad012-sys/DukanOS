@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, Megaphone, AlertCircle, Send, ShieldAlert } from 'lucide-react';
 import { createAnnouncementAction } from '@/app/actions/communication.actions';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 type PriorityOption = 'NORMAL' | 'IMPORTANT' | 'URGENT';
 type TargetOption = 'ALL' | 'OWNER' | 'MANAGER' | 'CASHIER' | 'EMPLOYEE';
@@ -17,6 +18,7 @@ export function NewAnnouncementModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
+  const { t, tm } = useTranslation();
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
@@ -45,7 +47,7 @@ export function NewAnnouncementModal({
       router.refresh();
       onClose();
     } else {
-      setError(res.message || 'Failed to publish announcement.');
+      setError(tm(res.message) || t('communications.publishFailed'));
       setLoading(false);
     }
   };
@@ -55,7 +57,7 @@ export function NewAnnouncementModal({
       <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+          className="absolute top-4 end-4 text-gray-400 hover:text-gray-600"
         >
           <X className="w-5 h-5" />
         </button>
@@ -65,8 +67,8 @@ export function NewAnnouncementModal({
             <Megaphone className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-gray-900 text-base">Broadcast Announcement</h3>
-            <p className="text-xs text-gray-500">Publish business updates to your store team</p>
+            <h3 className="font-bold text-gray-900 text-base">{t('communications.broadcastTitle')}</h3>
+            <p className="text-xs text-gray-500">{t('communications.broadcastSubtitle')}</p>
           </div>
         </div>
 
@@ -79,65 +81,65 @@ export function NewAnnouncementModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">Announcement Title <span className="text-red-500">*</span></label>
+            <label className="text-xs font-semibold text-gray-700">{t('communications.title')} <span className="text-red-500">*</span></label>
             <input
               required
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Adjusted Store Hours for Tomorrow"
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder={t('communications.titlePlaceholder')}
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-primary focus:outline-none"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">Message Body <span className="text-red-500">*</span></label>
+            <label className="text-xs font-semibold text-gray-700">{t('communications.messageBody')} <span className="text-red-500">*</span></label>
             <textarea
               required
               rows={4}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Write the full announcement details here..."
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder={t('communications.messageBodyPlaceholder')}
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-primary focus:outline-none"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700">Priority</label>
+              <label className="text-xs font-semibold text-gray-700">{t('communications.priority')}</label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as PriorityOption)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
               >
-                <option value="NORMAL">Normal (Info)</option>
-                <option value="IMPORTANT">Important (Warning)</option>
-                <option value="URGENT">Urgent (High Alert)</option>
+                <option value="NORMAL">{t('communications.priorityNormal')}</option>
+                <option value="IMPORTANT">{t('communications.priorityImportant')}</option>
+                <option value="URGENT">{t('communications.priorityUrgent')}</option>
               </select>
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700">Target Audience</label>
+              <label className="text-xs font-semibold text-gray-700">{t('communications.targetAudience')}</label>
               <select
                 value={targetRole}
                 onChange={(e) => setTargetRole(e.target.value as TargetOption)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
               >
-                <option value="ALL">Everyone in Store</option>
-                <option value="CASHIER">Cashiers Only</option>
-                <option value="EMPLOYEE">Employees Only</option>
-                <option value="MANAGER">Managers Only</option>
+                <option value="ALL">{t('communications.audienceAll')}</option>
+                <option value="CASHIER">{t('communications.audienceCashier')}</option>
+                <option value="EMPLOYEE">{t('communications.audienceEmployee')}</option>
+                <option value="MANAGER">{t('communications.audienceManager')}</option>
               </select>
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">Auto-Expiry Date (Optional)</label>
+            <label className="text-xs font-semibold text-gray-700">{t('communications.expiryLabel')}</label>
             <input
               type="date"
               value={expiresAt}
               onChange={(e) => setExpiresAt(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-primary focus:outline-none"
             />
           </div>
 
@@ -147,15 +149,15 @@ export function NewAnnouncementModal({
               onClick={onClose}
               className="px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-xs transition-colors flex items-center gap-1.5 disabled:opacity-50"
+              className="px-4 py-2 text-xs font-semibold bg-primary hover:bg-primary-hover text-on-primary rounded-xl shadow-xs transition-colors flex items-center gap-1.5 disabled:opacity-50"
             >
               <Send className="w-3.5 h-3.5" />
-              {loading ? 'Publishing...' : 'Publish Announcement'}
+              {loading ? t('communications.publishing') : t('communications.publishAnnouncement')}
             </button>
           </div>
         </form>

@@ -1,0 +1,16 @@
+{
+  "backToDashboard": "Back to Dashboard",
+  "title": "What's New in DukaanOS",
+  "subtitle": "Stay updated with new features, operational enhancements, and system releases.",
+  "releaseVersion": "v1.0.0 — Official Public Release",
+  "releaseDate": "August 22, 2026",
+  "majorReleaseBadge": "Major Release",
+  "h1Title": "All-in-One Retail Management Platform",
+  "h1Desc": "Complete point-of-sale checkout, customer Udhaar khata ledgers, inventory tracking, wholesale procurement, and real-time profit analytics.",
+  "h2Title": "Actionable Business Advisor",
+  "h2Desc": "Automated warnings on low inventory stockouts, dead capital in slow-moving items, and rising customer credit risks.",
+  "h3Title": "Offline POS & Resilient Sync",
+  "h3Desc": "Keep ringing up sales even when store internet disconnects. Transactions synchronize safely when network reconnects.",
+  "h4Title": "Zero-Trust Tenant Security & Audit Logging",
+  "h4Desc": "Strict multi-tenant database isolation, rate-limiting, and immutable security audit logs."
+}

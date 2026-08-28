@@ -1,8 +1,13 @@
+'use client';
+
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export default function NewPurchaseLoading() {
+  const { t } = useTranslation();
+
   return (
-    <div className="mx-auto max-w-5xl space-y-6" aria-busy="true" aria-label="Loading new purchase form">
+    <div className="mx-auto max-w-5xl space-y-6" aria-busy="true" aria-label={t('purchases.loadingNewPurchase')}>
       <Skeleton className="h-4 w-48" />
 
       <div className="space-y-2">

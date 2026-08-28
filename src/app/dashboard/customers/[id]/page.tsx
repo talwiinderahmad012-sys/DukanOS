@@ -2,16 +2,14 @@ import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { prisma } from '@/lib/db/prisma';
 import { getCustomerWithLedger } from '@/services/customers';
 import { getCustomerInsights } from '@/services/customer-insights';
-import {
-  CustomerProfileView,
-  type AuditRow,
-  type CustomerViewData,
-  type InsightsView,
-} from '@/components/customers/customer-profile-view';
-import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { ChevronRight, ArrowLeft } from 'lucide-react';
 import { MembershipRole } from '@/generated/prisma/client';
+import {
+  CustomerDetailClient,
+  type AuditRowData,
+  type CustomerViewDataSerial,
+  type InsightsViewSerial,
+} from './customer-detail-client';
 
 export default async function CustomerDetailPage({
   params,
@@ -42,7 +40,7 @@ export default async function CustomerDetailPage({
   const canManage = role === MembershipRole.OWNER || role === MembershipRole.MANAGER;
   const canPay = canManage || role === MembershipRole.CASHIER;
 
-  const viewData: CustomerViewData = {
+  const viewData: CustomerViewDataSerial = {
     customer: {
       id: customerData.customer.id,
       name: customerData.customer.name,
@@ -52,20 +50,20 @@ export default async function CustomerDetailPage({
       notes: customerData.customer.notes,
       status: customerData.customer.status,
       isActive: customerData.customer.isActive,
-      createdAt: customerData.customer.createdAt,
-      updatedAt: customerData.customer.updatedAt,
+      createdAt: customerData.customer.createdAt.toISOString(),
+      updatedAt: customerData.customer.updatedAt.toISOString(),
     },
     summary: {
       totalSalesCount: customerData.summary.totalSalesCount,
       totalSpend: customerData.summary.totalSpend,
       totalPaid: customerData.summary.totalPaid,
       outstanding: Number(customerData.summary.outstanding),
-      lastPurchaseDate: customerData.summary.lastPurchaseDate,
+      lastPurchaseDate: customerData.summary.lastPurchaseDate?.toISOString() ?? null,
     },
     sales: customerData.sales.map((sale) => ({
       id: sale.id,
       invoiceNumber: sale.invoiceNumber,
-      saleDate: sale.saleDate,
+      saleDate: sale.saleDate.toISOString(),
       status: sale.status,
       total: Number(sale.total),
       paidAmount: Number(sale.paidAmount),
@@ -73,14 +71,14 @@ export default async function CustomerDetailPage({
     })),
     payments: customerData.payments.map((payment) => ({
       id: payment.id,
-      date: payment.date,
+      date: payment.date.toISOString(),
       amount: Number(payment.amount),
       method: payment.method,
       notes: payment.notes,
     })),
     ledger: customerData.ledger.map((entry) => ({
       id: entry.id,
-      date: entry.date,
+      date: entry.date.toISOString(),
       type: entry.type,
       description: entry.description,
       debit: Number(entry.debit),
@@ -95,11 +93,11 @@ export default async function CustomerDetailPage({
       status: feedback.status,
       message: feedback.message,
       resolutionNote: feedback.resolutionNote,
-      createdAt: feedback.createdAt,
+      createdAt: feedback.createdAt.toISOString(),
     })),
   };
 
-  const insightsView: InsightsView = {
+  const insightsView: InsightsViewSerial = {
     totalPurchases: insights.totalPurchases,
     totalSpent: insights.totalSpent,
     averageOrderValue: Number(insights.averageOrderValue),
@@ -117,7 +115,7 @@ export default async function CustomerDetailPage({
     averageRating: insights.averageRating,
   };
 
-  const auditRows: AuditRow[] = auditLogs.map((log) => ({
+  const auditRows: AuditRowData[] = auditLogs.map((log) => ({
     id: log.id,
     action: log.action,
     metadata:
@@ -126,39 +124,18 @@ export default async function CustomerDetailPage({
         : log.metadata
           ? JSON.stringify(log.metadata)
           : null,
-    createdAt: log.createdAt,
+    createdAt: log.createdAt.toISOString(),
   }));
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <nav aria-label="Breadcrumb">
-        <ol className="flex items-center gap-2 text-sm text-muted">
-          <li>
-            <Link
-              href="/dashboard/customers"
-              className="flex items-center gap-1 font-medium hover:text-primary"
-            >
-              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              Customers
-            </Link>
-          </li>
-          <li aria-hidden="true">
-            <ChevronRight className="h-4 w-4 text-gray-400" />
-          </li>
-          <li aria-current="page">
-            <span className="font-semibold text-gray-900">{customerData.customer.name}</span>
-          </li>
-        </ol>
-      </nav>
-
-      <CustomerProfileView
-        businessId={business.id}
-        data={viewData}
-        insights={insightsView}
-        auditLogs={auditRows}
-        canManage={canManage}
-        canPay={canPay}
-      />
-    </div>
+    <CustomerDetailClient
+      businessId={business.id}
+      customerName={customerData.customer.name}
+      data={viewData}
+      insights={insightsView}
+      auditLogs={auditRows}
+      canManage={canManage}
+      canPay={canPay}
+    />
   );
 }

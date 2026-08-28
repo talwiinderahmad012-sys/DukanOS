@@ -15,6 +15,7 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 interface OnboardingChecklistProps {
   businessName: string;
@@ -31,47 +32,48 @@ export function OnboardingChecklist({
   hasPurchases,
   hasSales,
 }: OnboardingChecklistProps) {
+  const { t } = useTranslation();
   const [isDismissed, setIsDismissed] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const steps = [
     {
       id: 'business',
-      title: 'Create your business profile',
+      title: t('onboarding.stepBusiness'),
       done: true,
       href: '/dashboard/settings/business',
-      actionLabel: 'Manage',
+      actionLabel: t('onboarding.stepBusinessAction'),
     },
     {
       id: 'product',
-      title: 'Add your first product to inventory',
+      title: t('onboarding.stepProduct'),
       done: hasProducts,
       href: '/dashboard/products/new',
-      actionLabel: 'Add Product',
+      actionLabel: t('onboarding.stepProductAction'),
       icon: Package,
     },
     {
       id: 'customer',
-      title: 'Add your first regular customer',
+      title: t('onboarding.stepCustomer'),
       done: hasCustomers,
       href: '/dashboard/customers',
-      actionLabel: 'Add Customer',
+      actionLabel: t('onboarding.stepCustomerAction'),
       icon: Users,
     },
     {
       id: 'purchase',
-      title: 'Record your first stock purchase',
+      title: t('onboarding.stepPurchase'),
       done: hasPurchases,
       href: '/dashboard/purchases/new',
-      actionLabel: 'New Purchase',
+      actionLabel: t('onboarding.stepPurchaseAction'),
       icon: ShoppingBag,
     },
     {
       id: 'sale',
-      title: 'Ring up your first POS sale',
+      title: t('onboarding.stepSale'),
       done: hasSales,
       href: '/dashboard/pos',
-      actionLabel: 'Open POS',
+      actionLabel: t('onboarding.stepSaleAction'),
       icon: ShoppingCart,
     },
   ];
@@ -84,20 +86,23 @@ export function OnboardingChecklist({
 
   return (
     <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-blue-50/90 border border-blue-200/80 rounded-2xl p-5 shadow-xs transition-all space-y-4">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+          <div className="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center font-bold text-sm shadow-xs">
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
             <h2 className="text-sm font-bold text-gray-900">
-              {isAllDone ? "🎉 You're ready! Store setup complete." : `Getting Started with ${businessName}`}
+              {isAllDone ? t('onboarding.checklistDoneTitle') : t('onboarding.checklistTitle', { businessName })}
             </h2>
             <p className="text-xs text-gray-500">
               {isAllDone
-                ? 'All essential store setup steps are complete.'
-                : `${completedCount} of ${steps.length} setup tasks completed (${progressPercent}%)`}
+                ? t('onboarding.checklistDoneSubtitle')
+                : t('onboarding.checklistProgress', {
+                    completed: completedCount,
+                    total: steps.length,
+                    percent: progressPercent,
+                  })}
             </p>
           </div>
         </div>
@@ -106,7 +111,7 @@ export function OnboardingChecklist({
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="p-1.5 rounded-lg text-gray-500 hover:bg-blue-100/50 transition-colors"
-            title={isCollapsed ? 'Expand Checklist' : 'Collapse Checklist'}
+            title={isCollapsed ? t('onboarding.expandChecklist') : t('onboarding.collapseChecklist')}
           >
             {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
           </button>
@@ -114,7 +119,7 @@ export function OnboardingChecklist({
             <button
               onClick={() => setIsDismissed(true)}
               className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-blue-100/50 transition-colors"
-              title="Dismiss"
+              title={t('onboarding.dismiss')}
             >
               <X className="w-4 h-4" />
             </button>
@@ -122,17 +127,15 @@ export function OnboardingChecklist({
         </div>
       </div>
 
-      {/* Progress Bar */}
       {!isAllDone && (
         <div className="w-full bg-blue-200/50 rounded-full h-1.5 overflow-hidden">
           <div
-            className="bg-blue-600 h-1.5 rounded-full transition-all duration-500"
+            className="bg-primary h-1.5 rounded-full transition-all duration-500"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
       )}
 
-      {/* Steps List */}
       {!isCollapsed && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-1">
           {steps.map((step) => (
@@ -158,10 +161,10 @@ export function OnboardingChecklist({
               {!step.done && (
                 <Link
                   href={step.href}
-                  className="inline-flex items-center justify-between text-[11px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50/70 hover:bg-blue-100/70 py-1.5 px-2.5 rounded-lg transition-colors"
+                  className="inline-flex items-center justify-between text-[11px] font-semibold text-gray-900 hover:text-gray-950 bg-primary-soft/70 hover:bg-blue-100/70 py-1.5 px-2.5 rounded-lg transition-colors"
                 >
                   <span>{step.actionLabel}</span>
-                  <ArrowRight className="w-3 h-3" />
+                  <ArrowRight className="w-3 h-3 rtl-flip" />
                 </Link>
               )}
             </div>

@@ -27,7 +27,7 @@ export function CustomerActions({
   size?: ButtonSize;
 }) {
   const [editOpen, setEditOpen] = useState(false);
-  const { t, language } = useTranslation();
+  const { t } = useTranslation();
 
   const iconSize = size === 'lg' ? 'h-5 w-5' : 'h-4 w-4';
 
@@ -35,8 +35,8 @@ export function CustomerActions({
     <div className="flex items-center justify-end gap-1">
       <Link
         href={`/dashboard/customers/${customer.id}`}
-        aria-label={language === 'UR' ? `${customer.name} کا کھاتہ دیکھیں` : `View ledger for ${customer.name}`}
-        title={language === 'UR' ? 'پروفائل اور کھاتہ لیجر دیکھیں' : 'View profile & ledger'}
+        aria-label={t('customers.viewLedgerAria', { name: customer.name })}
+        title={t('customers.viewProfileLedger')}
         className={cn(
           buttonClasses('ghost', size),
           size === 'lg' ? 'h-10 w-10 p-0' : 'h-8 w-8 p-0',
@@ -61,8 +61,8 @@ export function CustomerActions({
         <>
           <IconButton
             size={size}
-            aria-label={language === 'UR' ? `${customer.name} میں ترمیم کریں` : `Edit ${customer.name}`}
-            title={t('common.edit', 'Edit customer')}
+            aria-label={t('customers.editAria', { name: customer.name })}
+            title={t('common.edit')}
             onClick={() => setEditOpen(true)}
           >
             <Pencil className={iconSize} aria-hidden="true" />

@@ -7,7 +7,7 @@ export function TableWrap({ className, ...props }: ComponentProps<'div'>) {
 }
 
 export function Table({ className, ...props }: ComponentProps<'table'>) {
-  return <table className={cn('w-full border-collapse text-left text-sm', className)} {...props} />;
+  return <table className={cn('w-full border-collapse text-start text-sm', className)} {...props} />;
 }
 
 export function TableHead({ className, ...props }: ComponentProps<'thead'>) {

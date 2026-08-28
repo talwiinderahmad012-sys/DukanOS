@@ -10,6 +10,7 @@ import { Button, IconButton, buttonClasses, type ButtonSize } from '@/components
 import { Alert } from '@/components/ui/alert';
 import { cn } from '@/components/ui/cn';
 import { ProductEditDialog, type ProductEditData } from './product-edit-dialog';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export type ProductActionData = ProductEditData;
 
@@ -27,6 +28,7 @@ export function ProductActions({
   size?: ButtonSize;
 }) {
   const router = useRouter();
+  const { t, tm } = useTranslation();
   const [dialog, setDialog] = useState<'none' | 'edit' | 'archive'>('none');
   const [archiving, setArchiving] = useState(false);
   const [archiveError, setArchiveError] = useState('');
@@ -37,14 +39,14 @@ export function ProductActions({
     try {
       const res = await archiveProductAction(businessId, product.id);
       if (!res.success) {
-        setArchiveError(res.message || 'Failed to archive product');
+        setArchiveError(tm(res.message) || t('products.archiveFailed'));
         setArchiving(false);
         return;
       }
       setDialog('none');
       router.refresh();
     } catch {
-      setArchiveError('An unexpected error occurred.');
+      setArchiveError(t('products.unexpectedError'));
       setArchiving(false);
     }
   }
@@ -55,8 +57,8 @@ export function ProductActions({
     <div className="flex items-center gap-1">
       <Link
         href={`/dashboard/inventory/${product.id}`}
-        aria-label={`View stock activity for ${product.name}`}
-        title="View stock activity"
+        aria-label={t('products.viewStockActivityFor', { name: product.name })}
+        title={t('products.viewStockActivity')}
         className={cn(
           buttonClasses('ghost', size),
           size === 'lg' ? 'h-10 w-10 p-0' : 'h-8 w-8 p-0',
@@ -69,16 +71,16 @@ export function ProductActions({
         <>
           <IconButton
             size={size}
-            aria-label={`Edit ${product.name}`}
-            title="Edit product"
+            aria-label={t('products.editProductAria', { name: product.name })}
+            title={t('products.editProductTitle')}
             onClick={() => setDialog('edit')}
           >
             <Pencil className={iconSize} aria-hidden="true" />
           </IconButton>
           <IconButton
             size={size}
-            aria-label={`Archive ${product.name}`}
-            title="Archive product"
+            aria-label={t('products.archiveProductAria', { name: product.name })}
+            title={t('products.archiveProductTitle')}
             onClick={() => {
               setArchiveError('');
               setDialog('archive');
@@ -104,8 +106,8 @@ export function ProductActions({
           onClose={() => {
             if (!archiving) setDialog('none');
           }}
-          title="Archive product?"
-          description="Archived products are deactivated and hidden from active lists."
+          title={t('products.archiveProductConfirm')}
+          description={t('products.archiveProductDescription')}
           footer={
             <>
               <Button
@@ -113,24 +115,22 @@ export function ProductActions({
                 onClick={() => setDialog('none')}
                 disabled={archiving}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button variant="destructive" onClick={handleArchive} loading={archiving}>
-                Archive
+                {t('products.archive')}
               </Button>
             </>
           }
         >
           <div className="space-y-3">
             {archiveError && (
-              <Alert tone="danger" title="Could not archive product">
+              <Alert tone="danger" title={t('products.couldNotArchiveProduct')}>
                 {archiveError}
               </Alert>
             )}
             <p className="text-sm text-gray-600">
-              <span className="font-semibold text-gray-900">“{product.name}”</span> will be marked as
-              archived. Its stock level, stock history and sales records are preserved, but it will no
-              longer count as an active product.
+              {t('products.archiveProductDetail', { name: product.name })}
             </p>
           </div>
         </Modal>

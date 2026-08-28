@@ -1,8 +1,13 @@
+'use client';
+
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslation } from '@/lib/i18n/language-context';
 
 export default function POSLoading() {
+  const { t } = useTranslation();
+
   return (
-    <div className="mx-auto max-w-7xl space-y-4" aria-busy="true" aria-label="Loading POS terminal">
+    <div className="mx-auto max-w-7xl space-y-4" aria-busy="true" aria-label={t('pos.loadingAria')}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
           <Skeleton className="h-7 w-40" />

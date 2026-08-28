@@ -1,22 +1,11 @@
 import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { redirect } from 'next/navigation';
-import { CreatePayrollForm } from './create-payroll-form';
+import { CreatePayrollView } from './create-payroll-view';
 
 export default async function NewPayrollPage() {
   const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
 
   if (membership.role !== 'OWNER') redirect('/dashboard');
 
-  return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Create Payroll Period</h1>
-        <p className="text-xs text-gray-500 mt-1">
-          Define a new payroll period to calculate and distribute salaries.
-        </p>
-      </div>
-
-      <CreatePayrollForm businessId={business.id} />
-    </div>
-  );
+  return <CreatePayrollView businessId={business.id} />;
 }
