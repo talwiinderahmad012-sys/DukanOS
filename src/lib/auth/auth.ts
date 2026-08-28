@@ -4,6 +4,16 @@ import { prisma } from "@/lib/db/prisma"
 import bcrypt from "bcryptjs"
 import { enforceRateLimit } from "@/lib/security/rate-limit-action"
 import { recordAuthAudit } from "@/services/audit"
+import { normalizeEmail } from "@/lib/auth/email"
+
+function getClientIp(request: { headers: { get: (key: string) => string | null } } | undefined): string {
+  if (!request?.headers) return 'unknown';
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) return forwarded.split(',')[0].trim();
+  const realIp = request.headers.get('x-real-ip');
+  if (realIp) return realIp.trim();
+  return 'unknown';
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -13,26 +23,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" }
       },
-      async authorize(credentials) {
-        const email = typeof credentials?.email === 'string' ? credentials.email.trim().toLowerCase() : '';
+      async authorize(credentials, request) {
+        const email = typeof credentials?.email === 'string' ? normalizeEmail(credentials.email) : '';
         const password = typeof credentials?.password === 'string' ? credentials.password : '';
 
         if (!email || !password) {
           return null
         }
 
+        const clientIp = getClientIp(request);
+
         try {
-          await enforceRateLimit('LOGIN', email)
-        } catch {
-          // Rate-limited: reject before any authentication/DB work. The audit
-          // event is preserved through recordAuthAudit's structured-log path
-          // (userId null => no database queries on the rejected request).
+          await enforceRateLimit('LOGIN', clientIp)
+        } catch (rateLimitError) {
           await recordAuthAudit({
             userId: null,
             action: 'LOGIN_RATE_LIMITED',
-            metadata: { email },
+            metadata: { email, ip: clientIp },
           })
-          return null
+          const err = rateLimitError instanceof Error ? rateLimitError : new Error('Rate limited');
+          throw err
         }
 
         let user;
@@ -46,9 +56,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             },
           })
         } catch (error) {
-          // Log the actual error safely on the server side
           console.error("[AUTH] Database connection failed during authorize():", error instanceof Error ? error.message : "Unknown error");
-          // Throw a generic error to the client, preventing NextAuth from swallowing it as "CredentialsSignin"
           throw new Error("ServiceUnavailable");
         }
 
@@ -118,6 +126,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.sub = user.id
       }
+
+      if (!token.sub) return token
+
       return token
     }
   }

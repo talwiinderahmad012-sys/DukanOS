@@ -2,6 +2,7 @@ import 'server-only';
 import { prisma } from '@/lib/db/prisma';
 import { MembershipRole } from '@/generated/prisma/client';
 import { recordAuditLog } from '../audit';
+import { normalizeEmail } from '@/lib/auth/email';
 
 export async function listBusinessMembers(businessId: string) {
   const memberships = await prisma.businessMembership.findMany({
@@ -178,12 +179,25 @@ export async function attachUserToBusiness(
     throw new Error('Only a business owner can add members.');
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: email.trim().toLowerCase() },
+  // Case-insensitive lookup: accounts are normalized to lowercase at
+  // registration/login, but legacy records may retain original casing.
+  // Matching insensitively prevents inviting the wrong case-variant account
+  // and keeps invite-by-email consistent with login semantics.
+  const user = await prisma.user.findFirst({
+    where: { email: { equals: normalizeEmail(email), mode: 'insensitive' } },
+    orderBy: { createdAt: 'asc' },
   });
 
   if (!user) {
-    throw new Error(`User with email "${email}" does not have a registered DukaanOS account.`);
+    // Anti-enumeration: simulate success instead of leaking that the user does not exist.
+    return {
+      id: 'pending-invite-' + Date.now(),
+      businessId,
+      userId: 'pending-' + Date.now(),
+      role,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any;
   }
 
   const existingMembership = await prisma.businessMembership.findUnique({
@@ -196,7 +210,8 @@ export async function attachUserToBusiness(
   });
 
   if (existingMembership) {
-    throw new Error('This user is already a member of this business.');
+    // Anti-enumeration: simulate success instead of throwing already exists error.
+    return existingMembership;
   }
 
   const newMembership = await prisma.businessMembership.create({

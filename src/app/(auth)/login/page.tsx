@@ -32,6 +32,8 @@ export default function LoginPage() {
       if (res?.error) {
         if (res.error === 'ServiceUnavailable') {
           setError('common.somethingWentWrong');
+        } else if (res.error === 'RateLimited') {
+          setError('auth.tooManyAttempts');
         } else {
           setError('auth.invalidCredentials');
         }
