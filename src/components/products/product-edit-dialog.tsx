@@ -9,13 +9,19 @@ import { Alert } from '@/components/ui/alert';
 import { Field, Input, Select, Textarea } from '@/components/ui/input';
 import { cn } from '@/components/ui/cn';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { AutoTranslationHint } from '@/components/translation/auto-translation-hint';
+import { getLocalizedValue } from '@/lib/translation/localized';
 
 export type ProductEditData = {
   id: string;
   name: string;
+  nameEn?: string | null;
+  nameUr?: string | null;
   sku: string | null;
   barcode: string | null;
   description: string | null;
+  descriptionEn?: string | null;
+  descriptionUr?: string | null;
   categoryId: string | null;
   unit: string;
   purchasePrice: number;
@@ -32,16 +38,20 @@ export function ProductEditDialog({
 }: {
   businessId: string;
   product: ProductEditData;
-  categories: { id: string; name: string }[];
+  categories: { id: string; name: string; nameEn?: string | null; nameUr?: string | null }[];
   onClose: () => void;
 }) {
   const router = useRouter();
-  const { t, tm, formatCurrency } = useTranslation();
+  const { language, t, tm, formatCurrency } = useTranslation();
   const idPrefix = useId();
   const fieldId = (name: string) => `${idPrefix}-${name}`;
 
+  const localizedName = getLocalizedValue(product, 'name', language) ?? product.name;
+  const localizedDescription = getLocalizedValue(product, 'description', language) ?? '';
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [nameValue, setNameValue] = useState(localizedName);
   const [purchasePrice, setPurchasePrice] = useState(product.purchasePrice);
   const [sellingPrice, setSellingPrice] = useState(product.sellingPrice);
 
@@ -99,7 +109,7 @@ export function ProductEditDialog({
         if (!loading) onClose();
       }}
       title={t('products.editProduct')}
-      description={t('products.editDescription', { name: product.name })}
+      description={t('products.editDescription', { name: localizedName })}
       size="xl"
       footer={
         <>
@@ -127,8 +137,20 @@ export function ProductEditDialog({
             <p className="text-xs text-muted">{t('products.basicInformationDescription')}</p>
           </div>
 
-          <Field label={t('products.productName')} htmlFor={fieldId('name')} required>
-            <Input id={fieldId('name')} name="name" required defaultValue={product.name} maxLength={100} />
+          <Field
+            label={t('products.productName')}
+            htmlFor={fieldId('name')}
+            required
+            hint={<AutoTranslationHint value={nameValue} />}
+          >
+            <Input
+              id={fieldId('name')}
+              name="name"
+              required
+              defaultValue={localizedName}
+              maxLength={100}
+              onChange={(e) => setNameValue(e.target.value)}
+            />
           </Field>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -159,7 +181,7 @@ export function ProductEditDialog({
                 <option value="">{t('products.noCategory')}</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
-                    {category.name}
+                    {getLocalizedValue(category, 'name', language) ?? category.name}
                   </option>
                 ))}
               </Select>
@@ -173,7 +195,7 @@ export function ProductEditDialog({
             <Textarea
               id={fieldId('description')}
               name="description"
-              defaultValue={product.description ?? ''}
+              defaultValue={localizedDescription}
               maxLength={500}
               rows={2}
               placeholder={t('products.descriptionPlaceholder')}

@@ -1,5 +1,6 @@
 import 'server-only';
 import { prisma } from '@/lib/db/prisma';
+import { BILINGUAL_MODEL_FIELDS, resolveBilingualUpdate } from '@/lib/translation/bilingual';
 
 export async function getOrCreateBusinessSettings(businessId: string) {
   let settings = await prisma.businessSetting.findUnique({ where: { businessId } });
@@ -11,9 +12,24 @@ export async function getOrCreateBusinessSettings(businessId: string) {
 }
 
 export async function updateBusinessProfile(businessId: string, data: { name: string; phone?: string; district?: string; province?: string; website?: string; description?: string; logoUrl?: string; type?: any }) {
+  const existing = await prisma.business.findUnique({
+    where: { id: businessId },
+    select: { name: true, description: true, nameEn: true, nameUr: true, descriptionEn: true, descriptionUr: true }
+  });
+
+  // Only human-readable profile content (name/description) is bilingual.
+  // Identifiers such as phone/website/coordinates are never translated.
+  const bilingual = existing
+    ? await resolveBilingualUpdate(
+        existing,
+        { name: data.name, description: data.description },
+        BILINGUAL_MODEL_FIELDS.business
+      )
+    : { data: {}, failedFields: [] };
+
   await prisma.business.update({
     where: { id: businessId },
-    data: { name: data.name, phone: data.phone, district: data.district, province: data.province, website: data.website, description: data.description, type: data.type }
+    data: { name: data.name, phone: data.phone, district: data.district, province: data.province, website: data.website, description: data.description, type: data.type, ...bilingual.data }
   });
 
   if (data.logoUrl !== undefined) {

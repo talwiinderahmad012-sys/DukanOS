@@ -12,7 +12,7 @@ export function NewProductPageClient({
   categories,
 }: {
   businessId: string;
-  categories: { id: string; name: string }[];
+  categories: { id: string; name: string; nameEn?: string | null; nameUr?: string | null }[];
 }) {
   const { t } = useTranslation();
 

@@ -11,6 +11,7 @@ import { Alert } from '@/components/ui/alert';
 import { cn } from '@/components/ui/cn';
 import { ProductEditDialog, type ProductEditData } from './product-edit-dialog';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { getLocalizedValue } from '@/lib/translation/localized';
 
 export type ProductActionData = ProductEditData;
 
@@ -28,10 +29,12 @@ export function ProductActions({
   size?: ButtonSize;
 }) {
   const router = useRouter();
-  const { t, tm } = useTranslation();
+  const { language, t, tm } = useTranslation();
   const [dialog, setDialog] = useState<'none' | 'edit' | 'archive'>('none');
   const [archiving, setArchiving] = useState(false);
   const [archiveError, setArchiveError] = useState('');
+
+  const displayName = getLocalizedValue(product, 'name', language) ?? product.name;
 
   async function handleArchive() {
     setArchiving(true);
@@ -57,7 +60,7 @@ export function ProductActions({
     <div className="flex items-center gap-1">
       <Link
         href={`/dashboard/inventory/${product.id}`}
-        aria-label={t('products.viewStockActivityFor', { name: product.name })}
+        aria-label={t('products.viewStockActivityFor', { name: displayName })}
         title={t('products.viewStockActivity')}
         className={cn(
           buttonClasses('ghost', size),
@@ -71,7 +74,7 @@ export function ProductActions({
         <>
           <IconButton
             size={size}
-            aria-label={t('products.editProductAria', { name: product.name })}
+            aria-label={t('products.editProductAria', { name: displayName })}
             title={t('products.editProductTitle')}
             onClick={() => setDialog('edit')}
           >
@@ -79,7 +82,7 @@ export function ProductActions({
           </IconButton>
           <IconButton
             size={size}
-            aria-label={t('products.archiveProductAria', { name: product.name })}
+            aria-label={t('products.archiveProductAria', { name: displayName })}
             title={t('products.archiveProductTitle')}
             onClick={() => {
               setArchiveError('');
@@ -130,7 +133,7 @@ export function ProductActions({
               </Alert>
             )}
             <p className="text-sm text-gray-600">
-              {t('products.archiveProductDetail', { name: product.name })}
+              {t('products.archiveProductDetail', { name: displayName })}
             </p>
           </div>
         </Modal>

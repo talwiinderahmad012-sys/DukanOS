@@ -20,11 +20,16 @@ import { cn } from '@/components/ui/cn';
 import { AddCategoryButton } from '@/components/categories/category-form-dialog';
 import { CategoryActions } from '@/components/categories/category-actions';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { getLocalizedValue } from '@/lib/translation/localized';
 
 export type CategoryRow = {
   id: string;
   name: string;
+  nameEn: string | null;
+  nameUr: string | null;
   description: string | null;
+  descriptionEn: string | null;
+  descriptionUr: string | null;
   isActive: boolean;
   productCount: number;
   createdAt: string;
@@ -78,6 +83,13 @@ export function CategoriesPageClient({
   hasFilters: boolean;
 }) {
   const { language, t } = useTranslation();
+
+  // Central bilingual display: locale column first, then canonical value,
+  // then the other language (never blank while a translation is pending).
+  const localizedName = (category: CategoryRow): string =>
+    getLocalizedValue(category, 'name', language) ?? category.name;
+  const localizedDescription = (category: CategoryRow): string | null =>
+    getLocalizedValue(category, 'description', language);
 
   const formatDate = (iso: string): string =>
     new Date(iso).toLocaleDateString(language === 'UR' ? 'ur-PK' : 'en-PK', {
@@ -283,13 +295,13 @@ export function CategoriesPageClient({
                   {categories.map((category) => (
                     <Tr key={category.id}>
                       <Td className="max-w-[240px]">
-                        <p className="truncate font-semibold text-gray-900">{category.name}</p>
+                        <p className="truncate font-semibold text-gray-900">{localizedName(category)}</p>
                         <p className="truncate text-xs text-muted lg:hidden">
-                          {category.description || t('categories.noDescription')}
+                          {localizedDescription(category) || t('categories.noDescription')}
                         </p>
                       </Td>
                       <Td className="hidden max-w-[320px] lg:table-cell">
-                        <p className="truncate text-sm text-gray-600">{category.description || t('common.dash')}</p>
+                        <p className="truncate text-sm text-gray-600">{localizedDescription(category) || t('common.dash')}</p>
                       </Td>
                       <Td className="text-end">
                         {category.productCount > 0 ? (
@@ -312,8 +324,8 @@ export function CategoriesPageClient({
                             businessId={businessId}
                             category={{
                               id: category.id,
-                              name: category.name,
-                              description: category.description,
+                              name: localizedName(category),
+                              description: localizedDescription(category),
                               isActive: category.isActive,
                             }}
                             productCount={category.productCount}
@@ -333,9 +345,9 @@ export function CategoriesPageClient({
                 <li key={category.id} className="space-y-3 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="truncate font-semibold text-gray-900">{category.name}</p>
+                      <p className="truncate font-semibold text-gray-900">{localizedName(category)}</p>
                       <p className="line-clamp-2 text-xs text-muted">
-                        {category.description || t('categories.noDescription')}
+                        {localizedDescription(category) || t('categories.noDescription')}
                       </p>
                     </div>
                     {canManage && (
@@ -343,8 +355,8 @@ export function CategoriesPageClient({
                         businessId={businessId}
                         category={{
                           id: category.id,
-                          name: category.name,
-                          description: category.description,
+                          name: localizedName(category),
+                          description: localizedDescription(category),
                           isActive: category.isActive,
                         }}
                         productCount={category.productCount}

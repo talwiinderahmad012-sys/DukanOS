@@ -9,6 +9,7 @@ import { Button, buttonClasses } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
 import { Field, Input, Textarea } from '@/components/ui/input';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { AutoTranslationHint } from '@/components/translation/auto-translation-hint';
 
 export type CategoryEditData = {
   id: string;
@@ -33,6 +34,7 @@ export function CategoryFormDialog({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+  const [nameValue, setNameValue] = useState(category?.name ?? '');
 
   const isEdit = category !== null;
 
@@ -115,6 +117,7 @@ export function CategoryFormDialog({
             label={t('categories.categoryName')}
             htmlFor={fieldId('name')}
             required
+            hint={<AutoTranslationHint value={nameValue} />}
             error={tm(fieldErrors.name?.[0]) || undefined}
           >
             <Input
@@ -123,6 +126,7 @@ export function CategoryFormDialog({
               required
               maxLength={100}
               defaultValue={category?.name ?? ''}
+              onChange={(e) => setNameValue(e.target.value)}
               placeholder={t('categories.namePlaceholder')}
               invalid={Boolean(fieldErrors.name?.length)}
             />

@@ -21,13 +21,18 @@ import { inputClasses, Select } from '@/components/ui/input';
 import { cn } from '@/components/ui/cn';
 import { ProductActions } from '@/components/products/product-actions';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { getLocalizedValue } from '@/lib/translation/localized';
 
 export type ProductListRow = {
   id: string;
   name: string;
+  nameEn: string | null;
+  nameUr: string | null;
   sku: string | null;
   barcode: string | null;
   description: string | null;
+  descriptionEn: string | null;
+  descriptionUr: string | null;
   categoryId: string | null;
   unit: string;
   purchasePrice: number;
@@ -36,9 +41,11 @@ export type ProductListRow = {
   currentStock: number;
   isActive: boolean;
   categoryName: string | null;
+  categoryNameEn: string | null;
+  categoryNameUr: string | null;
 };
 
-export type CategoryOption = { id: string; name: string };
+export type CategoryOption = { id: string; name: string; nameEn: string | null; nameUr: string | null };
 
 type StockFilter = 'ALL' | 'IN' | 'LOW' | 'OUT';
 type StatusFilter = 'ALL' | 'ACTIVE' | 'ARCHIVED';
@@ -116,7 +123,26 @@ export function ProductsPageClient({
   rangeEnd: number;
   hasFilters: boolean;
 }) {
-  const { t, formatCurrency } = useTranslation();
+  const { language, t, formatCurrency } = useTranslation();
+
+  // Central bilingual display: locale column first, canonical value second,
+  // other language last — rows never go blank while a translation is pending.
+  const localizedProductName = (product: ProductListRow): string =>
+    getLocalizedValue(product, 'name', language) ?? product.name;
+  const localizedProductDescription = (product: ProductListRow): string | null =>
+    getLocalizedValue(product, 'description', language);
+  const localizedCategoryName = (product: ProductListRow): string | null =>
+    getLocalizedValue(
+      {
+        name: product.categoryName,
+        nameEn: product.categoryNameEn,
+        nameUr: product.categoryNameUr,
+      },
+      'name',
+      language
+    );
+  const localizedCategoryOption = (option: CategoryOption): string =>
+    getLocalizedValue(option, 'name', language) ?? option.name;
 
   const stockTabs: { key: StockFilter; label: string; count: number }[] = [
     { key: 'ALL', label: t('common.all'), count: allCount },
@@ -243,7 +269,7 @@ export function ProductsPageClient({
                 <option value="">{t('inventory.allCategories')}</option>
                 {categories.map((categoryOption) => (
                   <option key={categoryOption.id} value={categoryOption.id}>
-                    {categoryOption.name}
+                    {localizedCategoryOption(categoryOption)}
                   </option>
                 ))}
               </Select>
@@ -371,9 +397,9 @@ export function ProductsPageClient({
                     return (
                       <Tr key={product.id}>
                         <Td className="max-w-[280px]">
-                          <p className="truncate font-semibold text-gray-900">{product.name}</p>
-                          {product.description && (
-                            <p className="truncate text-xs text-muted">{product.description}</p>
+                          <p className="truncate font-semibold text-gray-900">{localizedProductName(product)}</p>
+                          {localizedProductDescription(product) && (
+                            <p className="truncate text-xs text-muted">{localizedProductDescription(product)}</p>
                           )}
                         </Td>
                         <Td className="hidden xl:table-cell">
@@ -381,7 +407,7 @@ export function ProductsPageClient({
                           {product.barcode && <p className="font-mono text-xs text-muted">{product.barcode}</p>}
                         </Td>
                         <Td className="hidden lg:table-cell text-sm text-gray-600">
-                          {product.categoryName || t('common.dash')}
+                          {localizedCategoryName(product) || t('common.dash')}
                         </Td>
                         <Td className="text-end">
                           <p className="font-medium text-gray-900">{formatCurrency(product.sellingPrice)}</p>
@@ -430,9 +456,9 @@ export function ProductsPageClient({
                   <li key={product.id} className="space-y-3 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="truncate font-semibold text-gray-900">{product.name}</p>
+                        <p className="truncate font-semibold text-gray-900">{localizedProductName(product)}</p>
                         <p className="truncate text-xs text-muted">
-                          {[product.categoryName, product.sku].filter(Boolean).join(' · ') || t('products.uncategorized')}
+                          {[localizedCategoryName(product), product.sku].filter(Boolean).join(' · ') || t('products.uncategorized')}
                         </p>
                       </div>
                       <ProductActions

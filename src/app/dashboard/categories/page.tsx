@@ -2,6 +2,8 @@ import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { prisma } from '@/lib/db/prisma';
 import { Prisma } from '@/generated/prisma/client';
 import { redirect } from 'next/navigation';
+import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
+import { ForbiddenView } from '@/components/access/forbidden';
 import { CategoriesPageClient, type CategoryRow } from './categories-page-client';
 
 const PAGE_SIZE = 25;
@@ -14,6 +16,11 @@ export default async function CategoriesPage({
   searchParams: Promise<{ q?: string; status?: string; page?: string }>;
 }) {
   const { membership, business } = await getActiveBusiness().catch(() => redirect('/login'));
+
+  if (!canAccessDashboardPath(membership.role, '/dashboard/categories')) {
+    return <ForbiddenView role={membership.role} />;
+  }
+
   const params = await searchParams;
 
   const q = (params.q ?? '').trim();
@@ -42,7 +49,11 @@ export default async function CategoriesPage({
       ? {
           OR: [
             { name: { contains: q, mode: 'insensitive' } },
+            { nameEn: { contains: q, mode: 'insensitive' } },
+            { nameUr: { contains: q } },
             { description: { contains: q, mode: 'insensitive' } },
+            { descriptionEn: { contains: q, mode: 'insensitive' } },
+            { descriptionUr: { contains: q } },
           ],
         }
       : {}),
@@ -69,7 +80,11 @@ export default async function CategoriesPage({
   const rows: CategoryRow[] = categories.map((category) => ({
     id: category.id,
     name: category.name,
+    nameEn: category.nameEn,
+    nameUr: category.nameUr,
     description: category.description,
+    descriptionEn: category.descriptionEn,
+    descriptionUr: category.descriptionUr,
     isActive: category.isActive,
     productCount: category._count.products,
     createdAt: category.createdAt.toISOString(),

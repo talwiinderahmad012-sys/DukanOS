@@ -2,6 +2,8 @@ import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { prisma } from '@/lib/db/prisma';
 import { Prisma } from '@/generated/prisma/client';
 import { redirect } from 'next/navigation';
+import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
+import { ForbiddenView } from '@/components/access/forbidden';
 import {
   ProductsPageClient,
   type CategoryOption,
@@ -35,6 +37,12 @@ export default async function ProductsPage({
   }>;
 }) {
   const { membership, business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+
+  // The catalog exposes cost prices and is restricted to MANAGE_PRODUCTS roles.
+  if (!canAccessDashboardPath(membership.role, '/dashboard/products')) {
+    return <ForbiddenView role={membership.role} />;
+  }
+
   const params = await searchParams;
 
   const q = (params.q ?? '').trim();
@@ -56,6 +64,8 @@ export default async function ProductsPage({
       ? {
           OR: [
             { name: { contains: q, mode: 'insensitive' } },
+            { nameEn: { contains: q, mode: 'insensitive' } },
+            { nameUr: { contains: q } },
             { sku: { contains: q, mode: 'insensitive' } },
             { barcode: { contains: q, mode: 'insensitive' } },
           ],
@@ -75,7 +85,7 @@ export default async function ProductsPage({
     }),
     prisma.category.findMany({
       where: { businessId: business.id, isActive: true },
-      select: { id: true, name: true },
+      select: { id: true, name: true, nameEn: true, nameUr: true },
       orderBy: { name: 'asc' },
     }),
   ]);
@@ -112,7 +122,7 @@ export default async function ProductsPage({
     pageIds.length > 0
       ? await prisma.product.findMany({
           where: { id: { in: pageIds } },
-          include: { category: { select: { name: true } } },
+          include: { category: { select: { name: true, nameEn: true, nameUr: true } } },
           orderBy: [{ name: 'asc' }, { id: 'asc' }],
         })
       : [];
@@ -122,9 +132,13 @@ export default async function ProductsPage({
   const serializableProducts: ProductListRow[] = products.map((product) => ({
     id: product.id,
     name: product.name,
+    nameEn: product.nameEn,
+    nameUr: product.nameUr,
     sku: product.sku,
     barcode: product.barcode,
     description: product.description,
+    descriptionEn: product.descriptionEn,
+    descriptionUr: product.descriptionUr,
     categoryId: product.categoryId,
     unit: product.unit,
     purchasePrice: Number(product.purchasePrice),
@@ -133,6 +147,8 @@ export default async function ProductsPage({
     currentStock: product.currentStock,
     isActive: product.isActive,
     categoryName: product.category?.name ?? null,
+    categoryNameEn: product.category?.nameEn ?? null,
+    categoryNameUr: product.category?.nameUr ?? null,
   }));
 
   const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
@@ -141,6 +157,8 @@ export default async function ProductsPage({
   const categoryOptions: CategoryOption[] = categories.map((category) => ({
     id: category.id,
     name: category.name,
+    nameEn: category.nameEn,
+    nameUr: category.nameUr,
   }));
 
   return (

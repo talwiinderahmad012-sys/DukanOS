@@ -43,6 +43,7 @@ import { Button, buttonClasses, IconButton } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { inputClasses, Select } from '@/components/ui/input';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { getLocalizedValue } from '@/lib/translation/localized';
 import type { POSProduct, POSCustomer, CartItem } from './pos-terminal';
 
 type CompletedSale = {
@@ -70,9 +71,14 @@ export function POSCheckoutScreen({
   const router = useRouter();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { networkStatus } = usePWA();
-  const { t, tm, formatCurrency } = useTranslation();
+  const { language, t, tm, formatCurrency } = useTranslation();
 
   const fmt = (n: number) => formatCurrency(n);
+
+  // Display-only localization: the canonical `name` still flows through
+  // sale/sync payloads so financial records never store translated text.
+  const productDisplayName = (p: POSProduct) =>
+    getLocalizedValue(p, 'name', language) ?? p.name;
 
   const searchInputId = useId();
   const customerId = useId();
@@ -107,6 +113,12 @@ export function POSCheckoutScreen({
   const [error, setError] = useState<string | null>(null);
   const [completedSale, setCompletedSale] = useState<CompletedSale | null>(null);
 
+  // Idempotency key for the current checkout attempt. Generated once per
+  // attempt and REUSED across retries so a double-submit or network retry
+  // replays against the same clientTransactionId instead of creating a
+  // duplicate sale (server-side replay + unique index resolve it safely).
+  const pendingClientTxIdRef = useRef<string | null>(null);
+
   const [mobileTab, setMobileTab] = useState<'products' | 'order'>('products');
 
   useEffect(() => {
@@ -135,6 +147,7 @@ export function POSCheckoutScreen({
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase().trim();
     return (
+      productDisplayName(p).toLowerCase().includes(q) ||
       p.name.toLowerCase().includes(q) ||
       (p.sku && p.sku.toLowerCase().includes(q)) ||
       (p.barcode && p.barcode.toLowerCase().includes(q))
@@ -315,7 +328,10 @@ export function POSCheckoutScreen({
     setLoading(true);
 
     try {
-      const clientTxId = crypto.randomUUID();
+      if (!pendingClientTxIdRef.current) {
+        pendingClientTxIdRef.current = crypto.randomUUID();
+      }
+      const clientTxId = pendingClientTxIdRef.current;
 
       const payload = {
         customerId: selectedCustomerId || null,
@@ -586,7 +602,7 @@ export function POSCheckoutScreen({
 
                       <span className="min-w-0">
                         <span className="line-clamp-2 block text-sm font-semibold leading-tight text-gray-900">
-                          {product.name}
+                          {productDisplayName(product)}
                         </span>
                         <span className="mt-1 block truncate font-mono text-xs text-muted">
                           {product.sku || (product.barcode ? `BC: ${product.barcode}` : '—')}
@@ -680,7 +696,7 @@ export function POSCheckoutScreen({
                     <div key={item.product.id} className="space-y-2 rounded-card p-3">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
-                          <h3 className="truncate text-sm font-semibold text-gray-900">{item.product.name}</h3>
+                          <h3 className="truncate text-sm font-semibold text-gray-900">{productDisplayName(item.product)}</h3>
                           <p className="font-mono text-xs text-muted">
                             {fmt(item.sellingPrice)} / {item.product.unit}
                           </p>
@@ -709,7 +725,7 @@ export function POSCheckoutScreen({
                             <Minus className="h-3.5 w-3.5" />
                           </IconButton>
                           <label className="sr-only" htmlFor={`qty-${item.product.id}`}>
-                            {t('pos.qty')} {item.product.name}
+                            {t('pos.qty')} {productDisplayName(item.product)}
                           </label>
                           <input
                             id={`qty-${item.product.id}`}

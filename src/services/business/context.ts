@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db/prisma';
 import { BusinessStatus, BusinessType, MembershipRole, SubscriptionStatus } from '@/generated/prisma/client';
 import { recordAuditLog } from '../audit';
 import { ensureDefaultFreePlan } from '../billing/plans';
+import { BILINGUAL_MODEL_FIELDS, resolveBilingualCreate } from '@/lib/translation/bilingual';
 
 export async function listUserBusinesses(userId: string) {
   const memberships = await prisma.businessMembership.findMany({
@@ -56,11 +57,18 @@ export async function createBusinessForUser(
     throw new Error('Business name is required.');
   }
 
+  const freePlan = await ensureDefaultFreePlan();
+
+  // Resolve bilingual name columns BEFORE the transaction so an external
+  // translation call never blocks or delays the atomic creation flow.
+  const bilingual = await resolveBilingualCreate({ name: data.name }, BILINGUAL_MODEL_FIELDS.business);
+
   return prisma.$transaction(async (tx) => {
     // 1. Create Business
     const business = await tx.business.create({
       data: {
         name: data.name.trim(),
+        ...bilingual.data,
         type: data.type || BusinessType.RETAIL,
         status: BusinessStatus.ACTIVE,
         phone: data.phone?.trim() || null,
@@ -116,7 +124,6 @@ export async function createBusinessForUser(
     });
 
     // 5. Assign Default Free Plan Subscription Atomically
-    const freePlan = await ensureDefaultFreePlan();
     const subscription = await tx.businessSubscription.create({
       data: {
         businessId: business.id,

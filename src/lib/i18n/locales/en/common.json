@@ -194,5 +194,11 @@
   "last": "last",
   "noPhone": "No phone",
   "dash": "—",
-  "currencyUnit": "Rs"
+  "currencyUnit": "Rs",
+  "translationAutoGeneric": "Type in English or Urdu — the other language is generated automatically.",
+  "translationAutoUrdu": "Urdu translation will be generated automatically.",
+  "translationAutoEnglish": "English translation will be generated automatically.",
+  "translationAutoNone": "Numbers, codes and contact details are kept as-is in both languages.",
+  "translationPending": "Translation pending — retry available from the record actions.",
+  "translationRetry": "Retry translation"
 }

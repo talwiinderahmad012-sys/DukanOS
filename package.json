@@ -22,6 +22,7 @@
     "prisma:studio": "prisma studio",
     "bootstrap": "tsx src/scripts/bootstrap_owner.ts",
     "test": "tsx src/scripts/test_step34_reliability.ts",
+    "test:bilingual": "tsx src/scripts/test_bilingual_translation.ts",
     "test:all": "tsx src/scripts/test_production_hardening.ts && tsx src/scripts/test_multi_business_branch.ts && tsx src/scripts/test_settings_step25.ts && tsx src/scripts/test_production_smoke.ts && tsx src/scripts/test_reconciliation.ts && tsx src/scripts/test_public_launch.ts && tsx src/scripts/test_product_analytics.ts && tsx src/scripts/test_saas_plans.ts && tsx src/scripts/test_step34_reliability.ts",
     "test:reconciliation": "tsx src/scripts/test_reconciliation.ts",
     "simulate:pilot": "tsx src/scripts/simulate_pilot_business.ts",

@@ -9,18 +9,21 @@ import { Alert } from '@/components/ui/alert';
 import { Field, Input, Select, Textarea } from '@/components/ui/input';
 import { cn } from '@/components/ui/cn';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { AutoTranslationHint } from '@/components/translation/auto-translation-hint';
+import { getLocalizedValue } from '@/lib/translation/localized';
 
 export function ProductForm({
   businessId,
   categories,
 }: {
   businessId: string;
-  categories: { id: string; name: string }[];
+  categories: { id: string; name: string; nameEn?: string | null; nameUr?: string | null }[];
 }) {
   const router = useRouter();
-  const { t, tm, formatCurrency } = useTranslation();
+  const { language, t, tm, formatCurrency } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [nameValue, setNameValue] = useState('');
 
   const [purchasePrice, setPurchasePrice] = useState<number>(0);
   const [sellingPrice, setSellingPrice] = useState<number>(0);
@@ -92,8 +95,20 @@ export function ProductForm({
               <p className="text-xs text-muted">{t('products.basicInformationDescription')}</p>
             </div>
 
-            <Field label={t('products.productName')} htmlFor="product-name" required>
-              <Input id="product-name" name="name" required maxLength={100} placeholder={t('products.namePlaceholder')} />
+            <Field
+              label={t('products.productName')}
+              htmlFor="product-name"
+              required
+              hint={<AutoTranslationHint value={nameValue} />}
+            >
+              <Input
+                id="product-name"
+                name="name"
+                required
+                maxLength={100}
+                placeholder={t('products.namePlaceholder')}
+                onChange={(e) => setNameValue(e.target.value)}
+              />
             </Field>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -123,7 +138,7 @@ export function ProductForm({
                   <option value="">{t('products.noCategory')}</option>
                   {categories.map((category) => (
                     <option key={category.id} value={category.id}>
-                      {category.name}
+                      {getLocalizedValue(category, 'name', language) ?? category.name}
                     </option>
                   ))}
                 </Select>

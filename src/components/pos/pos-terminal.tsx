@@ -41,13 +41,15 @@ import { useTranslation } from '@/lib/i18n/language-context';
 export type POSProduct = {
   id: string;
   name: string;
+  nameEn?: string | null;
+  nameUr?: string | null;
   sku?: string | null;
   barcode?: string | null;
   unit: string;
   purchasePrice: number;
   sellingPrice: number;
   currentStock: number;
-  category?: { id: string; name: string } | null;
+  category?: { id: string; name: string; nameEn?: string | null; nameUr?: string | null } | null;
 };
 
 export type POSCustomer = {
@@ -125,6 +127,12 @@ export function POSTerminal({
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [completedSale, setCompletedSale] = useState<CompletedSale | null>(null);
+
+  // Idempotency key for the current checkout attempt. Generated once per
+  // attempt and REUSED across retries so a double-submit or network retry
+  // replays against the same clientTransactionId instead of creating a
+  // duplicate sale (server-side replay + unique index resolve it safely).
+  const pendingClientTxIdRef = useRef<string | null>(null);
 
   // Mobile View Tab ('products' | 'cart' | 'checkout')
   const [mobileTab, setMobileTab] = useState<'products' | 'cart' | 'checkout'>('products');
@@ -352,7 +360,10 @@ export function POSTerminal({
     setLoading(true);
 
     try {
-      const clientTxId = crypto.randomUUID();
+      if (!pendingClientTxIdRef.current) {
+        pendingClientTxIdRef.current = crypto.randomUUID();
+      }
+      const clientTxId = pendingClientTxIdRef.current;
 
       const payload = {
         customerId: selectedCustomerId || null,
@@ -387,6 +398,11 @@ export function POSTerminal({
 
         await enqueueSyncTransaction(queuedItem);
         notifySyncStateChange();
+
+        // Transaction safely queued for sync — release the idempotency key so
+        // the next checkout starts a fresh one (the queue replays with its own
+        // stored id via sync-manager).
+        pendingClientTxIdRef.current = null;
 
         // Display offline receipt
         setCompletedSale({
@@ -427,6 +443,8 @@ export function POSTerminal({
       }
 
       setCompletedSale(res.data as CompletedSale);
+      // Sale committed — release the idempotency key for the next attempt.
+      pendingClientTxIdRef.current = null;
       handleClearCart();
       router.refresh();
     } catch (err) {
