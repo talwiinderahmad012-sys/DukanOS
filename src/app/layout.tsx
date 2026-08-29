@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import { Geist, Geist_Mono, Noto_Nastaliq_Urdu } from "next/font/google";
 import "./globals.css";
 import { PWAProvider } from "@/components/pwa/pwa-provider";
 import { LanguageProvider } from "@/lib/i18n/language-context";
-import { LANGUAGE_STORAGE_KEY } from "@/lib/i18n/constants";
+import { LANGUAGE_COOKIE_KEY } from "@/lib/i18n/constants";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 
 const geistSans = Geist({
@@ -26,7 +27,8 @@ export const viewport: Viewport = {
   themeColor: "#aff33e",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  // Pinch-zoom must remain available for accessibility (WCAG 1.4.4):
+  // no maximumScale / user-scalable restrictions.
 };
 
 export const metadata: Metadata = {
@@ -44,49 +46,42 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Server-side locale detection via cookie mirror so Urdu users receive
+  // RTL/Urdu markup on the first response (no English flash).
+  const cookieStore = await cookies();
+  const isUrdu = cookieStore.get(LANGUAGE_COOKIE_KEY)?.value === 'UR';
+
   return (
-    <html lang="en" className="notranslate" translate="no" suppressHydrationWarning>
+    <html
+      lang={isUrdu ? 'ur' : 'en'}
+      dir={isUrdu ? 'rtl' : 'ltr'}
+      className={isUrdu ? 'notranslate lang-ur' : 'notranslate'}
+      translate="no"
+      suppressHydrationWarning
+    >
       <head>
         <meta name="google" content="notranslate" />
         <meta name="robots" content="notranslate" />
-        <script
-          id="theme-language-init"
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                var stored = localStorage.getItem('dukaanos-ui-theme');
-                if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                  document.documentElement.classList.add('dark');
-                } else {
-                  document.documentElement.classList.remove('dark');
-                }
-              } catch (_) {}
-              try {
-                var lang = localStorage.getItem('${LANGUAGE_STORAGE_KEY}');
-                if (lang === 'UR') {
-                  document.documentElement.lang = 'ur';
-                  document.documentElement.dir = 'rtl';
-                  document.documentElement.classList.add('lang-ur');
-                } else {
-                  document.documentElement.lang = 'en';
-                  document.documentElement.dir = 'ltr';
-                  document.documentElement.classList.remove('lang-ur');
-                }
-              } catch (_) {}
-            `,
-          }}
-        />
+        {isUrdu && (
+          <link
+            rel="preload"
+            href="/fonts/JameelNooriNastaleeqRegular.woff"
+            as="font"
+            type="font/woff"
+            crossOrigin="anonymous"
+          />
+        )}
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${notoNastaliqUrdu.variable} antialiased min-h-screen bg-background text-foreground transition-colors`}
       >
         <ThemeProvider>
-          <LanguageProvider>
+          <LanguageProvider initialLanguage={isUrdu ? 'UR' : 'EN'}>
             <PWAProvider>
               {children}
             </PWAProvider>

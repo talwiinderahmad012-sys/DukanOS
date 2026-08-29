@@ -1,23 +1,49 @@
 'use client';
 
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Settings } from 'lucide-react';
+import { Settings, LogOut } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { NetworkStatusBadge } from '@/components/pwa/pwa-provider';
 import { NotificationBell } from '@/components/notifications/notification-bell';
 import { LanguageToggle } from '@/components/layout/language-toggle';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
+import { useRoleLabel } from '@/components/layout/sidebar-business-header';
 
 export function DashboardHeader({
   userName,
   businessId,
+  role,
+  logoutAction,
 }: {
   userName: string;
   businessId: string;
+  role: string;
+  logoutAction: () => Promise<void>;
 }) {
   const { t } = useTranslation();
+  const roleLabel = useRoleLabel();
   const displayName = userName || t('ui.userFallback');
   const initial = displayName.charAt(0).toUpperCase();
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   return (
     <header className="hidden md:flex bg-surface border-b border-border h-16 items-center justify-between px-6 shrink-0">
@@ -37,14 +63,46 @@ export function DashboardHeader({
         >
           <Settings className="h-5 w-5" aria-hidden="true" />
         </Link>
-        <Link
-          href="/dashboard/me"
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft text-sm font-bold text-gray-900 transition-colors hover:bg-blue-100 dark:bg-primary-soft0/20 dark:text-blue-400 dark:hover:bg-primary-soft0/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          title={t('nav.myWorkspace')}
-          aria-label={t('nav.myWorkspaceOf', { name: displayName })}
-        >
-          <span aria-hidden="true">{initial}</span>
-        </Link>
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft text-sm font-bold text-gray-900 transition-colors hover:bg-blue-100 dark:bg-primary-soft0/20 dark:text-blue-400 dark:hover:bg-primary-soft0/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            title={t('nav.myWorkspace')}
+            aria-label={t('nav.myWorkspaceOf', { name: displayName })}
+            aria-expanded={isOpen}
+            aria-haspopup="menu"
+          >
+            <span aria-hidden="true">{initial}</span>
+          </button>
+
+          {isOpen && (
+            <div
+              className="absolute end-0 mt-2 w-56 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-lg z-50 overflow-hidden animate-in fade-in zoom-in-95"
+              role="menu"
+            >
+              <div className="px-3 py-3 border-b border-gray-100 dark:border-gray-800">
+                <p className="text-sm font-semibold text-gray-900 truncate" title={displayName}>
+                  {displayName}
+                </p>
+                <p className="text-xs font-medium capitalize text-muted truncate">
+                  {roleLabel(role)}
+                </p>
+              </div>
+              <div className="py-1">
+                <form action={logoutAction} onSubmit={(e) => { e.preventDefault(); setIsOpen(false); }}>
+                  <button
+                    type="submit"
+                    className="w-full text-start px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-2.5"
+                    role="menuitem"
+                  >
+                    <LogOut className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
+                    <span>{t('nav.signOut', 'Sign out')}</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

@@ -1,8 +1,8 @@
 import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { isPlatformAdminEmail } from '@/lib/auth/platform-admin';
 import { redirect } from 'next/navigation';
 import { signOut } from '@/lib/auth/auth';
 import { recordAuditLog } from '@/services/audit';
-import { SidebarUserFooter } from '@/components/layout/sidebar-user-footer';
 import { SidebarBusinessHeader } from '@/components/layout/sidebar-business-header';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { DashboardNavSections } from '@/components/layout/nav-sections';
@@ -22,6 +22,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
   async function logoutAction() {
     'use server';
     const userId = user.id;
+    const { cookies } = await import('next/headers');
+    const cookieStore = await cookies();
+    cookieStore.set('dukaanos_active_business_id', '', { path: '/', maxAge: 0, httpOnly: true, sameSite: 'lax' });
+    cookieStore.set('dukaanos_active_branch_id', '', { path: '/', maxAge: 0, httpOnly: true, sameSite: 'lax' });
     await signOut();
     await recordAuditLog({
       businessId: activeBusiness.id,
@@ -34,39 +38,34 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   const userLabel = user.name?.trim() || user.email || '';
+  const platformAdmin = isPlatformAdminEmail(user.email);
 
   return (
-    <div className="min-h-screen bg-page transition-colors duration-200 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-page transition-colors duration-200 flex flex-col md:flex-row md:pl-64">
 
       {/* Mobile Header & Nav */}
       <MobileNav
         businessName={activeBusiness.name}
         role={activeMembership.role}
+        platformAdmin={platformAdmin}
         businessId={activeBusiness.id}
         userName={userLabel}
         logoutAction={logoutAction}
       />
 
       {/* Sidebar (Desktop) */}
-      <aside className="hidden md:sticky md:top-0 md:flex md:h-screen w-64 shrink-0 flex-col border-e border-border bg-surface">
+      <aside className="hidden md:fixed md:top-0 md:left-0 md:flex md:h-screen w-64 shrink-0 flex-col border-e border-border bg-surface">
         {/* Business context */}
         <SidebarBusinessHeader businessName={activeBusiness.name} role={activeMembership.role} />
 
         {/* Navigation Links */}
-        <DashboardNavSections role={activeMembership.role} />
-
-        {/* User account area */}
-        <SidebarUserFooter
-          userLabel={userLabel}
-          role={activeMembership.role}
-          logoutAction={logoutAction}
-        />
+        <DashboardNavSections role={activeMembership.role} platformAdmin={platformAdmin} />
       </aside>
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-h-screen max-w-full overflow-hidden">
         {/* Top Header */}
-        <DashboardHeader userName={userLabel} businessId={activeBusiness.id} />
+        <DashboardHeader userName={userLabel} businessId={activeBusiness.id} role={activeMembership.role} logoutAction={logoutAction} />
 
         {/* Page Content */}
         <div className="flex-1 p-4 md:p-8 overflow-y-auto">

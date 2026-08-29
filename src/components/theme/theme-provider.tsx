@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useLayoutEffect, useState } from 'react';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -30,13 +30,12 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(defaultTheme);
 
-  useEffect(() => {
-    // Only run on client after mount
+  useLayoutEffect(() => {
     const savedTheme = (localStorage.getItem(storageKey) as Theme) || defaultTheme;
     setTheme(savedTheme);
   }, [storageKey, defaultTheme]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const root = window.document.documentElement;
 
     root.classList.remove('light', 'dark');
