@@ -1,0 +1,12 @@
+{
+  "badge": "403 — Restricted",
+  "title": "Access Restricted",
+  "description": "Your current role does not have permission to view this section. If you believe this is a mistake, please contact your business owner or manager.",
+  "financialNote": "Financial data such as revenue, profit, expenses and reports is limited to owners and managers.",
+  "roleLabel": "Signed in as",
+  "goToPos": "Open POS Terminal",
+  "goToSales": "View Sales",
+  "goToInventory": "View Inventory",
+  "goToWorkspace": "My Workspace",
+  "ariaLabel": "Access denied"
+}

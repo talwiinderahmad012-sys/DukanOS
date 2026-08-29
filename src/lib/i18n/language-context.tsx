@@ -4,7 +4,7 @@ import React, { createContext, useContext, useSyncExternalStore, useLayoutEffect
 import { translations, Language } from './translations';
 import { SERVER_MESSAGES } from './server-messages';
 
-import { LANGUAGE_STORAGE_KEY } from './constants';
+import { LANGUAGE_STORAGE_KEY, LANGUAGE_COOKIE_KEY } from './constants';
 
 export { LANGUAGE_STORAGE_KEY };
 
@@ -89,12 +89,35 @@ function getLanguageSnapshot(): Language {
   return readStoredLanguage() ?? 'EN';
 }
 
+// Server-rendered language, injected from the language cookie by the root
+// layout. During SSR and hydration React uses this snapshot so Urdu users
+// receive Urdu markup/text on the very first render (no English flash).
+let serverSnapshotLanguage: Language = 'EN';
+
 function getServerLanguageSnapshot(): Language {
-  return 'EN';
+  return serverSnapshotLanguage;
 }
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  // During SSR and hydration React uses the server snapshot ('EN'), so the
+function persistLanguageCookie(lang: Language): void {
+  try {
+    document.cookie = `${LANGUAGE_COOKIE_KEY}=${lang}; path=/; max-age=31536000; SameSite=Lax`;
+  } catch {
+    // cookie unavailable — SSR locale simply stays at its previous value
+  }
+}
+
+export function LanguageProvider({
+  children,
+  initialLanguage,
+}: {
+  children: React.ReactNode;
+  initialLanguage?: Language;
+}) {
+  // Make the server snapshot match what the server actually rendered so the
+  // hydration pass does not flip languages.
+  serverSnapshotLanguage = initialLanguage ?? 'EN';
+
+  // During SSR and hydration React uses the server snapshot, so the
   // initial client render matches the server HTML. After mount the stored
   // value from localStorage takes over without a hydration mismatch.
   const language = useSyncExternalStore(
@@ -105,6 +128,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useLayoutEffect(() => {
     applyLanguageToDocument(language);
+    // Keep the SSR cookie in sync with the persisted client choice so the
+    // next server-rendered response uses the correct locale.
+    persistLanguageCookie(language);
   }, [language]);
 
   const setLanguage = useCallback((newLang: Language) => {
@@ -113,6 +139,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // storage unavailable (private mode) — language still applies for session
     }
+    persistLanguageCookie(newLang);
     applyLanguageToDocument(newLang);
     window.dispatchEvent(new Event(LANGUAGE_CHANGE_EVENT));
   }, []);

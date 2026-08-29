@@ -104,13 +104,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     strategy: "jwt",
   },
   events: {
-    async signOut({ token, session }: { token?: any; session?: any }) {
-      const userId = session?.user?.id || token?.sub;
+    async signOut({ token, session }: { token?: unknown; session?: unknown }) {
+      const sess = session as { user?: { id?: string; email?: string } } | undefined;
+      const tok = token as { sub?: string; email?: string } | undefined;
+      const userId = sess?.user?.id || tok?.sub;
       if (userId) {
         await recordAuthAudit({
           userId,
           action: 'LOGOUT',
-          metadata: { email: session?.user?.email || token?.email },
+          metadata: { email: sess?.user?.email || tok?.email },
         })
       }
     },

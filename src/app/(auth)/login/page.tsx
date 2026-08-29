@@ -42,7 +42,7 @@ export default function LoginPage() {
         router.push('/dashboard');
         router.refresh();
       }
-    } catch (err) {
+    } catch {
       setError('common.somethingWentWrong');
       setLoading(false);
     }
@@ -105,6 +105,7 @@ export default function LoginPage() {
               name="email"
               type="email"
               required
+              autoComplete="email"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-blue-500 outline-none transition-colors"
               placeholder={t('auth.emailPlaceholder')}
               disabled={loading}
@@ -120,6 +121,7 @@ export default function LoginPage() {
               name="password"
               type="password"
               required
+              autoComplete="current-password"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-blue-500 outline-none transition-colors"
               placeholder={t('auth.passwordPlaceholder')}
               disabled={loading}

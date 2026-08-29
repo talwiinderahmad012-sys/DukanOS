@@ -37,6 +37,7 @@ import enPlatform from './locales/en/platform.json';
 import enUi from './locales/en/ui.json';
 import enCharts from './locales/en/charts.json';
 import enStaticPages from './locales/en/staticPages.json';
+import enForbidden from './locales/en/forbidden.json';
 import enBusiness from './locales/en/business.json';
 import enSettingsAdmin from './locales/en/settingsAdmin.json';
 
@@ -77,6 +78,7 @@ import urPlatform from './locales/ur/platform.json';
 import urUi from './locales/ur/ui.json';
 import urCharts from './locales/ur/charts.json';
 import urStaticPages from './locales/ur/staticPages.json';
+import urForbidden from './locales/ur/forbidden.json';
 import urBusiness from './locales/ur/business.json';
 import urSettingsAdmin from './locales/ur/settingsAdmin.json';
 
@@ -120,6 +122,7 @@ const EN = {
   ui: enUi,
   charts: enCharts,
   staticPages: enStaticPages,
+  forbidden: enForbidden,
   business: enBusiness,
   settingsAdmin: enSettingsAdmin,
 };
@@ -162,6 +165,7 @@ const UR = {
   ui: urUi,
   charts: urCharts,
   staticPages: urStaticPages,
+  forbidden: urForbidden,
   business: urBusiness,
   settingsAdmin: urSettingsAdmin,
 };
