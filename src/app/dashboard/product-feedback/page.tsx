@@ -1,11 +1,10 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requirePlatformAdmin } from '@/lib/auth/platform-admin';
 import {
   getProductFeedbackOverview,
   listBugReports,
   listProductFeedbacks,
 } from '@/services/product-feedback';
 import { ProductFeedbackPageClient } from './product-feedback-page-client';
-import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -14,9 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ProductFeedbackPage() {
-  const { membership } = await getActiveBusiness();
-
-  if (membership.role !== 'OWNER') redirect('/dashboard');
+  await requirePlatformAdmin();
 
   const [overview, bugs, features] = await Promise.all([
     getProductFeedbackOverview(),

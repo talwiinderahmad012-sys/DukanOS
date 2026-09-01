@@ -60,7 +60,8 @@ export async function createExpenseAction(data: {
   branchId?: string | null;
 }): Promise<void> {
   try {
-    const { user, business } = await getActiveBusiness();
+    const { user, business, membership } = await getActiveBusiness();
+    assertOwnerOrManager(membership.role, 'Only owners and managers can record expenses.');
     const validated = expenseSchema.safeParse(data);
     if (!validated.success) {
       throw new AppError(ErrorCodes.VALIDATION_ERROR, 'Invalid expense data', 400);
@@ -152,18 +153,23 @@ export async function getExpenseCategoriesAction() {
 
 export async function createExpenseServerAction(formData: FormData): Promise<void> {
   try {
-    const { user, business } = await getActiveBusiness();
+    const { user, business, membership } = await getActiveBusiness();
+    assertOwnerOrManager(membership.role, 'Only owners and managers can record expenses.');
     const branchId = (formData.get('branchId') as string) || null;
-    const data = {
+    const parsed = expenseSchema.safeParse({
       category: formData.get('category') as string,
       amount: parseFloat(formData.get('amount') as string),
       date: formData.get('date') as string,
       description: formData.get('description') as string || null,
       paymentMethod: (formData.get('paymentMethod') as PaymentMethod) || PaymentMethod.CASH,
       branchId,
-    };
+    });
 
-    await createExpense(business.id, user.id, data);
+    if (!parsed.success) {
+      throw new AppError(ErrorCodes.VALIDATION_ERROR, 'Invalid expense data', 400);
+    }
+
+    await createExpense(business.id, user.id, { ...parsed.data, branchId });
 
     revalidatePath('/dashboard/expenses');
     revalidatePath('/dashboard/analytics/expenses');
@@ -181,10 +187,20 @@ export async function createExpenseServerAction(formData: FormData): Promise<voi
 
 export async function updateExpenseServerAction(expenseId: string, formData: FormData): Promise<void> {
   try {
-    const { user, business } = await getActiveBusiness();
+    const { user, business, membership } = await getActiveBusiness();
+    assertOwnerOrManager(membership.role, 'Only owners and managers can edit expenses.');
+    const rawAmount = parseFloat(formData.get('amount') as string);
+    if (
+      typeof rawAmount !== 'number' ||
+      Number.isNaN(rawAmount) ||
+      !Number.isFinite(rawAmount) ||
+      rawAmount <= 0
+    ) {
+      throw new AppError(ErrorCodes.VALIDATION_ERROR, 'Expense amount must be a positive number.', 400);
+    }
     const data = {
       category: formData.get('category') as string,
-      amount: parseFloat(formData.get('amount') as string),
+      amount: rawAmount,
       date: formData.get('date') as string,
       description: formData.get('description') as string || null,
       paymentMethod: (formData.get('paymentMethod') as PaymentMethod) || PaymentMethod.CASH,

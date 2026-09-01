@@ -11,6 +11,7 @@ import {
 import { recordAuditLog } from './audit';
 import { sanitizePlainText } from '@/lib/security/sanitizer';
 import { sendMessage } from './communications';
+import { AppError, ErrorCodes } from '@/lib/errors';
 
 const STAFF_ROLES: MembershipRole[] = [MembershipRole.OWNER, MembershipRole.MANAGER];
 
@@ -695,14 +696,16 @@ export async function submitPublicFeedback(
   });
 
   if (!business) {
-    throw new Error('Business not found or not active.');
+    // Neutral message: never disclose whether the business exists, is
+    // inactive, or the ID is invalid (P3-24 anti-enumeration).
+    throw new AppError(ErrorCodes.NOT_FOUND, 'This feedback page is not available.', 404);
   }
 
   const type = input.type || CustomerFeedbackType.FEEDBACK;
   const title = sanitizePlainText(input.title);
   const description = sanitizePlainText(input.description);
   if (!title || !description) {
-    throw new Error('Title and description are required.');
+    throw new AppError(ErrorCodes.VALIDATION_ERROR, 'Title and description are required.', 400);
   }
 
   let rating: number | null = null;

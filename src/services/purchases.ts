@@ -66,6 +66,11 @@ export async function createPurchase(params: CreatePurchaseParams) {
       lineTotal: number;
     }[] = [];
 
+    // Authoritative stock levels captured from the atomic UPDATE below, so the
+    // StockMovement ledger reflects real committed values rather than a stale
+    // pre-read (prevents lost updates under concurrent mutations).
+    const stockLedger: Array<{ productId: string; quantity: number; previousStock: number; resultingStock: number }> = [];
+
     for (const item of params.items) {
       const product = await tx.product.findUnique({
         where: { id: item.productId, businessId: params.businessId },
@@ -96,17 +101,38 @@ export async function createPurchase(params: CreatePurchaseParams) {
         lineTotal,
       });
 
-      // Update Product: increment stock and update catalog purchasePrice
-      const previousStock = product.currentStock;
-      const resultingStock = previousStock + item.quantity;
+      // Atomic relative increment + catalog cost update. This row-locks the
+      // product and returns the committed resulting stock, so concurrent
+      // purchases/sales/adjustments can never overwrite each other.
+      const updatedRows: Array<{ currentStock: number }> = await tx.$queryRaw`
+        UPDATE "public"."Product"
+        SET "currentStock" = "currentStock" + ${item.quantity}::integer,
+            "purchasePrice" = ${item.purchasePrice}::numeric(12, 2),
+            "updatedAt" = NOW()
+        WHERE "id" = ${item.productId}::text
+          AND "businessId" = ${params.businessId}::text
+          AND "isActive" = true
+        RETURNING "currentStock";
+      `;
 
-      await tx.product.update({
-        where: { id: product.id },
-        data: {
-          currentStock: resultingStock,
-          purchasePrice: item.purchasePrice,
-        },
-      });
+      if (!updatedRows || updatedRows.length === 0) {
+        throw new AppError(ErrorCodes.NOT_FOUND, `Product ${item.productId} not found`, 404);
+      }
+
+      const resultingStock = Number(updatedRows[0].currentStock);
+      
+      const existingLedger = stockLedger.find(l => l.productId === item.productId);
+      if (existingLedger) {
+        existingLedger.quantity += item.quantity;
+        existingLedger.resultingStock = resultingStock;
+      } else {
+        stockLedger.push({
+          productId: item.productId,
+          quantity: item.quantity,
+          previousStock: resultingStock - item.quantity,
+          resultingStock,
+        });
+      }
     }
 
     const discount = params.discount || 0;
@@ -145,20 +171,16 @@ export async function createPurchase(params: CreatePurchaseParams) {
     });
 
     // 5. Create Stock Movement Ledger Records
-    for (const item of purchase.items) {
-      const product = await tx.product.findUnique({
-        where: { id: item.productId },
-      });
-
+    for (const entry of stockLedger) {
       await tx.stockMovement.create({
         data: {
           businessId: params.businessId,
           branchId: params.branchId,
-          productId: item.productId,
+          productId: entry.productId,
           movementType: MovementType.PURCHASE,
-          quantity: item.quantity,
-          previousStock: product!.currentStock - item.quantity,
-          resultingStock: product!.currentStock,
+          quantity: entry.quantity,
+          previousStock: entry.previousStock,
+          resultingStock: entry.resultingStock,
           referenceId: purchase.id,
           notes: `Purchase Invoice #${purchase.invoiceNumber || purchase.id.slice(0, 8)}`,
           createdBy: params.userId,
@@ -342,7 +364,7 @@ export async function cancelPurchase(
   reason: string
 ) {
   let result = await prisma.$transaction(async (tx) => {
-    // 1. Fetch Purchase
+    // 1. Fetch Purchase (for context / validation only — no state decisions here)
     const purchase = await tx.purchase.findUnique({
       where: { id: purchaseId, businessId },
       include: { items: true, supplier: true },
@@ -352,45 +374,55 @@ export async function cancelPurchase(
       throw new AppError(ErrorCodes.NOT_FOUND, 'Purchase not found', 404);
     }
 
-    if (purchase.status === PurchaseStatus.CANCELLED) {
-      throw new AppError(ErrorCodes.INTERNAL_ERROR, 'Purchase is already cancelled.');
-    }
-
     // Save branchId for cache invalidation after transaction
     const branchId = purchase.branchId;
 
-    // 2. MANDATORY CHECK 1: Stock Sufficiency Check
-    // Calculate whether reversing its inventory impact would make product stock negative
+    // 2. Atomic RECEIVED -> CANCELLED transition. updateMany row-locks the
+    //    purchase for the duration of this transaction, so exactly one
+    //    concurrent cancellation wins; the loser sees count === 0 and aborts
+    //    without restoring stock or writing duplicate reversal movements.
+    const transition = await tx.purchase.updateMany({
+      where: { id: purchaseId, businessId, status: PurchaseStatus.RECEIVED },
+      data: { status: PurchaseStatus.CANCELLED },
+    });
+
+    if (transition.count === 0) {
+      throw new AppError(ErrorCodes.CONFLICT, 'Purchase is already cancelled.', 409);
+    }
+
+    // 3. Process Reversal for each item using atomic guarded decrements.
+    //    Each decrement only applies if sufficient stock still exists; on
+    //    failure the whole transaction rolls back and the purchase returns
+    //    to RECEIVED (no partial state).
     for (const item of purchase.items) {
-      const product = await tx.product.findUnique({
-        where: { id: item.productId, businessId },
-      });
+      const decremented: Array<{ currentStock: number }> = await tx.$queryRaw`
+        UPDATE "public"."Product"
+        SET "currentStock" = "currentStock" - ${item.quantity}::integer,
+            "updatedAt" = NOW()
+        WHERE "id" = ${item.productId}::text
+          AND "businessId" = ${businessId}::text
+          AND "currentStock" >= ${item.quantity}::integer
+        RETURNING "currentStock";
+      `;
 
-      if (!product) {
-        throw new AppError(ErrorCodes.NOT_FOUND, `Product ${item.productId} not found`, 404);
-      }
-
-      if (product.currentStock < item.quantity) {
+      if (!decremented || decremented.length === 0) {
+        const product = await tx.product.findUnique({
+          where: { id: item.productId, businessId },
+          select: { name: true },
+        });
         throw new AppError(
           ErrorCodes.INSUFFICIENT_STOCK,
-          'Purchase cannot be cancelled because its stock has already been consumed. Review the related inventory/sales transactions first.',
+          `Purchase cannot be cancelled because the stock for "${product?.name || item.productId}" has already been consumed. Review the related inventory/sales transactions first.`,
           409
         );
       }
-    }
 
-    // 3. Process Reversal for each item
-    for (const item of purchase.items) {
-      const product = await tx.product.findUnique({
-        where: { id: item.productId, businessId },
-      });
+      const resultingStock = Number(decremented[0].currentStock);
+      const previousStock = resultingStock + item.quantity;
 
-      const previousStock = product!.currentStock;
-      const resultingStock = previousStock - item.quantity;
-
-      // MANDATORY CHECK 2: Cost-Price Recalculation
-      // When the latest purchase is cancelled, recalculate Product.purchasePrice
-      // from the latest remaining valid (RECEIVED) purchase for that product.
+      // MANDATORY: Cost-Price Recalculation. When the latest purchase is
+      // cancelled, recalculate Product.purchasePrice from the latest remaining
+      // valid (RECEIVED) purchase for that product.
       const latestRemainingPurchaseItem = await tx.purchaseItem.findFirst({
         where: {
           productId: item.productId,
@@ -407,20 +439,14 @@ export async function cancelPurchase(
         ],
       });
 
-      const updatedProductData: { currentStock: number; purchasePrice?: number } = {
-        currentStock: resultingStock,
-      };
-
       if (latestRemainingPurchaseItem) {
-        updatedProductData.purchasePrice = Number(latestRemainingPurchaseItem.purchasePrice);
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { purchasePrice: Number(latestRemainingPurchaseItem.purchasePrice) },
+        });
       }
 
-      await tx.product.update({
-        where: { id: item.productId },
-        data: updatedProductData,
-      });
-
-      // Create Reversal Stock Movement Ledger
+      // Create Reversal Stock Movement Ledger (authoritative committed values)
       await tx.stockMovement.create({
         data: {
           businessId,
@@ -437,11 +463,10 @@ export async function cancelPurchase(
       });
     }
 
-    // 4. Update Purchase status
+    // 4. Append cancellation reason to notes (status already set atomically)
     const updatedPurchase = await tx.purchase.update({
       where: { id: purchase.id },
       data: {
-        status: PurchaseStatus.CANCELLED,
         notes: purchase.notes
           ? `${purchase.notes}\n[CANCELLED]: ${reason}`
           : `[CANCELLED]: ${reason}`,

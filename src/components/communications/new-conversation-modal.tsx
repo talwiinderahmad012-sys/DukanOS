@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { X, MessageSquare, Search, Send, User, AlertCircle } from 'lucide-react';
 import { listStoreMembersAction, startDirectConversationAction } from '@/app/actions/communication.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { useModalA11y } from '@/lib/a11y/use-modal-a11y';
 
 const ROLE_LABEL_KEYS: Record<string, string> = {
   ALL: 'communications.roles.ALL',
@@ -32,6 +33,8 @@ export function NewConversationModal({
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const modalRef = useModalA11y(isOpen, onClose);
 
   useEffect(() => {
     if (isOpen) {
@@ -78,8 +81,14 @@ export function NewConversationModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 relative">
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        tabIndex={-1}
+        className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 relative max-h-[90vh] overflow-y-auto"
+      >
         <button
           onClick={onClose}
           className="absolute top-4 end-4 text-gray-400 hover:text-gray-600"

@@ -1,6 +1,8 @@
 import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { getBusinessGrowth, getMonthlyReport } from '@/services/reports';
 import { redirect } from 'next/navigation';
+import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
+import { ForbiddenView } from '@/components/access/forbidden';
 import { GrowthPageClient, type GrowthPeriodParam } from './growth-client';
 
 export default async function GrowthPage({
@@ -8,7 +10,10 @@ export default async function GrowthPage({
 }: {
   searchParams: Promise<{ period?: string }>;
 }) {
-  const { business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  if (!canAccessDashboardPath(membership.role, '/dashboard/growth')) {
+    return <ForbiddenView role={membership.role} />;
+  }
   const params = await searchParams;
 
   const periodParam = (params.period || 'MONTHLY').toUpperCase() as GrowthPeriodParam;

@@ -20,13 +20,20 @@ import {
 import { calculateBusinessHealth } from '@/services/analytics/health-score';
 import { generateBusinessInsights } from '@/services/analytics/insights';
 import { redirect } from 'next/navigation';
+import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
+import { ForbiddenView } from '@/components/access/forbidden';
 import { AnalyticsPageClient } from './analytics-page-client';
 
 export default async function AnalyticsPage() {
   const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
 
+  // Analytics exposes revenue/profit/expense metrics. Denied roles render the
+  // accessible forbidden state instead of a silent redirect.
+  if (!canAccessDashboardPath(membership.role, '/dashboard/analytics')) {
+    return <ForbiddenView role={membership.role} />;
+  }
+
   const isOwnerOrManager = membership.role === 'OWNER' || membership.role === 'MANAGER';
-  if (!isOwnerOrManager) redirect('/dashboard');
 
   const { period, comparisonPeriod } = getCurrentMonthPeriods();
   const now = new Date();

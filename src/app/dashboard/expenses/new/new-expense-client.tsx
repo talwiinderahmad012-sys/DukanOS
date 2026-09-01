@@ -151,12 +151,21 @@ export function NewExpenseClient({
             >
               {t('common.cancel')}
             </Link>
-            <button type="submit" className={buttonClasses('primary', 'md')}>
-              {t('expenses.recordExpense')}
-            </button>
+            <SubmitButton t={t} />
           </div>
         </form>
       </Card>
     </div>
+  );
+}
+
+import { useFormStatus } from 'react-dom';
+
+function SubmitButton({ t }: { t: (key: string) => string }) {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" disabled={pending} className={buttonClasses('primary', 'md')}>
+      {pending ? t('common.saving') : t('expenses.recordExpense')}
+    </button>
   );
 }

@@ -34,15 +34,31 @@ DukaanOS Web Dashboard (/dashboard/cameras/[id])
 
 ## 3. Strict Credential Protection & Secret Isolation
 - Sensitive camera authentication (usernames, passwords, private RTSP auth headers) is stored in the database within `Camera.encryptedSecrets`.
+- **Encryption at rest**: values are serialized as `enc:v1:<iv>.<authTag>.<ciphertext>` using **AES-256-GCM** ([`src/lib/security/encryption.ts`](file:///d:/DukanOS/src/lib/security/encryption.ts)). The 32-byte key is supplied only via the `CCTV_SECRETS_ENCRYPTION_KEY` environment variable (`openssl rand -hex 32`) and never appears in source control or API responses.
+- **Fail-closed writes**: registering or updating camera credentials without a configured encryption key is rejected with a server error instead of silently storing plaintext.
+- **Legacy upgrade**: plaintext values written before encryption existed are still read for compatibility and are transparently re-encrypted on the next health check or update.
 - Sanitize functions in [`src/services/cctv/cameras.ts`](file:///d:/DukanOS/src/services/cctv/cameras.ts) **strictly strip secrets** from all public responses.
 - Client-side React components only receive public metadata (`host`, `port`, `location`, `status`, `hasCredentials: true`), preventing credentials from leaking in browser devtools or component state.
+- `branchId` on camera create/update is validated to belong to the same business before any write.
 
 ---
 
 ## 4. Role-Based Access Control
 - **OWNER**: Full access to register, configure, test, view, and archive cameras.
-- **MANAGER**: Read access and operational health checking.
+- **MANAGER**: Register, configure, test, view and run health checks (archiving is OWNER-only).
 - **CASHIER & EMPLOYEE**: Strictly denied access (`403 Forbidden` / redirect).
+
+---
+
+## 4.1 Connectivity Probes
+Providers in [`src/services/cctv/providers`](file:///d:/DukanOS/src/services/cctv/providers) perform **real reachability checks** for routable targets:
+- **RTSP**: TCP connect + `OPTIONS` handshake (`rtsp.provider.ts`); a 2xx/3xx status line ⇒ `ONLINE`, `401/403` ⇒ `DEGRADED` with an authentication error, connect failure/timeout ⇒ `OFFLINE`.
+- **ONVIF**: unauthenticated SOAP `GetSystemDateAndTime` probe against `/onvif/device_service` (`onvif.provider.ts`).
+- **CLOUD**: real HTTP probe of the configured stream/health URL (`cloud.provider.ts`).
+- **Deterministic simulation**: private/LAN/loopback hosts (`192.168.*`, `10.*`, `127.*`, `localhost`, `mock-*`, …) cannot be reached from the app server in the media-gateway architecture, so they resolve through the deterministic simulated probe (`simulation.ts`). Set `CCTV_SIMULATE_PROVIDERS=1` to force simulation for every target (used by local development and the integration test suite) or `0` to disable it.
+- Health events classify failures with a coarse `errorCategory`: `NONE`, `TIMEOUT`, `DNS_ERROR`, `AUTHENTICATION_ERROR`, `CONNECTION_ERROR`.
+
+---
 
 ---
 
@@ -58,12 +74,13 @@ DukaanOS Web Dashboard (/dashboard/cameras/[id])
 
 ## 6. Remote Monitoring Cockpit Integration
 - **Monitoring Cockpit (`/dashboard/monitoring`)**:
-  - Displays live camera availability count (`Online / Total`).
-  - Displays the **Security Camera Live Status Grid** showing store zones and quick feed buttons.
-  - Highlights offline cameras in the **Owner Action Center**.
+  - Displays live camera availability count (`Online / Total`) in the **Security Camera Live Status** panel (online / degraded / offline breakdown).
+  - Lists offline or degraded cameras by name and location, with a direct link to the CCTV panel.
+  - Highlights unreachable cameras as an alert row in the **Owner Action Center** (data served by `getRemoteBusinessStatus` in [`src/services/monitoring.ts`](file:///d:/DukanOS/src/services/monitoring.ts)).
 
 ---
 
 ## 7. Verification & Build
-- Automated integration test suite: [`src/scripts/test_cctv_monitoring.ts`](file:///d:/DukanOS/src/scripts/test_cctv_monitoring.ts) (6/6 tests passing).
-- Production build: `npm run build` (All 39 Next.js routes compiled cleanly).
+- Automated integration test suite: [`src/scripts/test_cctv_monitoring.ts`](file:///d:/DukanOS/src/scripts/test_cctv_monitoring.ts) — run with `CCTV_SECRETS_ENCRYPTION_KEY` and (optionally) `CCTV_SIMULATE_PROVIDERS=1` configured in `.env`.
+- Scheduled maintenance: `POST /api/cron` (Bearer `CRON_SECRET`) re-checks every enabled camera, logs `CameraHealthEvent` rows, and dispatches deduplicated alerts.
+- Production build: `npm run build`.

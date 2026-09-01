@@ -18,7 +18,7 @@ Step 13 equips DukaanOS with Progressive Web App (PWA) installation capabilities
 - **Cached Assets**:
   - Static app shell (`/`, `/manifest.json`, `/favicon.ico`, `/icons/*`).
   - Cache-first strategy for immutable build assets (`/_next/static/*`, images, fonts).
-  - Network-first strategy with offline page fallback for HTML page navigations.
+  - Network-first strategy with `/offline.html` fallback page for HTML navigations.
 - **Strict Privacy Rule**:
   - Service worker **NEVER** caches `/api/*`, server action mutations, auth endpoints, customer credit, reports, employee salaries, or confidential messages.
 

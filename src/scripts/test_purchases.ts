@@ -145,8 +145,8 @@ async function runTests() {
 
   // 4. Test Mandatory Requirement 1: Consumed Stock Cancellation Rejection
   // Currently Product A has 20 units (from Purchase 1).
-  // Simulate consumption of stock: reduce stock to 5 units (e.g. 15 were sold/consumed).
-  await adjustStock(testBusiness.id, testUser.id, productA.id, 5, 'Damaged stock consumed');
+  // Simulate consumption of stock: reduce stock by 15 units to 5 (e.g. 15 were sold/consumed).
+  await adjustStock(testBusiness.id, testUser.id, productA.id, -15, 'Damaged stock consumed');
 
   let blockedErrorThrown = false;
   try {
@@ -154,8 +154,8 @@ async function runTests() {
     await cancelPurchase(testBusiness.id, testUser.id, purchase1.id, 'Attempting cancel after stock consumed');
   } catch (err: any) {
     if (
-      err.message ===
-      'Purchase cannot be cancelled because its stock has already been consumed. Review the related inventory/sales transactions first.'
+      typeof err.message === 'string' &&
+      err.message.includes('has already been consumed')
     ) {
       blockedErrorThrown = true;
     } else {

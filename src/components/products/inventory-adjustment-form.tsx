@@ -44,9 +44,10 @@ export function InventoryAdjustmentForm({
     }
 
     const formData = new FormData(form);
+    const delta = adjustmentType === 'add' ? quantity : -quantity;
     const payload = {
       productId,
-      newStock,
+      delta,
       reason: formData.get('reason') as string,
     };
 

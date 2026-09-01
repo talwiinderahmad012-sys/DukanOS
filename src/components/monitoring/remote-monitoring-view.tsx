@@ -37,6 +37,7 @@ export function RemoteMonitoringView({
   const { t, formatCurrency } = useTranslation();
   const router = useRouter();
   const { business, liveSales, attendance, actionCenter } = data;
+  const cameras = data.cameras ?? { total: 0, online: 0, offline: 0, degraded: 0, offlineHighlights: [] };
 
   const [isOpen, setIsOpen] = useState<boolean>(business.isOpen);
   const [operatingHours, setOperatingHours] = useState(business.operatingHours || '');
@@ -310,6 +311,27 @@ export function RemoteMonitoringView({
               </Link>
             )}
 
+            {/* Offline / Degraded CCTV Cameras */}
+            {actionCenter.offlineCamerasCount > 0 && (
+              <Link
+                href="/dashboard/cameras"
+                className="p-3.5 rounded-2xl border border-red-200 bg-red-50/50 hover:bg-red-50 flex items-center justify-between transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-red-100 text-red-700 flex items-center justify-center shrink-0">
+                    <XCircle className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-xs text-red-950 block">
+                      {t('monitoring.cctvOfflineTitle', { count: actionCenter.offlineCamerasCount })}
+                    </span>
+                    <span className="text-[11px] text-red-700">{t('monitoring.cctvOfflineDesc')}</span>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-red-400 group-hover:text-red-600 transition-colors rtl-flip" />
+              </Link>
+            )}
+
             {/* Low Rating Customer Feedback */}
             {actionCenter.newLowFeedbacksCount > 0 && (
               <Link
@@ -344,6 +366,74 @@ export function RemoteMonitoringView({
         </div>
 
       </div>
+
+      {/* Row 4: Security Camera Live Status */}
+      {cameras.total > 0 && (
+        <div className="bg-white rounded-3xl border border-gray-200 shadow-xs p-6 space-y-4">
+          <div className="flex justify-between items-center border-b pb-3">
+            <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-sky-600" aria-hidden="true" /> {t('monitoring.cctvSectionTitle')}
+            </h3>
+            <span
+              className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                cameras.total > 0 && cameras.online + cameras.degraded + cameras.offline > 0 && cameras.offline === 0 && cameras.degraded === 0
+                  ? 'bg-green-100 text-green-800'
+                  : cameras.offline > 0 || cameras.degraded > 0
+                    ? 'bg-red-100 text-red-800'
+                    : 'bg-gray-100 text-gray-700'
+              }`}
+            >
+              {t('monitoring.cctvOnlineCount', { count: cameras.online, total: cameras.total })}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div className="p-3 bg-emerald-50/70 border border-emerald-100 rounded-2xl">
+              <span className="text-xs font-bold text-emerald-900 block">{t('monitoring.cctvOnline')}</span>
+              <span className="text-xl font-extrabold text-emerald-700">{cameras.online}</span>
+            </div>
+            <div className="p-3 bg-amber-50/70 border border-amber-100 rounded-2xl">
+              <span className="text-xs font-bold text-amber-900 block">{t('monitoring.cctvDegraded')}</span>
+              <span className="text-xl font-extrabold text-amber-700">{cameras.degraded}</span>
+            </div>
+            <div className="p-3 bg-rose-50/70 border border-rose-100 rounded-2xl">
+              <span className="text-xs font-bold text-rose-900 block">{t('monitoring.cctvOffline')}</span>
+              <span className="text-xl font-extrabold text-rose-700">{cameras.offline}</span>
+            </div>
+          </div>
+
+          {cameras.offlineHighlights?.length > 0 && (
+            <ul className="space-y-2" aria-label={t('monitoring.cctvAttentionList')}>
+              {cameras.offlineHighlights.map((cam: { id: string; name: string; location: string | null; status: string }) => (
+                <li
+                  key={cam.id}
+                  className={`p-3 rounded-2xl border flex items-center justify-between gap-2 text-xs ${
+                    cam.status === 'OFFLINE'
+                      ? 'border-rose-200 bg-rose-50/50 text-rose-900'
+                      : 'border-amber-200 bg-amber-50/50 text-amber-900'
+                  }`}
+                >
+                  <span className="font-semibold truncate">
+                    {cam.name}
+                    {cam.location ? ` — ${cam.location}` : ''}
+                  </span>
+                  <span className="font-bold shrink-0">{cam.status}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className="pt-2">
+            <Link
+              href="/dashboard/cameras"
+              className="w-full py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-semibold rounded-xl flex items-center justify-center gap-1 border border-gray-200 transition-colors"
+            >
+              <span>{t('monitoring.cctvViewCameras')}</span>
+              <ChevronRight className="w-3.5 h-3.5 rtl-flip" />
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

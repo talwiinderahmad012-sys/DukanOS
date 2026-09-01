@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, type ComponentProps, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type ComponentProps, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { cn } from './cn';
 import { IconButton } from './button';
@@ -41,16 +41,52 @@ export function Modal({
   const titleId = useId();
   const descriptionId = useId();
 
+  const modalRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!open) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
+      
+      if (event.key === 'Tab' && modalRef.current) {
+        const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusableElements.length > 0) {
+          const firstElement = focusableElements[0];
+          const lastElement = focusableElements[focusableElements.length - 1];
+
+          if (event.shiftKey) {
+            if (document.activeElement === firstElement) {
+              lastElement.focus();
+              event.preventDefault();
+            }
+          } else {
+            if (document.activeElement === lastElement) {
+              firstElement.focus();
+              event.preventDefault();
+            }
+          }
+        }
+      }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    
+    // Initial focus
+    setTimeout(() => {
+      if (modalRef.current) {
+        const firstInput = modalRef.current.querySelector<HTMLElement>('input, select, textarea');
+        if (firstInput) {
+          firstInput.focus();
+        } else {
+          modalRef.current.focus();
+        }
+      }
+    }, 10);
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
@@ -64,8 +100,10 @@ export function Modal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
       <div
+        ref={modalRef}
         role="dialog"
         aria-modal="true"
+        tabIndex={-1}
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
         className={cn(

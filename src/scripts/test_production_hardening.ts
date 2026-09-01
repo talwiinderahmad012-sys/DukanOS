@@ -17,7 +17,7 @@ async function main() {
   console.log('--- STARTING STEP 19: PRODUCTION HARDENING, SECURITY & RELIABILITY TESTS ---');
 
   const { prisma } = await import('../lib/db/prisma');
-  const { hasPermission, assertPermission } = await import('../lib/permissions/matrix');
+  const { hasPermission } = await import('../lib/permissions/matrix');
   const { checkRateLimit, resetRateLimit, getRateLimitIdentifier } = await import('../lib/security/rate-limiter');
   const { sanitizePlainText, roundMoney, sanitizeQuantity } = await import('../lib/security/sanitizer');
   const { sanitizeLogMetadata } = await import('../lib/logging/logger');
@@ -157,17 +157,8 @@ async function main() {
     throw new Error('Owner must have EXPORT_DATA and VIEW_SALARIES capability.');
   }
 
-  let forbiddenCaught = false;
-  try {
-    assertPermission('CASHIER', 'MANAGE_MEMBERS');
-  } catch (err: any) {
-    if (err.message.includes('Forbidden')) {
-      forbiddenCaught = true;
-    }
-  }
-
-  if (!forbiddenCaught) {
-    throw new Error('assertPermission failed to throw on unauthorized role capability.');
+  if (hasPermission('CASHIER', 'MANAGE_MEMBERS')) {
+    throw new Error('hasPermission failed to return false on unauthorized role capability.');
   }
 
   console.log('✓ Test 2 Passed: Role permission matrix strictly enforced.');

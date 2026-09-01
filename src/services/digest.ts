@@ -3,6 +3,8 @@ import { prisma } from '@/lib/db/prisma';
 import { sendNotification } from './notifications';
 import { getRemoteBusinessStatus } from './monitoring';
 
+import { getDailyRange } from '@/lib/utils/date-utils';
+
 export async function generateDailyBusinessDigest(
   businessId: string,
   targetDate?: Date
@@ -20,23 +22,17 @@ export async function generateDailyBusinessDigest(
   // 2. Compute Yesterday & Day-Before Range in Business Timezone
   const refDate = targetDate ? new Date(targetDate) : new Date();
   
-  // Yesterday Range (00:00:00 to 23:59:59)
-  const yesterdayStart = new Date(refDate);
-  yesterdayStart.setDate(yesterdayStart.getDate() - 1);
-  yesterdayStart.setHours(0, 0, 0, 0);
+  const currentDaily = getDailyRange(refDate, business.timezone);
+  const yesterdayDaily = getDailyRange(new Date(currentDaily.start.getTime() - 1), business.timezone);
+  const dayBeforeDaily = getDailyRange(new Date(yesterdayDaily.start.getTime() - 1), business.timezone);
 
-  const yesterdayEnd = new Date(yesterdayStart);
-  yesterdayEnd.setHours(23, 59, 59, 999);
+  const yesterdayStart = yesterdayDaily.start;
+  const yesterdayEnd = yesterdayDaily.end;
 
-  // Day Before Yesterday Range
-  const prevDayStart = new Date(yesterdayStart);
-  prevDayStart.setDate(prevDayStart.getDate() - 1);
-  prevDayStart.setHours(0, 0, 0, 0);
+  const prevDayStart = dayBeforeDaily.start;
+  const prevDayEnd = dayBeforeDaily.end;
 
-  const prevDayEnd = new Date(prevDayStart);
-  prevDayEnd.setHours(23, 59, 59, 999);
-
-  const dateStr = yesterdayStart.toISOString().slice(0, 10);
+  const dateStr = yesterdayDaily.dateStr;
   const deduplicationKey = `DAILY_DIGEST-${businessId}-${dateStr}`;
 
   // 3. Check Idempotency: Don't recreate or resend if already generated for this date

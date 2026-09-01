@@ -95,7 +95,7 @@ export function getComponentsFormatterCacheSize(): number {
   return componentsFormatterCache.size;
 }
 
-function getDateComponentsInTimezone(date: Date, timezone: string) {
+export function getDateComponentsInTimezone(date: Date, timezone: string) {
   const parts = getComponentsFormatter(timezone).formatToParts(date);
   const get = (type: string) => parseInt(parts.find((p) => p.type === type)?.value || '0', 10);
 

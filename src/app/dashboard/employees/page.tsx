@@ -1,6 +1,8 @@
 import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { listEmployees, getEmployeeDashboardStats } from '@/services/employees';
 import { redirect } from 'next/navigation';
+import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
+import { ForbiddenView } from '@/components/access/forbidden';
 import { EmployeesPageClient } from './employees-page-client';
 
 export default async function EmployeesDirectoryPage({
@@ -14,7 +16,13 @@ export default async function EmployeesDirectoryPage({
     page?: string;
   }>;
 }) {
-  const { business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+
+  // Staff management is restricted to OWNER / MANAGER (MANAGE_EMPLOYEES).
+  if (!canAccessDashboardPath(membership.role, '/dashboard/employees')) {
+    return <ForbiddenView role={membership.role} showFinancialNote={false} />;
+  }
+
   const params = await searchParams;
 
   const page = Number(params.page) || 1;

@@ -4,6 +4,8 @@ import { getCustomerWithLedger } from '@/services/customers';
 import { getCustomerInsights } from '@/services/customer-insights';
 import { notFound, redirect } from 'next/navigation';
 import { MembershipRole } from '@/generated/prisma/client';
+import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
+import { ForbiddenView } from '@/components/access/forbidden';
 import {
   CustomerDetailClient,
   type AuditRowData,
@@ -18,6 +20,10 @@ export default async function CustomerDetailPage({
 }) {
   const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
   const { id } = await params;
+
+  if (!canAccessDashboardPath(membership.role, '/dashboard/customers')) {
+    return <ForbiddenView role={membership.role} />;
+  }
 
   const [customerData, insights, auditLogs] = await Promise.all([
     getCustomerWithLedger(business.id, id),

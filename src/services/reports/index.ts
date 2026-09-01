@@ -23,6 +23,19 @@ export type ReportFinancialSummary = {
   purchaseSpend: number;
 };
 
+/**
+ * Branch attribution filter for customer payments (P2-03). A payment is
+ * counted against a branch only when it was recorded at that branch or is
+ * linked to a sale at that branch. Historical payments without any
+ * attribution are intentionally excluded from branch-filtered reports
+ * (never fabricated), while unfiltered reports keep counting everything.
+ */
+function paymentBranchFilter(branchId?: string) {
+  return branchId
+    ? { OR: [{ branchId }, { sale: { branchId } }] }
+    : {};
+}
+
 export async function getDailyReport(
   businessId: string,
   dateInput?: string | Date,
@@ -76,6 +89,7 @@ export async function getDailyReport(
     prisma.expense.aggregate({
       where: {
         businessId,
+        cancelledAt: null,
         date: { gte: current.start, lte: current.end },
         ...branchFilter,
       },
@@ -85,6 +99,7 @@ export async function getDailyReport(
       where: {
         businessId,
         date: { gte: current.start, lte: current.end },
+        ...paymentBranchFilter(branchId),
       },
       _sum: { amount: true },
     }),
@@ -121,6 +136,7 @@ export async function getDailyReport(
     prisma.expense.aggregate({
       where: {
         businessId,
+        cancelledAt: null,
         date: { gte: previous.start, lte: previous.end },
         ...branchFilter,
       },
@@ -262,6 +278,7 @@ export async function getWeeklyReport(
     prisma.expense.findMany({
       where: {
         businessId,
+        cancelledAt: null,
         date: { gte: current.start, lte: current.end },
         ...branchFilter,
       },
@@ -270,6 +287,7 @@ export async function getWeeklyReport(
       where: {
         businessId,
         date: { gte: current.start, lte: current.end },
+        ...paymentBranchFilter(branchId),
       },
       _sum: { amount: true },
     }),
@@ -297,6 +315,7 @@ export async function getWeeklyReport(
     prisma.expense.aggregate({
       where: {
         businessId,
+        cancelledAt: null,
         date: { gte: previous.start, lte: previous.end },
         ...branchFilter,
       },
@@ -386,6 +405,7 @@ export async function getMonthlyReport(
     itemsAggregate,
     expenses,
     purchasesAggregate,
+    paymentsAggregate,
     prevSales,
     prevItemsAggregate,
     prevExpenses,
@@ -420,6 +440,7 @@ export async function getMonthlyReport(
     prisma.expense.findMany({
       where: {
         businessId,
+        cancelledAt: null,
         date: { gte: current.start, lte: current.end },
         ...branchFilter,
       },
@@ -432,6 +453,14 @@ export async function getMonthlyReport(
         ...(branchId ? { branchId } : {}),
       },
       _sum: { total: true },
+    }),
+    prisma.customerPayment.aggregate({
+      where: {
+        businessId,
+        date: { gte: current.start, lte: current.end },
+        ...paymentBranchFilter(branchId),
+      },
+      _sum: { amount: true },
     }),
     prisma.sale.aggregate({
       where: {
@@ -457,6 +486,7 @@ export async function getMonthlyReport(
     prisma.expense.aggregate({
       where: {
         businessId,
+        cancelledAt: null,
         date: { gte: previous.start, lte: previous.end },
         ...branchFilter,
       },
@@ -465,6 +495,7 @@ export async function getMonthlyReport(
   ]);
 
   const grossRevenue = sales.reduce((sum, s) => sum + Number(s.total), 0);
+  const creditGiven = sales.reduce((sum, s) => sum + Math.max(0, Number(s.total) - Number(s.paidAmount || 0)), 0);
   const grossProfit = Number(itemsAggregate._sum.lineProfit || 0);
   const totalExpenses = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
   const netProfit = grossProfit - totalExpenses;
@@ -523,6 +554,8 @@ export async function getMonthlyReport(
       expenses: totalExpenses,
       netProfit,
       ordersCount,
+      creditGiven,
+      paymentsReceived: Number(paymentsAggregate._sum.amount || 0),
       purchaseSpend: Number(purchasesAggregate._sum.total || 0),
     },
     growth: {
@@ -546,7 +579,7 @@ export async function getYearlyReport(
   const previous = getYearlyRange(current.year - 1, timezone);
   const branchFilter = branchId ? { branchId } : {};
 
-  const [sales, itemsAggregate, expenses, purchasesAggregate, prevSales, prevItemsAggregate, prevExpenses] = await Promise.all([
+  const [sales, itemsAggregate, expenses, purchasesAggregate, paymentsAggregate, prevSales, prevItemsAggregate, prevExpenses] = await Promise.all([
     prisma.sale.findMany({
       where: {
         businessId,
@@ -556,6 +589,7 @@ export async function getYearlyReport(
       },
       select: {
         total: true,
+        paidAmount: true,
         saleDate: true,
         items: { select: { lineProfit: true } },
       },
@@ -574,6 +608,7 @@ export async function getYearlyReport(
     prisma.expense.findMany({
       where: {
         businessId,
+        cancelledAt: null,
         date: { gte: current.start, lte: current.end },
         ...branchFilter,
       },
@@ -587,6 +622,14 @@ export async function getYearlyReport(
         ...(branchId ? { branchId } : {}),
       },
       _sum: { total: true },
+    }),
+    prisma.customerPayment.aggregate({
+      where: {
+        businessId,
+        date: { gte: current.start, lte: current.end },
+        ...paymentBranchFilter(branchId),
+      },
+      _sum: { amount: true },
     }),
     prisma.sale.aggregate({
       where: {
@@ -612,6 +655,7 @@ export async function getYearlyReport(
     prisma.expense.aggregate({
       where: {
         businessId,
+        cancelledAt: null,
         date: { gte: previous.start, lte: previous.end },
         ...branchFilter,
       },
@@ -620,6 +664,7 @@ export async function getYearlyReport(
   ]);
 
   const grossRevenue = sales.reduce((sum, s) => sum + Number(s.total), 0);
+  const creditGiven = sales.reduce((sum, s) => sum + Math.max(0, Number(s.total) - Number(s.paidAmount || 0)), 0);
   const grossProfit = Number(itemsAggregate._sum.lineProfit || 0);
   const totalExpenses = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
   const netProfit = grossProfit - totalExpenses;
@@ -672,6 +717,8 @@ export async function getYearlyReport(
       expenses: totalExpenses,
       netProfit,
       ordersCount,
+      creditGiven,
+      paymentsReceived: Number(paymentsAggregate._sum.amount || 0),
       purchaseSpend: Number(purchasesAggregate._sum.total || 0),
     },
     growth: {
@@ -693,81 +740,16 @@ export async function getTopSellingProducts(
     sortBy?: 'quantity' | 'revenue' | 'profit';
   } = {}
 ) {
+  const { getTopProducts } = await import('@/services/analytics');
+  // Fallback to a huge date range if not provided, just as original did
+  const start = options.startDate || new Date(0);
+  const end = options.endDate || new Date(8640000000000000);
   const limit = options.limit || 10;
-  const sortBy = options.sortBy || 'quantity';
-
-  const whereSale: any = {
-    businessId,
-    status: SaleStatus.COMPLETED,
-  };
-
-  if (options.startDate || options.endDate) {
-    whereSale.saleDate = {};
-    if (options.startDate) whereSale.saleDate.gte = options.startDate;
-    if (options.endDate) whereSale.saleDate.lte = options.endDate;
-  }
-
-  const saleItems = await prisma.saleItem.findMany({
-    where: {
-      sale: whereSale,
-    },
-    include: {
-      product: {
-        select: {
-          id: true,
-          name: true,
-          sku: true,
-          unit: true,
-          currentStock: true,
-          sellingPrice: true,
-        },
-      },
-    },
-  });
-
-  const productMap = new Map<
-    string,
-    {
-      productId: string;
-      name: string;
-      sku?: string | null;
-      unit: string;
-      currentStock: number;
-      quantitySold: number;
-      revenue: number;
-      profit: number;
-    }
-  >();
-
-  for (const item of saleItems) {
-    const existing = productMap.get(item.productId) || {
-      productId: item.productId,
-      name: item.product.name,
-      sku: item.product.sku,
-      unit: item.product.unit,
-      currentStock: item.product.currentStock,
-      quantitySold: 0,
-      revenue: 0,
-      profit: 0,
-    };
-
-    existing.quantitySold += item.quantity;
-    existing.revenue += Number(item.lineTotal);
-    existing.profit += Number(item.lineProfit);
-    productMap.set(item.productId, existing);
-  }
-
-  const list = Array.from(productMap.values());
-
-  if (sortBy === 'revenue') {
-    list.sort((a, b) => b.revenue - a.revenue);
-  } else if (sortBy === 'profit') {
-    list.sort((a, b) => b.profit - a.profit);
-  } else {
-    list.sort((a, b) => b.quantitySold - a.quantitySold);
-  }
-
-  return list.slice(0, limit);
+  let sortBy: 'units' | 'revenue' | 'profit' = 'units';
+  if (options.sortBy === 'revenue') sortBy = 'revenue';
+  if (options.sortBy === 'profit') sortBy = 'profit';
+  
+  return getTopProducts(businessId, start, end, limit, sortBy);
 }
 
 export async function getSlowMovingProducts(
@@ -777,67 +759,17 @@ export async function getSlowMovingProducts(
     limit?: number;
   } = {}
 ) {
-  const daysThreshold = options.daysThreshold || 30;
+  const { getSlowMovingProducts: getSlowProducts } = await import('@/services/analytics');
+  const days = options.daysThreshold || 30;
   const limit = options.limit || 20;
-
-  const thresholdDate = new Date();
-  thresholdDate.setDate(thresholdDate.getDate() - daysThreshold);
-
-  // 1. Fetch active products with stock > 0
-  const activeProducts = await prisma.product.findMany({
-    where: {
-      businessId,
-      isActive: true,
-      currentStock: { gt: 0 },
-    },
-    select: {
-      id: true,
-      name: true,
-      sku: true,
-      unit: true,
-      currentStock: true,
-      purchasePrice: true,
-      sellingPrice: true,
-      createdAt: true,
-    },
-  });
-
-  // 2. Fetch sales for these products within the threshold date
-  const recentSaleItems = await prisma.saleItem.findMany({
-    where: {
-      sale: {
-        businessId,
-        status: SaleStatus.COMPLETED,
-        saleDate: { gte: thresholdDate },
-      },
-    },
-    select: {
-      productId: true,
-    },
-  });
-
-  const soldProductIds = new Set(recentSaleItems.map((item) => item.productId));
-
-  // 3. Filter products that had NO sales in threshold
-  const slowProducts = activeProducts
-    .filter((product) => !soldProductIds.has(product.id))
-    .map((product) => {
-      const stockValue = Number(product.purchasePrice) * product.currentStock;
-      return {
-        productId: product.id,
-        name: product.name,
-        sku: product.sku,
-        unit: product.unit,
-        currentStock: product.currentStock,
-        purchasePrice: Number(product.purchasePrice),
-        sellingPrice: Number(product.sellingPrice),
-        stockValue,
-        daysWithoutSale: daysThreshold,
-      };
-    })
-    .sort((a, b) => b.stockValue - a.stockValue); // Rank by tied-up capital
-
-  return slowProducts.slice(0, limit);
+  
+  // Format to match old return type, although analytics provides stockValue directly
+  const products = await getSlowProducts(businessId, days, limit);
+  return products.map(p => ({
+    ...p,
+    daysWithoutSale: p.daysSinceLastSale,
+    sellingPrice: 0 // Was included in old one but rarely used
+  }));
 }
 
 export async function getBusinessGrowth(

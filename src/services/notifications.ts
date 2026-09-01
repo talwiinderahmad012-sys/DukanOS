@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db/prisma';
 import { NotificationSeverity, MembershipRole } from '@/generated/prisma/client';
 import { NotificationType, NotificationSeverityLevel, NotificationFilterOptions } from '@/types/notifications';
 import { sendWebPushNotification } from './push';
+import { AppError, ErrorCodes } from '@/lib/errors';
 
 export type CreateNotificationParams = {
   businessId: string;
@@ -199,8 +200,34 @@ export async function markNotificationRead(
   userId: string,
   notificationId: string
 ) {
-  return prisma.notification.update({
+  // Verify recipient ownership, not merely business ownership. A member may
+  // only mark read notifications they are allowed to see (same visibility
+  // rules as listUserNotifications).
+  const notification = await prisma.notification.findFirst({
     where: { id: notificationId, businessId },
+    select: { id: true, recipientId: true, isOwnerOnly: true },
+  });
+
+  if (!notification) {
+    throw new AppError(ErrorCodes.NOT_FOUND, 'Notification not found.', 404);
+  }
+
+  if (notification.recipientId && notification.recipientId !== userId) {
+    throw new AppError(ErrorCodes.FORBIDDEN, 'You do not have permission to update this notification.', 403);
+  }
+
+  if (!notification.recipientId) {
+    const membership = await prisma.businessMembership.findUnique({
+      where: { userId_businessId: { userId, businessId } },
+      select: { role: true },
+    });
+    if (!membership || (membership.role !== MembershipRole.OWNER && membership.role !== MembershipRole.MANAGER)) {
+      throw new AppError(ErrorCodes.FORBIDDEN, 'Only owners and managers can mark broadcast notifications as read.', 403);
+    }
+  }
+
+  return prisma.notification.update({
+    where: { id: notification.id },
     data: {
       isRead: true,
       readAt: new Date(),
@@ -209,11 +236,23 @@ export async function markNotificationRead(
 }
 
 export async function markAllNotificationsRead(businessId: string, userId: string) {
+  // Apply the same visibility rules as listUserNotifications so non-owner
+  // members cannot mark owner-only broadcasts as read.
+  const membership = await prisma.businessMembership.findUnique({
+    where: { userId_businessId: { userId, businessId } },
+    select: { role: true },
+  });
+  const isOwnerOrManager =
+    membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.MANAGER;
+
   return prisma.notification.updateMany({
     where: {
       businessId,
       isRead: false,
-      OR: [{ recipientId: userId }, { recipientId: null }],
+      OR: [
+        { recipientId: userId },
+        ...(isOwnerOrManager ? [{ recipientId: null }] : []),
+      ],
     },
     data: {
       isRead: true,

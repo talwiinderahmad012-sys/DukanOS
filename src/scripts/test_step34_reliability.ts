@@ -39,7 +39,7 @@ async function main() {
   const hashedPassword = await bcrypt.hash('SecurePass123!', 10);
 
   let ownerUser: { id: string }, managerUser: { id: string }, cashierUser: { id: string }, employeeUser: { id: string };
-  let businessA: { id: string }, businessB: { id: string };
+  let businessA: { id: string } | undefined, businessB: { id: string } | undefined;
   let branchA1: { id: string }, productA: { id: string }, customerA: { id: string };
 
   try {
@@ -438,6 +438,30 @@ async function main() {
     console.error('❌ TEST FAILED:', err);
     process.exit(1);
   } finally {
+    console.log('\n--- Cleaning up test fixtures ---');
+      try {
+        const bIds = [businessA?.id, businessB?.id].filter(Boolean) as string[];
+        if (bIds.length > 0) {
+          await prisma.saleItem.deleteMany({ where: { sale: { branch: { businessId: { in: bIds } } } } });
+          await prisma.sale.deleteMany({ where: { branch: { businessId: { in: bIds } } } });
+          await prisma.purchaseItem.deleteMany({ where: { purchase: { branch: { businessId: { in: bIds } } } } });
+          await prisma.purchase.deleteMany({ where: { branch: { businessId: { in: bIds } } } });
+          await prisma.stockMovement.deleteMany({ where: { branch: { businessId: { in: bIds } } } });
+          await prisma.product.deleteMany({ where: { businessId: { in: bIds } } });
+          await prisma.customer.deleteMany({ where: { businessId: { in: bIds } } });
+          await prisma.supplier.deleteMany({ where: { businessId: { in: bIds } } });
+          await prisma.payroll.deleteMany({ where: { businessId: { in: bIds } } });
+          await prisma.expense.deleteMany({ where: { branch: { businessId: { in: bIds } } } });
+          await prisma.employeeAttendance.deleteMany({ where: { branch: { businessId: { in: bIds } } } });
+          await prisma.branch.deleteMany({ where: { businessId: { in: bIds } } });
+          await prisma.businessMembership.deleteMany({ where: { businessId: { in: bIds } } });
+          await prisma.business.deleteMany({ where: { id: { in: bIds } } });
+        }
+        await prisma.user.deleteMany({ where: { email: { in: [emailOwner, emailManager, emailCashier, emailEmployee] } } });
+      console.log('✓ Cleanup complete');
+    } catch (e) {
+      console.warn('⚠ Cleanup failed:', e);
+    }
     await prisma.$disconnect();
   }
 }

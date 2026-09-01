@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { MessageSquare, Star, Bug, Lightbulb, Send, X, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { submitFeedbackAction } from '@/app/actions/feedback.actions';
+import { useModalA11y } from '@/lib/a11y/use-modal-a11y';
 
 type BugSeverity = 'P0' | 'P1' | 'P2' | 'P3';
 
@@ -18,6 +19,8 @@ export function InAppFeedbackModal() {
   const [module, setModule] = useState('Dashboard');
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ success: boolean; text: string } | null>(null);
+
+  const modalRef = useModalA11y(isOpen, () => setIsOpen(false));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,8 +68,14 @@ export function InAppFeedbackModal() {
 
       {/* Modal */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4" onClick={(e) => { if (e.target === e.currentTarget) setIsOpen(false); }}>
+          <div
+            ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            tabIndex={-1}
+            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 space-y-4 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto"
+          >
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div className="flex items-center gap-2 font-bold text-gray-900 text-base">
                 <MessageSquare className="w-5 h-5 text-gray-900" />

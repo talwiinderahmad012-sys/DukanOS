@@ -37,6 +37,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const identifier = typeof credentials?.identifier === 'string' ? credentials.identifier.trim() : '';
         const password = typeof credentials?.password === 'string' ? credentials.password : '';
 
+        // [AUTH-DEBUG] temporary logging — remove after diagnosing login
+        console.log('[AUTH-DEBUG] authorize() called', { identifier, hasSecret: !!process.env.AUTH_SECRET, strategy: process.env.AUTH_SECRET ? 'env' : 'missing' });
+
         if (!identifier || !password) {
           return null
         }
@@ -72,6 +75,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new ServiceUnavailableError();
         }
 
+        // [AUTH-DEBUG] temporary logging — remove after diagnosing login
+        console.log('[AUTH-DEBUG] user lookup', { found: !!user, hasPassword: !!user?.password, userId: user?.id ?? null });
+
         if (!user || !user.password) {
           await recordAuthAudit({
             userId: user?.id ?? null,
@@ -85,6 +91,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           password,
           user.password
         )
+
+        // [AUTH-DEBUG] temporary logging — remove after diagnosing login
+        console.log('[AUTH-DEBUG] password compare', { isValid });
 
         if (!isValid) {
           await recordAuthAudit({

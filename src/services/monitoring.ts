@@ -17,6 +17,7 @@ export async function getRemoteBusinessStatus(businessId: string) {
     pendingLeavesCount,
     openComplaintsCount,
     newLowFeedbacksCount,
+    activeCameras,
   ] = await Promise.all([
     prisma.business.findUnique({
       where: { id: businessId },
@@ -70,6 +71,18 @@ export async function getRemoteBusinessStatus(businessId: string) {
     prisma.customerFeedback.count({
       where: { businessId, rating: { lte: 2 }, status: 'NEW' },
     }),
+    prisma.camera.findMany({
+      where: { businessId, isArchived: false, isEnabled: true },
+      select: {
+        id: true,
+        name: true,
+        location: true,
+        branchId: true,
+        status: true,
+        lastCheckedAt: true,
+        lastOnlineAt: true,
+      },
+    }),
   ]);
 
   if (!business) {
@@ -88,6 +101,21 @@ export async function getRemoteBusinessStatus(businessId: string) {
   const lowStockItems = lowStockProducts.filter(
     (p) => p.currentStock <= p.minStockThreshold
   );
+
+  // CCTV availability breakdown (enabled, non-archived cameras only)
+  const camerasOnline = activeCameras.filter((c) => c.status === 'ONLINE').length;
+  const camerasOffline = activeCameras.filter((c) => c.status === 'OFFLINE').length;
+  const camerasDegraded = activeCameras.filter((c) => c.status === 'DEGRADED').length;
+  const offlineCameraHighlights = activeCameras
+    .filter((c) => c.status === 'OFFLINE' || c.status === 'DEGRADED')
+    .map((c) => ({
+      id: c.id,
+      name: c.name,
+      location: c.location,
+      branchId: c.branchId,
+      status: c.status,
+      lastOnlineAt: c.lastOnlineAt ? c.lastOnlineAt.toISOString() : null,
+    }));
 
   return {
     business: {
@@ -110,18 +138,27 @@ export async function getRemoteBusinessStatus(businessId: string) {
       leaveCount,
       unmarkedCount,
     },
+    cameras: {
+      total: activeCameras.length,
+      online: camerasOnline,
+      offline: camerasOffline,
+      degraded: camerasDegraded,
+      offlineHighlights: offlineCameraHighlights,
+    },
     actionCenter: {
       lowStockCount: lowStockItems.length,
       overdueCustomersCount,
       pendingLeavesCount,
       openComplaintsCount,
       newLowFeedbacksCount,
+      offlineCamerasCount: camerasOffline + camerasDegraded,
       totalActionableIssues:
         lowStockItems.length +
         (overdueCustomersCount > 0 ? 1 : 0) +
         pendingLeavesCount +
         openComplaintsCount +
-        newLowFeedbacksCount,
+        newLowFeedbacksCount +
+        (camerasOffline + camerasDegraded > 0 ? 1 : 0),
     },
   };
 }

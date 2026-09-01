@@ -1,15 +1,22 @@
 import 'server-only';
+import { randomInt } from 'crypto';
 import { prisma } from '@/lib/db/prisma';
-import { PaymentMethod, MovementType, SaleStatus, BusinessStatus } from '@/generated/prisma/client';
+import { PaymentMethod, MovementType, SaleStatus, BusinessStatus, MembershipRole } from '@/generated/prisma/client';
 import { recordAuditLog } from './audit';
 import { invalidateAnalyticsCache } from '@/lib/cache/analytics-cache';
 import { publishAnalyticsEvent } from '@/lib/cache/analytics-events';
 import { AppError, ErrorCodes } from '@/lib/errors';
 import { logger } from '@/lib/logging/logger';
+import { getDateComponentsInTimezone } from '@/lib/utils/date-utils';
 
 export type SaleItemInput = {
   productId: string;
   quantity: number;
+  /**
+   * Accepted for backward compatibility with offline-queued payloads, but the
+   * server NEVER trusts client-calculated prices: the authoritative unit price
+   * always comes from the product catalog (P2-07).
+   */
   sellingPrice?: number;
   discount?: number;
 };
@@ -32,11 +39,13 @@ export async function createSale(params: CreateSaleParams) {
     throw new AppError(ErrorCodes.VALIDATION_ERROR, 'At least one item is required to complete a sale.', 400);
   }
 
-  let saleResult = await prisma.$transaction(async (tx) => {
+  let saleResult;
+  try {
+    saleResult = await prisma.$transaction(async (tx) => {
     // 0. Validate Business status
     const business = await tx.business.findUnique({
       where: { id: params.businessId },
-      select: { status: true },
+      select: { status: true, timezone: true },
     });
     if (!business || business.status === BusinessStatus.ARCHIVED || business.status === BusinessStatus.INACTIVE) {
       throw new AppError(ErrorCodes.UNAUTHORIZED, 'Cannot create sale for an ARCHIVED or inactive business.', 403);
@@ -144,14 +153,27 @@ export async function createSale(params: CreateSaleParams) {
       const resultingStock = product.currentStock;
       const previousStock = resultingStock + item.quantity;
 
-      const sellingPrice =
-        item.sellingPrice !== undefined && item.sellingPrice >= 0
-          ? item.sellingPrice
-          : Number(product.sellingPrice);
+      // P2-07: Server-authoritative pricing. The unit price is ALWAYS read
+      // from the product catalog at sale time; client-supplied prices are
+      // ignored (they may be stale offline-queue values or tampered).
+      const sellingPrice = Number(product.sellingPrice);
+      if (!Number.isFinite(sellingPrice) || sellingPrice <= 0) {
+        throw new AppError(
+          ErrorCodes.VALIDATION_ERROR,
+          `Product ${product.name} has no valid selling price configured.`,
+          400
+        );
+      }
 
       const costPrice = Number(product.purchasePrice);
-      const lineDiscount = item.discount || 0;
-      const baseLineTotal = Math.max(0, sellingPrice * item.quantity - lineDiscount);
+      const grossLineValue = sellingPrice * item.quantity;
+      const rawLineDiscount = item.discount ?? 0;
+      if (!Number.isFinite(rawLineDiscount) || rawLineDiscount < 0) {
+        throw new AppError(ErrorCodes.VALIDATION_ERROR, 'Item discount cannot be negative.', 400);
+      }
+      // Clamp so a discount can never drive a line below zero.
+      const lineDiscount = Math.min(rawLineDiscount, grossLineValue);
+      const baseLineTotal = grossLineValue - lineDiscount;
 
       rawSubtotal += baseLineTotal;
 
@@ -168,9 +190,53 @@ export async function createSale(params: CreateSaleParams) {
     }
 
     // 4. Proportional Global Discount Allocation & Realized Profit Calculation
-    const globalDiscount = Math.min(params.discount || 0, rawSubtotal);
+    const requestedGlobalDiscount = params.discount ?? 0;
+    if (!Number.isFinite(requestedGlobalDiscount) || requestedGlobalDiscount < 0) {
+      throw new AppError(ErrorCodes.VALIDATION_ERROR, 'Discount cannot be negative.', 400);
+    }
+
+    // Enforce the configured role-based discount ceiling (existing business
+    // rule in BusinessSetting) so discounts cannot bypass pricing controls.
+    const membership = await tx.businessMembership.findUnique({
+      where: { userId_businessId: { userId: params.userId, businessId: params.businessId } },
+      select: { role: true },
+    });
+    const settings = await tx.businessSetting.findUnique({
+      where: { businessId: params.businessId },
+      select: { maxCashierDiscountPercent: true, maxManagerDiscountPercent: true },
+    });
+    const actorRole = membership?.role;
+    const isOwner = actorRole === MembershipRole.OWNER;
+    const maxDiscountPercent = isOwner
+      ? null
+      : Number(
+          actorRole === MembershipRole.MANAGER
+            ? settings?.maxManagerDiscountPercent ?? 15
+            : settings?.maxCashierDiscountPercent ?? 5
+        );
+
+    const totalLineDiscount = processedItems.reduce((sum, i) => sum + i.discount, 0);
+    const requestedTotalDiscount = totalLineDiscount + Math.min(requestedGlobalDiscount, rawSubtotal);
+    if (maxDiscountPercent !== null && rawSubtotal > 0) {
+      const allowedDiscount = (rawSubtotal * maxDiscountPercent) / 100;
+      if (requestedTotalDiscount > allowedDiscount + 0.005) {
+        throw new AppError(
+          ErrorCodes.UNAUTHORIZED,
+          `Discount exceeds the ${maxDiscountPercent}% limit for your role. Ask a manager or owner to approve this sale.`,
+          403
+        );
+      }
+    }
+
+    const globalDiscount = Math.min(requestedGlobalDiscount, rawSubtotal);
     const grandTotal = Math.max(0, rawSubtotal - globalDiscount);
-    const paidAmount = Math.max(0, params.paidAmount || 0);
+    const rawPaid = params.paidAmount ?? 0;
+    if (!Number.isFinite(rawPaid) || rawPaid < 0) {
+      throw new AppError(ErrorCodes.VALIDATION_ERROR, 'Paid amount cannot be negative.', 400);
+    }
+    const paidAmount = Math.max(0, rawPaid);
+    // Change due back to the customer on overpayment (cash semantics).
+    const changeDue = Math.max(0, paidAmount - grandTotal);
 
     // Rule: Credit / Partial sales strictly require an identified customer
     if (paidAmount < grandTotal && !params.customerId) {
@@ -188,6 +254,15 @@ export async function createSale(params: CreateSaleParams) {
         item.sellingPrice * item.quantity - totalEffectiveDiscount
       );
       const lineProfit = realizedRevenue - item.costPrice * item.quantity;
+      
+      // Apply below-cost business rule (P2-07): Prevent discounts from driving price below cost
+      if (lineProfit < 0 && !isOwner) {
+        throw new AppError(
+          ErrorCodes.UNAUTHORIZED,
+          `Selling below cost is restricted to Owners. Discount on one or more items exceeds their profit margin.`,
+          403
+        );
+      }
 
       return {
         productId: item.productId,
@@ -201,37 +276,89 @@ export async function createSale(params: CreateSaleParams) {
     });
 
     // 5. Create Sale Record
-    const dateStr = new Date().toISOString().slice(2, 10).replace(/-/g, '');
-    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-    const invoiceNumber = `INV-${dateStr}-${randomSuffix}`;
+    // Server-side invoice number (P3-01): date-prefixed sequential counter in
+    // the business timezone, keeping the existing INV-YYMMDD-NNNNNN format.
+    // The base value is derived from how many invoices already exist for the
+    // business day, so numbers are collision-resistant by construction; the
+    // (businessId, invoiceNumber) unique index plus a bounded retry loop
+    // resolves any residual concurrent race, and client-supplied invoice
+    // numbers are never trusted.
+    const invoiceDateParts = getDateComponentsInTimezone(new Date(), business.timezone || 'Asia/Karachi');
+    const dateStr = `${String(invoiceDateParts.year).slice(2)}${String(invoiceDateParts.month).padStart(2, '0')}${String(invoiceDateParts.day).padStart(2, '0')}`;
+    const invoicePrefix = `INV-${dateStr}-`;
 
-    const sale = await tx.sale.create({
-      data: {
-        businessId: params.businessId,
-        branchId: params.branchId,
-        customerId: params.customerId,
-        invoiceNumber,
-        subtotal: rawSubtotal,
-        discount: globalDiscount,
-        total: grandTotal,
-        paidAmount,
-        paymentMethod: params.paymentMethod || PaymentMethod.CASH,
-        status: SaleStatus.COMPLETED,
-        createdBy: params.userId,
-        clientTransactionId: params.clientTransactionId || null,
-        items: {
-          create: saleItemsData,
-        },
-      },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-        customer: true,
-      },
+    const existingInvoiceCount = await tx.sale.count({
+      where: { businessId: params.businessId, invoiceNumber: { startsWith: invoicePrefix } },
     });
+    // Keep the historical 6-digit suffix range so numbering stays consistent
+    // with previously issued invoices.
+    let nextSuffix = Math.max(existingInvoiceCount + 1, 100000);
+
+    let createdSale: any = null;
+    let invoiceNumber = '';
+
+    for (let attempt = 0; attempt < 5; attempt++) {
+      invoiceNumber = nextSuffix <= 999999
+        ? `${invoicePrefix}${nextSuffix}`
+        : `${invoicePrefix}${randomInt(1000000, 10000000)}`;
+      try {
+        createdSale = await tx.sale.create({
+          data: {
+            businessId: params.businessId,
+            branchId: params.branchId,
+            customerId: params.customerId,
+            invoiceNumber,
+            subtotal: rawSubtotal,
+            discount: globalDiscount,
+            total: grandTotal,
+            paidAmount,
+            paymentMethod: params.paymentMethod || PaymentMethod.CASH,
+            status: SaleStatus.COMPLETED,
+            createdBy: params.userId,
+            clientTransactionId: params.clientTransactionId || null,
+            items: {
+              create: saleItemsData,
+            },
+          },
+          include: {
+            items: {
+              include: {
+                product: true,
+              },
+            },
+            customer: true,
+            branch: true,
+          },
+        });
+        break;
+      } catch (error) {
+        const prismaCode = (error as { code?: string } | null)?.code;
+        const metaTarget = (error as { meta?: { target?: unknown } } | null)?.meta?.target;
+        const targetStr = Array.isArray(metaTarget)
+          ? metaTarget.join(',')
+          : String(metaTarget ?? '');
+        const isInvoiceCollision =
+          prismaCode === 'P2002' && targetStr.includes('invoiceNumber');
+        if (!isInvoiceCollision) {
+          throw error;
+        }
+        // Concurrent collision: advance the sequence and retry.
+        nextSuffix += 1;
+      }
+    }
+
+    if (!createdSale) {
+      logger.error('Invoice number generation failed after retries', {
+        businessId: params.businessId,
+      });
+      throw new AppError(
+        ErrorCodes.INTERNAL_ERROR,
+        'Could not allocate a unique invoice number. Please retry the sale.',
+        500
+      );
+    }
+
+    const sale = createdSale;
 
     // 6. Record Stock Movements
     for (const item of processedItems) {
@@ -281,8 +408,36 @@ export async function createSale(params: CreateSaleParams) {
       },
     });
 
-    return sale;
-  });
+    return { ...sale, changeDue };
+    });
+  } catch (error) {
+    // Database-enforced idempotency guard. The (businessId, clientTransactionId)
+    // unique index rejects a concurrent duplicate submission; that transaction is
+    // fully rolled back, so stock and Udhaar were never touched by the loser.
+    // Return the already-created sale so the duplicate request safely reuses it.
+    const prismaCode = (error as { code?: string } | null)?.code;
+    if (prismaCode === 'P2002' && params.clientTransactionId) {
+      logger.warn('Concurrent duplicate sale submission resolved by unique index; returning existing sale', {
+        businessId: params.businessId,
+        clientTransactionId: params.clientTransactionId,
+      });
+      const existingSale = await prisma.sale.findFirst({
+        where: {
+          businessId: params.businessId,
+          clientTransactionId: params.clientTransactionId,
+        },
+        include: {
+          items: { include: { product: true } },
+          customer: true,
+          branch: true,
+        },
+      });
+      if (existingSale) {
+        return existingSale;
+      }
+    }
+    throw error;
+  }
 
   try {
     invalidateAnalyticsCache({ businessId: params.businessId, branchId: params.branchId || undefined, module: 'sales' });
@@ -374,13 +529,27 @@ export async function listSales(businessId: string, filters: ListSalesFilters = 
       where.saleDate.gte = new Date(filters.startDate);
     }
     if (filters.endDate) {
-      const end = new Date(filters.endDate);
-      end.setHours(23, 59, 59, 999);
-      where.saleDate.lte = end;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(filters.endDate)) {
+        // Date-only input: include the entire end date (UTC day).
+        where.saleDate.lte = new Date(`${filters.endDate}T23:59:59.999Z`);
+      } else {
+        const end = new Date(filters.endDate);
+        end.setHours(23, 59, 59, 999);
+        where.saleDate.lte = end;
+      }
     }
   }
 
-  const [sales, totalCount, aggregate, itemsAggregate] = await Promise.all([
+  // P2-06: summary metrics reflect ACTIVE sales. When no explicit status
+  // filter is chosen, cancelled/refunded invoices are excluded from totals.
+  // Selecting a specific status (including CANCELLED) reports on exactly
+  // that set, preserving historical visibility.
+  const summaryWhere: any = { ...where }; // eslint-disable-line @typescript-eslint/no-explicit-any
+  if (!filters.status || filters.status === 'ALL') {
+    summaryWhere.status = SaleStatus.COMPLETED;
+  }
+
+  const [sales, totalCount, activeCount, aggregate, itemsAggregate] = await Promise.all([
     prisma.sale.findMany({
       where,
       include: {
@@ -400,8 +569,9 @@ export async function listSales(businessId: string, filters: ListSalesFilters = 
       take: limit,
     }),
     prisma.sale.count({ where }),
+    prisma.sale.count({ where: summaryWhere }),
     prisma.sale.aggregate({
-      where,
+      where: summaryWhere,
       _sum: {
         total: true,
         paidAmount: true,
@@ -409,7 +579,7 @@ export async function listSales(businessId: string, filters: ListSalesFilters = 
     }),
     prisma.saleItem.aggregate({
       where: {
-        sale: where,
+        sale: summaryWhere,
       },
       _sum: {
         lineProfit: true,
@@ -445,7 +615,7 @@ export async function listSales(businessId: string, filters: ListSalesFilters = 
       totalPaid,
       totalProfit,
       remainingDue,
-      invoiceCount: totalCount,
+      invoiceCount: activeCount,
     },
   };
 }
@@ -457,27 +627,49 @@ export async function cancelSale(
   reason: string
 ) {
   let cancelledSale = await prisma.$transaction(async (tx) => {
+    // Atomic COMPLETED -> CANCELLED transition. updateMany locks the row for the
+    // duration of this transaction, so exactly one concurrent cancellation can
+    // win; the loser sees count === 0 and aborts without restoring stock or
+    // reversing Udhaar a second time.
+    const transition = await tx.sale.updateMany({
+      where: { id: saleId, businessId, status: SaleStatus.COMPLETED },
+      data: { status: SaleStatus.CANCELLED },
+    });
+
+    if (transition.count === 0) {
+      const existing = await tx.sale.findFirst({
+        where: { id: saleId, businessId },
+        select: { status: true },
+      });
+      if (!existing) {
+        throw new AppError(ErrorCodes.NOT_FOUND, 'Sale not found', 404);
+      }
+      throw new AppError(ErrorCodes.CONFLICT, 'Sale is already cancelled.', 409);
+    }
+
     const sale = await tx.sale.findUnique({
-      where: { id: saleId, businessId },
-      include: { items: true, customer: true },
+      where: { id: saleId },
+      include: { items: true, customer: true, payments: true },
     });
 
     if (!sale) {
       throw new AppError(ErrorCodes.NOT_FOUND, 'Sale not found', 404);
     }
 
-    if (sale.status === SaleStatus.CANCELLED) {
-      throw new AppError(ErrorCodes.INTERNAL_ERROR, 'Sale is already cancelled.');
-    }
-
     // 1. Restore Product Stock & Create Reverse Stock Movement
+    //    Atomic relative increments (row-locked) keep movements consistent.
     for (const item of sale.items) {
-      const updatedProduct = await tx.product.update({
-        where: { id: item.productId },
-        data: {
-          currentStock: { increment: item.quantity },
-        },
-      });
+      const restored: Array<{ currentStock: number }> = await tx.$queryRaw`
+        UPDATE "public"."Product"
+        SET "currentStock" = "currentStock" + ${item.quantity}::integer,
+            "updatedAt" = NOW()
+        WHERE "id" = ${item.productId}::text
+          AND "businessId" = ${businessId}::text
+        RETURNING "currentStock";
+      `;
+
+      const resultingStock = Number(restored[0]?.currentStock ?? item.quantity);
+      const previousStock = resultingStock - item.quantity;
 
       await tx.stockMovement.create({
         data: {
@@ -486,8 +678,8 @@ export async function cancelSale(
           productId: item.productId,
           movementType: MovementType.RETURN,
           quantity: item.quantity,
-          previousStock: updatedProduct.currentStock - item.quantity,
-          resultingStock: updatedProduct.currentStock,
+          previousStock,
+          resultingStock,
           referenceId: sale.id,
           notes: `Cancelled Sale #${sale.invoiceNumber}: ${reason}`,
           createdBy: userId,
@@ -495,23 +687,51 @@ export async function cancelSale(
       });
     }
 
-    // 2. Reverse Customer Credit (if any credit was generated by this sale)
+    // 2. Reverse Customer Credit, accounting for payments already recorded
+    //    against this sale. Only the still-unpaid credit portion is reversed,
+    //    and the reversal is clamped to the customer's current outstanding so
+    //    the balance can never go negative. SELECT ... FOR UPDATE locks the
+    //    customer row for the duration of the transaction, making concurrent
+    //    payment/cancellation attempts serialize instead of corrupting the
+    //    balance.
+    let creditReversed = 0;
     const unpaidCredit = Number(sale.total) - Number(sale.paidAmount);
     if (unpaidCredit > 0 && sale.customerId) {
-      await tx.customer.update({
-        where: { id: sale.customerId },
-        data: {
-          outstanding: { decrement: unpaidCredit },
-        },
-      });
+      const paymentsAgainstSale = sale.payments.reduce(
+        (sum, p) => sum + Number(p.amount),
+        0
+      );
+      const creditToReverse = Math.max(0, unpaidCredit - paymentsAgainstSale);
+
+      if (creditToReverse > 0) {
+        const lockedRows: Array<{ outstanding: string | number }> = await tx.$queryRaw`
+          SELECT "outstanding"
+          FROM "public"."Customer"
+          WHERE "id" = ${sale.customerId}::text
+            AND "businessId" = ${businessId}::text
+          FOR UPDATE;
+        `;
+
+        if (lockedRows.length > 0) {
+          const currentOutstanding = Number(lockedRows[0].outstanding);
+          creditReversed = Math.min(currentOutstanding, creditToReverse);
+
+          if (creditReversed > 0) {
+            await tx.$executeRaw`
+              UPDATE "public"."Customer"
+              SET "outstanding" = "outstanding" - ${creditReversed}::numeric(12, 2),
+                  "updatedAt" = NOW()
+              WHERE "id" = ${sale.customerId}::text
+                AND "businessId" = ${businessId}::text;
+            `;
+          }
+        }
+      }
     }
 
-    // 3. Mark Sale as CANCELLED (Preserving paid amount without fake phantom refund)
-    const updatedSale = await tx.sale.update({
+    // 3. Fetch final cancelled sale state (already marked CANCELLED atomically)
+    const updatedSale = await tx.sale.findUnique({
       where: { id: sale.id },
-      data: {
-        status: SaleStatus.CANCELLED,
-      },
       include: {
         items: {
           include: {
@@ -521,6 +741,10 @@ export async function cancelSale(
         customer: true,
       },
     });
+
+    if (!updatedSale) {
+      throw new AppError(ErrorCodes.NOT_FOUND, 'Sale not found', 404);
+    }
 
     // 4. Record Audit Log
     await recordAuditLog({
@@ -535,7 +759,8 @@ export async function cancelSale(
         invoiceNumber: sale.invoiceNumber,
         total: Number(sale.total),
         paidAmount: Number(sale.paidAmount),
-        creditReversed: unpaidCredit > 0 ? unpaidCredit : 0,
+        paymentsAgainstSale: sale.payments.reduce((s, p) => s + Number(p.amount), 0),
+        creditReversed,
       },
     });
 

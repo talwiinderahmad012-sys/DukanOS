@@ -6,6 +6,8 @@ import {
 } from '@/services/reports';
 import { prisma } from '@/lib/db/prisma';
 import { redirect } from 'next/navigation';
+import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
+import { ForbiddenView } from '@/components/access/forbidden';
 import {
   ReportsPageClient,
   type BranchOption,
@@ -15,7 +17,10 @@ import {
 } from './reports-page-client';
 
 export default async function ReportsHubPage() {
-  const { business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  if (!canAccessDashboardPath(membership.role, '/dashboard/reports')) {
+    return <ForbiddenView role={membership.role} />;
+  }
 
   const [monthlyData, topProducts, slowProducts, branches] = await Promise.all([
     getMonthlyReport(business.id, undefined, undefined, business.timezone),

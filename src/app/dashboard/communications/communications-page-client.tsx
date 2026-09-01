@@ -15,12 +15,20 @@ export function CommunicationsPageClient({
   userRole,
   initialConversations,
   initialAnnouncements,
+  providerStatus,
+  customerLogs,
+  templates,
+  automations,
 }: {
   businessId: string;
   currentUserId: string;
   userRole: string;
   initialConversations: ConversationPageData[];
   initialAnnouncements: AnnouncementPageData[];
+  providerStatus: any;
+  customerLogs: any[];
+  templates: any[];
+  automations: any[];
 }) {
   return (
     <div className="max-w-6xl mx-auto">
@@ -30,6 +38,10 @@ export function CommunicationsPageClient({
         userRole={userRole}
         initialConversations={initialConversations}
         initialAnnouncements={initialAnnouncements}
+        providerStatus={providerStatus}
+        customerLogs={customerLogs}
+        templates={templates}
+        automations={automations}
       />
     </div>
   );

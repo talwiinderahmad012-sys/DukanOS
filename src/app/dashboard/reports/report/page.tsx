@@ -4,6 +4,8 @@ import { prisma } from '@/lib/db/prisma';
 import { redirect } from 'next/navigation';
 import { notFound } from 'next/navigation';
 import { type ReportType } from '@/services/reports';
+import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
+import { ForbiddenView } from '@/components/access/forbidden';
 import { ReportViewClient, type ReportResultData } from './report-view-client';
 
 export const dynamic = 'force-dynamic';
@@ -18,7 +20,10 @@ function serializeValue(value: unknown): string | number | boolean | null {
 
 export default async function ReportViewPage({ searchParams }: { searchParams: Promise<{ type?: string; from?: string; to?: string; branchId?: string }> }) {
   const params = await searchParams;
-  const { business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  if (!canAccessDashboardPath(membership.role, '/dashboard/reports/report')) {
+    return <ForbiddenView role={membership.role} />;
+  }
 
   const { type, from, to, branchId } = params;
   if (!type || !from || !to) {

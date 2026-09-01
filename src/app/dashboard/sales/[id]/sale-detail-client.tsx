@@ -72,7 +72,15 @@ const PAYMENT_METHOD_LABEL_KEYS: Record<string, string> = {
   CREDIT: 'sales.payCredit',
 };
 
-export function SaleDetailClient({ businessId, sale }: { businessId: string; sale: SaleDetailData }) {
+export function SaleDetailClient({
+  businessId,
+  sale,
+  canViewProfit,
+}: {
+  businessId: string;
+  sale: SaleDetailData;
+  canViewProfit: boolean;
+}) {
   const { language, t, formatCurrency } = useTranslation();
 
   const payMethodLabel = (method: string): string => {
@@ -162,11 +170,13 @@ export function SaleDetailClient({ businessId, sale }: { businessId: string; sal
               <p className={cn('mt-1 text-xl font-bold', remaining > 0 ? 'text-warning' : 'text-gray-900')}>{formatCurrency(remaining)}</p>
               <p className="mt-0.5 text-xs text-muted">{remaining > 0 ? t('sales.outstandingCredit') : t('sales.nothingDue')}</p>
             </div>
+            {canViewProfit && (
             <div className="bg-surface p-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('sales.statRealizedProfit')}</p>
               <p className="mt-1 text-xl font-bold text-gray-900">{formatCurrency(totalProfit)}</p>
               <p className="mt-0.5 text-xs text-muted">{t('sales.afterDiscounts')}</p>
             </div>
+            )}
           </div>
         </Card>
       </div>
@@ -382,6 +392,7 @@ export function SaleDetailClient({ businessId, sale }: { businessId: string; sal
         </CardContent>
       </Card>
 
+      {canViewProfit && (
       <div className="flex items-center justify-between rounded-card border border-success/25 bg-success-soft p-4 print:hidden">
         <div className="flex items-center gap-2 text-sm font-medium text-emerald-800">
           <TrendingUp className="h-4 w-4 text-success" aria-hidden="true" />
@@ -389,6 +400,7 @@ export function SaleDetailClient({ businessId, sale }: { businessId: string; sal
         </div>
         <span className="text-base font-bold text-emerald-900">{formatCurrency(totalProfit)}</span>
       </div>
+      )}
     </div>
   );
 }

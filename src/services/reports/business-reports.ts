@@ -34,7 +34,20 @@ export type ReportOptions = {
   from: Date;
   to: Date;
   branchId?: string | null;
+  /** Business timezone used for calendar-boundary aware calculations. */
+  timezone?: string | null;
 };
+
+/**
+ * Authoritative financial definitions for all reports (P2-05):
+ *  - Revenue   = Σ Sale.total   over COMPLETED sales (discounts included,
+ *                cancelled/refunded sales excluded).
+ *  - Profit    = Σ SaleItem.lineProfit over COMPLETED sales (immutable cost
+ *                snapshots captured at sale time).
+ *  - Expenses  = Σ Expense.amount where cancelledAt IS NULL.
+ * Line-level sums (SaleItem.lineTotal) are used only for per-product
+ * breakdowns, never as the headline revenue figure.
+ */
 
 export type BaseReport = {
   type: ReportType;
@@ -55,6 +68,11 @@ function toDateStr(d: Date): string {
 export async function generateBusinessReport(businessId: string, type: ReportType, options: ReportOptions): Promise<BaseReport> {
   const generatedAt = new Date();
   const bf = options.branchId && options.branchId.trim().length > 0 ? options.branchId : null;
+
+  if (!options.timezone) {
+    const business = await prisma.business.findUnique({ where: { id: businessId }, select: { timezone: true } });
+    options.timezone = business?.timezone || 'UTC';
+  }
 
   switch (type) {
     case 'SALES':
@@ -92,7 +110,13 @@ async function generateSalesReport(businessId: string, options: ReportOptions, b
       _sum: { quantity: true, lineTotal: true, lineProfit: true },
     }),
     prisma.customerPayment.aggregate({
-      where: { businessId, date: { gte: options.from, lte: options.to }, ...(branchId ? { sale: { branchId } } : {}) },
+      where: {
+        businessId,
+        date: { gte: options.from, lte: options.to },
+        // Branch attribution (P2-03): count a payment only when it was
+        // recorded at this branch or links to a sale at this branch.
+        ...(branchId ? { OR: [{ branchId }, { sale: { branchId } }] } : {}),
+      },
       _sum: { amount: true },
     }),
     getTopProducts(businessId, options.from, options.to, 20, 'revenue', branchId || undefined),
@@ -124,18 +148,24 @@ async function generateSalesReport(businessId: string, options: ReportOptions, b
 }
 
 async function generateProfitReport(businessId: string, options: ReportOptions, branchId: string | null, generatedAt: Date): Promise<BaseReport> {
-  const [itemsAgg, expensesAgg] = await Promise.all([
+  const [salesAgg, itemsAgg, expensesAgg] = await Promise.all([
+    // Authoritative revenue basis (P2-05): Sale.total over COMPLETED sales,
+    // identical to the SALES report definition.
+    prisma.sale.aggregate({
+      where: { businessId, status: SaleStatus.COMPLETED, saleDate: { gte: options.from, lte: options.to }, ...(branchId ? { branchId } : {}) },
+      _sum: { total: true },
+    }),
     prisma.saleItem.aggregate({
       where: { sale: { businessId, status: SaleStatus.COMPLETED, saleDate: { gte: options.from, lte: options.to }, ...(branchId ? { branchId } : {}) } },
       _sum: { lineTotal: true, lineProfit: true },
     }),
     prisma.expense.aggregate({
-      where: { businessId, date: { gte: options.from, lte: options.to }, ...(branchId ? { branchId } : {}) },
+      where: { businessId, cancelledAt: null, date: { gte: options.from, lte: options.to }, ...(branchId ? { branchId } : {}) },
       _sum: { amount: true },
     }),
   ]);
 
-  const grossRevenue = Number(itemsAgg._sum.lineTotal || 0);
+  const grossRevenue = Number(salesAgg._sum.total || 0);
   const grossProfit = Number(itemsAgg._sum.lineProfit || 0);
   const expenses = Number(expensesAgg._sum.amount || 0);
   const netProfit = grossProfit - expenses;
@@ -157,7 +187,10 @@ async function generateProfitReport(businessId: string, options: ReportOptions, 
 }
 
 async function generatePurchasesReport(businessId: string, options: ReportOptions, branchId: string | null, generatedAt: Date): Promise<BaseReport> {
-  const analytics = await getPurchaseAnalytics(businessId, { start: options.from, end: options.to, label: 'Report' }, { start: options.from, end: options.to, label: 'Report' });
+  const duration = options.to.getTime() - options.from.getTime();
+  const prevFrom = new Date(options.from.getTime() - duration - 1);
+  const prevTo = new Date(options.from.getTime() - 1);
+  const analytics = await getPurchaseAnalytics(businessId, { start: options.from, end: options.to, label: 'Current' }, { start: prevFrom, end: prevTo, label: 'Previous' });
   const topSuppliers = analytics.topSuppliers || [];
 
   return {
@@ -206,8 +239,12 @@ async function generateInventoryReport(businessId: string, options: ReportOption
 }
 
 async function generateExpensesReport(businessId: string, options: ReportOptions, branchId: string | null, generatedAt: Date): Promise<BaseReport> {
+  const duration = options.to.getTime() - options.from.getTime();
+  const prevFrom = new Date(options.from.getTime() - duration - 1);
+  const prevTo = new Date(options.from.getTime() - 1);
   const period = { start: options.from, end: options.to, label: 'Report' };
-  const analytics = await getExpenseAnalytics(businessId, period, period, branchId || undefined);
+  const prevPeriod = { start: prevFrom, end: prevTo, label: 'Previous' };
+  const analytics = await getExpenseAnalytics(businessId, period, prevPeriod, branchId || undefined);
 
   const rows = (analytics.categories || []).map((c) => ({ category: c.category, amount: c.amount, percentage: c.percentage }));
 
@@ -290,6 +327,27 @@ async function generatePayrollReport(businessId: string, options: ReportOptions,
     leaveUsage: analytics.leaveUsage,
   };
 
+  const salaries = await prisma.employeeSalary.findMany({
+    where: {
+      businessId,
+      OR: [
+        { paymentDate: { gte: options.from, lte: options.to } },
+        { paymentStatus: 'PENDING' }
+      ]
+    },
+    include: { employee: { select: { name: true, position: true } } },
+    orderBy: { createdAt: 'desc' }
+  });
+
+  const rows = salaries.map(s => ({
+    employeeName: s.employee.name,
+    role: s.employee.position,
+    baseSalary: Number(s.baseSalary),
+    netSalary: Number(s.netSalary),
+    paymentStatus: s.paymentStatus,
+    paymentDate: s.paymentDate ? toDateStr(s.paymentDate) : null
+  }));
+
   return {
     type: 'PAYROLL',
     title: 'Payroll Summary Report',
@@ -298,14 +356,14 @@ async function generatePayrollReport(businessId: string, options: ReportOptions,
     dateRange: { from: toDateStr(options.from), to: toDateStr(options.to) },
     branchId: branchId || undefined,
     summary,
-    rows: [],
+    rows,
     totals: { totalPayroll: analytics.totalPayroll, paidPayroll: analytics.paidPayroll, pendingPayroll: analytics.pendingPayroll, employeeCount: analytics.employeeCount, attendancePercentage: analytics.attendancePercentage ?? 0, leaveUsage: analytics.leaveUsage },
   };
 }
 
 async function generateBusinessGrowthReport(businessId: string, options: ReportOptions, branchId: string | null, generatedAt: Date): Promise<BaseReport> {
   const [monthlyTable, forecast, indicators] = await Promise.all([
-    getMonthlyGrowthTable(businessId, options.from.getFullYear(), 'Asia/Karachi'),
+    getMonthlyGrowthTable(businessId, options.from.getFullYear(), options.timezone!),
     getSalesForecast(businessId, { branchId: branchId || undefined }),
     getBusinessGrowthIndicators(businessId, { branchId: branchId || undefined }),
   ]);

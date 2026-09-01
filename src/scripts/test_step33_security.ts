@@ -17,7 +17,7 @@ async function main() {
   const { prisma } = await import('../lib/db/prisma');
   const { MembershipRole, SaleStatus, PurchaseStatus } = await import('../generated/prisma/client');
   const bcrypt = (await import('bcryptjs')).default;
-  const { hasPermission, assertPermission } = await import('../lib/permissions/matrix');
+  const { hasPermission } = await import('../lib/permissions/matrix');
   const { checkRateLimit, clearAllRateLimits } = await import('../lib/security/rate-limiter');
 
   const timestamp = Date.now();

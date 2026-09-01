@@ -2,10 +2,16 @@ import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { prisma } from '@/lib/db/prisma';
 import { redirect } from 'next/navigation';
 import { getExpenseCategoriesAction } from '@/app/actions/expenses.actions';
+import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
+import { ForbiddenView } from '@/components/access/forbidden';
 import { NewExpenseClient, type BranchOption } from './new-expense-client';
 
 export default async function NewExpensePage() {
   const { membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+
+  if (!canAccessDashboardPath(membership.role, '/dashboard/expenses/new')) {
+    return <ForbiddenView role={membership.role} />;
+  }
 
   const isOwnerOrManager = membership.role === 'OWNER' || membership.role === 'MANAGER';
   if (!isOwnerOrManager) {

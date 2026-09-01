@@ -31,7 +31,7 @@ export async function changeUserPassword(
     data: { password: hashedPassword },
   });
 
-  return { success: true };
+  return { success: true, passHash: hashedPassword.substring(0, 10) };
 }
 
 export async function updateUserProfile(

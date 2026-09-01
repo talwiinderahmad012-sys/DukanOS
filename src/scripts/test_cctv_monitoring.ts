@@ -223,6 +223,17 @@ async function runTests() {
   if (cameras.length < 1) {
     throw new Error('Monitoring cockpit returned incorrect camera counts');
   }
+
+  if (!monitoringStatus.cameras || monitoringStatus.cameras.total < 1) {
+    throw new Error('Monitoring cockpit did not expose the camera availability panel.');
+  }
+  if (monitoringStatus.cameras.online + monitoringStatus.cameras.degraded + monitoringStatus.cameras.offline !== monitoringStatus.cameras.total) {
+    throw new Error('Monitoring cockpit camera status breakdown does not sum to the total.');
+  }
+  const expectedIssueCount = monitoringStatus.cameras.offline + monitoringStatus.cameras.degraded;
+  if (monitoringStatus.actionCenter.offlineCamerasCount !== expectedIssueCount) {
+    throw new Error('Owner Action Center did not surface unreachable cameras.');
+  }
   console.log('✓ Test 6 Passed: Remote monitoring cockpit accurately reports CCTV status.');
 
   console.log('\n🎉 ALL STEP 16 REMOTE CCTV & SECURITY CAMERA TESTS PASSED SUCCESSFULLY!\n');

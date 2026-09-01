@@ -44,8 +44,15 @@ export function BusinessSwitcher({
         setIsOpen(false);
       }
     }
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
   }, []);
 
   const handleSelectBusiness = async (bizId: string) => {
@@ -68,6 +75,8 @@ export function BusinessSwitcher({
       {/* Trigger Button */}
       <button
         type="button"
+        aria-haspopup="true"
+        aria-expanded={isOpen}
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between p-2.5 rounded-2xl hover:bg-gray-100/80 transition-all text-start group border border-transparent hover:border-gray-200"
       >

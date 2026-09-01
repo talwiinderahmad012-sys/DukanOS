@@ -39,5 +39,14 @@
   "lowReviewsTitle": "{count} Low Customer Review(s) (≤ 2★)",
   "lowReviewsDesc": "Investigate customer dissatisfaction",
   "noPendingIssues": "No pending operational issues!",
-  "noPendingIssuesDesc": "Stock levels are healthy, receivables are normal, and no unresolved grievances exist."
+  "noPendingIssuesDesc": "Stock levels are healthy, receivables are normal, and no unresolved grievances exist.",
+  "cctvSectionTitle": "Security Camera Live Status",
+  "cctvOnlineCount": "{count} of {total} cameras reachable",
+  "cctvOnline": "Online",
+  "cctvDegraded": "Degraded",
+  "cctvOffline": "Offline",
+  "cctvAttentionList": "Cameras needing attention",
+  "cctvViewCameras": "Open CCTV Cameras",
+  "cctvOfflineTitle": "{count} CCTV Camera(s) Unreachable",
+  "cctvOfflineDesc": "A security camera is offline or degraded. Inspect connectivity."
 }

@@ -36,3 +36,19 @@ export function createErrorFromAppError(error: AppError): ActionResponse {
     fieldErrors: error.metadata?.fieldErrors as Record<string, string[]> | undefined,
   };
 }
+
+/**
+ * Map a thrown error caught at a server-action boundary to an ActionResponse
+ * (P3-07). Structured AppError codes/messages are preserved across the
+ * boundary (UNAUTHORIZED stays UNAUTHORIZED, RATE_LIMITED stays RATE_LIMITED,
+ * etc.) instead of being flattened to INTERNAL_ERROR. Unknown errors collapse
+ * to INTERNAL_ERROR whose message is sanitized centrally by createError, so
+ * stack traces and infrastructure details never reach the client.
+ */
+export function actionError(err: unknown, fallbackMessage: string): ActionResponse {
+  if (err instanceof AppError) {
+    return createErrorFromAppError(err);
+  }
+  const message = err instanceof Error && err.message ? err.message : fallbackMessage;
+  return createError(ErrorCodes.INTERNAL_ERROR, message);
+}

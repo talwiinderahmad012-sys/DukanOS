@@ -39,19 +39,25 @@ export function validateEnv(): AppConfig {
   const cronSecret = process.env.CRON_SECRET
   if (!cronSecret) missingRequired.push('CRON_SECRET')
 
+  const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? null
+  const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY ?? null
+  const vapidSubject = process.env.VAPID_SUBJECT ?? null
+
+  if (process.env.NODE_ENV === 'production') {
+    if (!vapidPublicKey) missingRequired.push('NEXT_PUBLIC_VAPID_PUBLIC_KEY')
+    if (!vapidPrivateKey) missingRequired.push('VAPID_PRIVATE_KEY')
+    if (!vapidSubject) missingRequired.push('VAPID_SUBJECT')
+  } else {
+    if (!vapidPublicKey) console.warn('Warning: NEXT_PUBLIC_VAPID_PUBLIC_KEY is not set')
+    if (!vapidPrivateKey) console.warn('Warning: VAPID_PRIVATE_KEY is not set')
+    if (!vapidSubject) console.warn('Warning: VAPID_SUBJECT is not set')
+  }
+
   if (missingRequired.length > 0) {
     throw new Error(
       `Missing required environment variable(s): ${missingRequired.join(', ')}`,
     )
   }
-
-  const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? null
-  const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY ?? null
-  const vapidSubject = process.env.VAPID_SUBJECT ?? null
-
-  if (!vapidPublicKey) console.warn('Warning: NEXT_PUBLIC_VAPID_PUBLIC_KEY is not set')
-  if (!vapidPrivateKey) console.warn('Warning: VAPID_PRIVATE_KEY is not set')
-  if (!vapidSubject) console.warn('Warning: VAPID_SUBJECT is not set')
 
   const nodeEnv = process.env.NODE_ENV ?? 'development'
   const port = Number(process.env.PORT ?? 3000)

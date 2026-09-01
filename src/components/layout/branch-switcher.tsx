@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Building2, ChevronDown, Check, Layers } from 'lucide-react';
 import { switchActiveBranchAction } from '@/app/actions/business.actions';
@@ -17,6 +17,25 @@ export function BranchSwitcher({
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [switching, setSwitching] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen]);
 
   if (!branches || branches.length <= 1) {
     return null; // No need for switcher if single branch
@@ -33,9 +52,11 @@ export function BranchSwitcher({
   };
 
   return (
-    <div className="relative">
+    <div className="relative" ref={menuRef}>
       <button
         type="button"
+        aria-haspopup="true"
+        aria-expanded={isOpen}
         onClick={() => setIsOpen(!isOpen)}
         disabled={switching}
         className="w-full flex items-center justify-between px-3 py-1.5 bg-gray-50 hover:bg-gray-100/80 rounded-xl border border-gray-200 text-xs font-semibold text-gray-700 transition-colors"

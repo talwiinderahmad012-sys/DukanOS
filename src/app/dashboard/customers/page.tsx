@@ -3,6 +3,8 @@ import { prisma } from '@/lib/db/prisma';
 import { getCustomersList } from '@/services/customers';
 import { redirect } from 'next/navigation';
 import { MembershipRole } from '@/generated/prisma/client';
+import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
+import { ForbiddenView } from '@/components/access/forbidden';
 import { CustomersPageClient, type CustomerListRow } from './customers-page-client';
 
 const PAGE_SIZE = 25;
@@ -21,6 +23,13 @@ export default async function CustomersPage({
   }>;
 }) {
   const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+
+  // Customer/Udhaar ledger is limited to roles with sale-creation rights
+  // (OWNER / MANAGER / CASHIER). EMPLOYEE is denied here.
+  if (!canAccessDashboardPath(membership.role, '/dashboard/customers')) {
+    return <ForbiddenView role={membership.role} />;
+  }
+
   const params = await searchParams;
 
   const search = (params.search ?? '').trim();

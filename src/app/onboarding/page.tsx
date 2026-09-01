@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Store, MapPin, Settings } from 'lucide-react';
 import { submitOnboardingAction } from '@/app/actions/onboarding.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { Select } from '@/components/ui/select';
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -71,12 +72,16 @@ export default function OnboardingPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('onboarding.businessType')}</label>
-                <select name="businessType" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-primary">
-                  <option value="RETAIL">{t('onboarding.typeRetail')}</option>
-                  <option value="WHOLESALE">{t('onboarding.typeWholesale')}</option>
-                  <option value="SERVICES">{t('onboarding.typeServices')}</option>
-                  <option value="OTHER">{t('onboarding.typeOther')}</option>
-                </select>
+                <Select 
+                  name="businessType"
+                  options={[
+                    { label: t('onboarding.typeRetail'), value: 'RETAIL' },
+                    { label: t('onboarding.typeWholesale'), value: 'WHOLESALE' },
+                    { label: t('onboarding.typeServices'), value: 'SERVICES' },
+                    { label: t('onboarding.typeOther'), value: 'OTHER' }
+                  ]}
+                  value="RETAIL"
+                />
               </div>
             </div>
           </div>

@@ -56,3 +56,21 @@ _mv*.txt
 
 # kilo agent scratch workspace
 /.kilo
+
+# dev artifacts
+cookies.txt
+login_test.py
+post_body.txt
+post_body2.txt
+__shot_urdu.html
+
+# local PostgreSQL / runtime logs
+postgres.log
+pg_log.txt
+postgres_start.log
+
+# agent / IDE internal workspace (not project code)
+/.workbuddy-ai/
+
+# local scratch workspace
+/scratch/

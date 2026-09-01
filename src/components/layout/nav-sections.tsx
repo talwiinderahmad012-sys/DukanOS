@@ -13,16 +13,18 @@ export function isNavHrefActive(href: string, pathname: string): boolean {
 
 export function DashboardNavSections({
   role,
+  platformAdmin = false,
   variant = 'sidebar',
   onNavigate,
 }: {
   role: string;
+  platformAdmin?: boolean;
   variant?: 'sidebar' | 'drawer';
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
   const { t } = useTranslation();
-  const sections = getDashboardNavigationSections(role);
+  const sections = getDashboardNavigationSections(role, platformAdmin);
   const touch = variant === 'drawer';
 
   return (

@@ -20,12 +20,18 @@ export default function LoginPage() {
     const identifier = (formData.get('identifier') as string)?.trim() || '';
     const password = formData.get('password') as string;
 
+    // [AUTH-DEBUG] temporary logging — remove after diagnosing login
+    console.log('[AUTH-DEBUG] login submit', { identifier, passwordLength: password?.length });
+
     try {
       const res = await signIn('credentials', {
         redirect: false,
         identifier,
         password,
       });
+
+      // [AUTH-DEBUG] temporary logging — remove after diagnosing login
+      console.log('[AUTH-DEBUG] signIn() result', { ok: !res?.error, error: res?.error ?? null, status: res?.status ?? null, url: res?.url ?? null });
 
       if (res?.error) {
         if (res.error === 'ServiceUnavailable') {

@@ -3,7 +3,7 @@
 import { requireBusinessAccess } from '@/lib/auth/context';
 import { MembershipRole } from '@/generated/prisma/client';
 import { prisma } from '@/lib/db/prisma';
-import { createError, createSuccess, AppErrors, type ActionResponse } from '@/lib/utils/api-response';
+import { createError, createSuccess, AppErrors, actionError, type ActionResponse, type ErrorCode } from '@/lib/utils/api-response';
 import {
   getDailyReport,
   getWeeklyReport,
@@ -38,8 +38,8 @@ export async function getDailyReportAction(businessId: string, dateInput?: strin
     }
     const report = await getDailyReport(businessId, dateInput, business.timezone, branchId || undefined);
     return createSuccess(report);
-  } catch {
-    return createError(AppErrors.INTERNAL_ERROR, 'Failed to fetch daily report');
+  } catch (error) {
+    return actionError(error, 'Failed to fetch daily report');
   }
 }
 
@@ -52,8 +52,8 @@ export async function getWeeklyReportAction(businessId: string, dateInput?: stri
     }
     const report = await getWeeklyReport(businessId, dateInput, business.timezone, branchId || undefined);
     return createSuccess(report);
-  } catch {
-    return createError(AppErrors.INTERNAL_ERROR, 'Failed to fetch weekly report');
+  } catch (error) {
+    return actionError(error, 'Failed to fetch weekly report');
   }
 }
 
@@ -71,8 +71,8 @@ export async function getMonthlyReportAction(
     }
     const report = await getMonthlyReport(businessId, year, month, business.timezone, branchId || undefined);
     return createSuccess(report);
-  } catch {
-    return createError(AppErrors.INTERNAL_ERROR, 'Failed to fetch monthly report');
+  } catch (error) {
+    return actionError(error, 'Failed to fetch monthly report');
   }
 }
 
@@ -85,8 +85,8 @@ export async function getYearlyReportAction(businessId: string, year?: number, b
     }
     const report = await getYearlyReport(businessId, year, business.timezone, branchId || undefined);
     return createSuccess(report);
-  } catch {
-    return createError(AppErrors.INTERNAL_ERROR, 'Failed to fetch yearly report');
+  } catch (error) {
+    return actionError(error, 'Failed to fetch yearly report');
   }
 }
 
@@ -94,13 +94,32 @@ export async function getBusinessReportAction(businessId: string, type: ReportTy
   try {
     const permitted = type === 'PAYROLL' ? PAYROLL_PERMITTED_ROLES : REPORT_PERMITTED_ROLES;
     const { business } = await requireBusinessAccess(businessId, permitted);
+
+    if (branchId) {
+      const branch = await prisma.branch.findFirst({ where: { id: branchId, businessId }, select: { id: true } });
+      if (!branch) throw new AppError(ErrorCodes.BUSINESS_ACCESS_DENIED, 'Invalid branch for this business', 403);
+    }
+
+    const fromDate = new Date(from);
+    const toDate = new Date(to);
+    // Date-only "to" values parse as UTC midnight; extend to end of day so the
+    // selected end date is fully included in the report range.
+    if (/^\d{4}-\d{2}-\d{2}$/.test(to)) {
+      const endOfDay = Date.parse(`${to}T23:59:59.999Z`);
+      if (!Number.isNaN(endOfDay)) toDate.setTime(endOfDay);
+    }
+
     const report = await generateBusinessReport(businessId, type, {
-      from: new Date(from),
-      to: new Date(to),
+      from: fromDate,
+      to: toDate,
       branchId: branchId || null,
+      timezone: business.timezone,
     });
     return createSuccess(report);
   } catch (error) {
+    if (error instanceof AppError) {
+      return createError(error.code as ErrorCode, error.message) as ActionResponse<BaseReport>;
+    }
     const err = error as Error;
     return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to generate report') as ActionResponse<BaseReport>;
   }
@@ -115,8 +134,7 @@ export async function getGrowthAnalyticsAction(
     const growth = await getBusinessGrowth(businessId, period, business.timezone);
     return createSuccess(growth);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to fetch growth metrics');
+    return actionError(error, 'Failed to fetch growth metrics');
   }
 }
 
@@ -126,8 +144,7 @@ export async function getAdvisorReportAction(businessId: string) {
     const data = await generateAdvisorFindings(businessId, business.timezone);
     return createSuccess(data);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to generate advisor report');
+    return actionError(error, 'Failed to generate advisor report');
   }
 }
 
@@ -137,7 +154,6 @@ export async function triggerAdvisorScanAction(businessId: string) {
     const result = await syncAdvisorNotifications(businessId, business.timezone);
     return createSuccess(result);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to sync advisor alerts');
+    return actionError(error, 'Failed to sync advisor alerts');
   }
 }

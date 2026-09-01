@@ -1,4 +1,4 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requirePlatformAdmin } from '@/lib/auth/platform-admin';
 import {
   getActivationFunnelMetrics,
   getFeatureAdoptionMetrics,
@@ -6,7 +6,6 @@ import {
   getReliabilityMetrics,
   getProductHealthScore,
 } from '@/services/product-analytics';
-import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import { ProductInsightsPageClient } from './product-insights-client';
 
@@ -16,9 +15,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ProductInsightsPage() {
-  const { membership } = await getActiveBusiness();
-
-  if (membership.role !== 'OWNER' && membership.role !== 'MANAGER') redirect('/dashboard');
+  await requirePlatformAdmin();
 
   const [funnel, adoption, retention, reliability, healthScore] = await Promise.all([
     getActivationFunnelMetrics(),

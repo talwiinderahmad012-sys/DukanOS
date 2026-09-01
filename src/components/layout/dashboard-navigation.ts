@@ -5,6 +5,7 @@ import {
   User, Camera, Banknote, Settings, ShieldCheck, Rocket, Bug, Store
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
 
 export interface DashboardNavItem {
   name: string;
@@ -13,12 +14,15 @@ export interface DashboardNavItem {
   translationKey?: string;
 }
 
-export function getDashboardNavigation(role: string): DashboardNavItem[] {
+export function getDashboardNavigation(role: string, isPlatformAdmin = false): DashboardNavItem[] {
   const isOwner = role === 'OWNER';
   const isManager = role === 'MANAGER';
   const isOwnerOrManager = isOwner || isManager;
 
-  return [
+  // Every nav item is filtered through the SAME centralized page-access rules
+  // (RolePermissionMatrix → PageAccessRules) that guard the server pages, so
+  // the menu never advertises a page the role cannot open.
+  const items: DashboardNavItem[] = [
     { name: 'Overview', translationKey: 'nav.overview', href: '/dashboard', icon: LayoutDashboard },
     { name: 'My Workspace', translationKey: 'nav.myWorkspace', href: '/dashboard/me', icon: User },
     { name: 'POS Terminal', translationKey: 'nav.posTerminal', href: '/dashboard/pos', icon: ShoppingCart },
@@ -42,13 +46,17 @@ export function getDashboardNavigation(role: string): DashboardNavItem[] {
     { name: 'Inventory', translationKey: 'nav.inventory', href: '/dashboard/inventory', icon: ClipboardList },
     { name: 'Purchases', translationKey: 'nav.purchases', href: '/dashboard/purchases', icon: Receipt },
     ...(isOwnerOrManager ? [{ name: 'Expenses', translationKey: 'nav.expenses', href: '/dashboard/expenses', icon: Banknote }] : []),
-    ...(isOwnerOrManager ? [{ name: 'Product Insights', translationKey: 'nav.productInsights', href: '/dashboard/product-insights', icon: Sparkles }] : []),
+    // Platform-wide sections are restricted to platform administrators; store
+    // OWNER/MANAGER roles never get these entries.
+    ...(isPlatformAdmin ? [{ name: 'Product Insights', translationKey: 'nav.productInsights', href: '/dashboard/product-insights', icon: Sparkles }] : []),
     ...(isOwnerOrManager ? [{ name: 'System Updates', translationKey: 'nav.systemUpdates', href: '/dashboard/updates', icon: Rocket }] : []),
-    ...(isOwner ? [{ name: 'Platform Support', translationKey: 'nav.platformSupport', href: '/dashboard/product-feedback', icon: Bug }] : []),
+    ...(isPlatformAdmin ? [{ name: 'Platform Support', translationKey: 'nav.platformSupport', href: '/dashboard/product-feedback', icon: Bug }] : []),
     ...(isOwner ? [{ name: 'Platform Plans', translationKey: 'nav.platformPlans', href: '/dashboard/platform/plans', icon: ShieldCheck }] : []),
     ...(isOwnerOrManager ? [{ name: 'Settings Hub', translationKey: 'nav.settingsHub', href: '/dashboard/settings', icon: Settings }] : []),
     ...(isOwner ? [{ name: 'System Health', translationKey: 'nav.systemHealth', href: '/dashboard/system', icon: ShieldCheck }] : []),
   ];
+
+  return items.filter((item) => canAccessDashboardPath(role, item.href));
 }
 
 export const NAV_SECTION_INFO: Record<string, { label: string; translationKey: string }> = {
@@ -89,9 +97,9 @@ export interface DashboardNavSection {
   items: DashboardNavItem[];
 }
 
-export function getDashboardNavigationSections(role: string): DashboardNavSection[] {
+export function getDashboardNavigationSections(role: string, isPlatformAdmin = false): DashboardNavSection[] {
   const sections: DashboardNavSection[] = [];
-  for (const item of getDashboardNavigation(role)) {
+  for (const item of getDashboardNavigation(role, isPlatformAdmin)) {
     const info = NAV_SECTION_INFO[item.href] ?? { label: 'General', translationKey: 'common.actions' };
     const last = sections[sections.length - 1];
     if (last && last.label === info.label) {

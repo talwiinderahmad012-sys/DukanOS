@@ -9,15 +9,21 @@ export default async function PayrollPage() {
 
   if (membership.role !== 'OWNER') redirect('/dashboard');
 
-  const payrolls = await prisma.payroll.findMany({
-    where: { businessId: business.id },
-    include: {
-      _count: {
-        select: { employeeSalary: true }
-      }
-    },
-    orderBy: { startDate: 'desc' }
-  });
+  const [payrolls, employees] = await Promise.all([
+    prisma.payroll.findMany({
+      where: { businessId: business.id },
+      include: {
+        _count: {
+          select: { employeeSalary: true }
+        }
+      },
+      orderBy: { startDate: 'desc' }
+    }),
+    prisma.employee.findMany({
+      where: { businessId: business.id, status: { in: ['ACTIVE', 'ON_LEAVE'] } },
+      select: { id: true, name: true, basicSalary: true }
+    })
+  ]);
 
   const rows: PayrollListItem[] = payrolls.map((payroll) => ({
     id: payroll.id,
@@ -29,5 +35,11 @@ export default async function PayrollPage() {
     salaryCount: payroll._count.employeeSalary,
   }));
 
-  return <PayrollView payrolls={rows} />;
+  const employeeOptions = employees.map(emp => ({
+    id: emp.id,
+    name: emp.name,
+    basicSalary: Number(emp.basicSalary)
+  }));
+
+  return <PayrollView businessId={business.id} payrolls={rows} employees={employeeOptions} />;
 }

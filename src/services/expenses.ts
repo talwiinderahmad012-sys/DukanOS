@@ -62,8 +62,15 @@ export async function createExpense(businessId: string, userId: string, data: {
   if (!category || category.trim().length < 2) {
     throw new AppError(ErrorCodes.VALIDATION_ERROR, 'Expense category is required.', 400);
   }
-  if (data.amount === undefined || data.amount === null || data.amount < 0) {
-    throw new AppError(ErrorCodes.VALIDATION_ERROR, 'Expense amount must be a non-negative number.', 400);
+  if (
+    data.amount === undefined ||
+    data.amount === null ||
+    typeof data.amount !== 'number' ||
+    Number.isNaN(data.amount) ||
+    !Number.isFinite(data.amount) ||
+    data.amount <= 0
+  ) {
+    throw new AppError(ErrorCodes.VALIDATION_ERROR, 'Expense amount must be a positive number.', 400);
   }
 
   let branchId = data.branchId || null;
@@ -165,6 +172,11 @@ export async function listExpenses(businessId: string, options: ExpenseListOptio
     ];
   }
 
+  // cancelledCount must respect the active filters (branch/category/date/search),
+  // but count cancelled records regardless of the includeCancelled toggle.
+  const filtersExceptCancellation = { ...where } as Record<string, unknown>;
+  delete filtersExceptCancellation.cancelledAt;
+
   const [expenses, total, activeAgg, cancelledCount] = await Promise.all([
     prisma.expense.findMany({
       where,
@@ -181,7 +193,7 @@ export async function listExpenses(businessId: string, options: ExpenseListOptio
       _sum: { amount: true },
     }),
     prisma.expense.count({
-      where: { businessId, cancelledAt: { not: null } },
+      where: { ...filtersExceptCancellation, cancelledAt: { not: null } },
     }),
   ]);
 
@@ -230,8 +242,13 @@ export async function updateExpense(businessId: string, userId: string, expenseI
   }
 
   if (data.amount !== undefined) {
-    if (data.amount < 0) {
-      throw new AppError(ErrorCodes.VALIDATION_ERROR, 'Expense amount cannot be negative.', 400);
+    if (
+      typeof data.amount !== 'number' ||
+      Number.isNaN(data.amount) ||
+      !Number.isFinite(data.amount) ||
+      data.amount <= 0
+    ) {
+      throw new AppError(ErrorCodes.VALIDATION_ERROR, 'Expense amount must be a positive number.', 400);
     }
     updateData.amount = data.amount;
   }

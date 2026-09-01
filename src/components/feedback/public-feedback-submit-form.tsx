@@ -12,10 +12,8 @@ const FEEDBACK_TYPES = ['FEEDBACK', 'COMPLAINT', 'REVIEW'] as const;
 
 export function PublicFeedbackSubmitForm({
   businessId,
-  products,
 }: {
   businessId: string;
-  products: { id: string; name: string }[];
 }) {
   const { t, tm } = useTranslation();
   const [type, setType] = useState<CustomerFeedbackType>('FEEDBACK');
@@ -25,7 +23,6 @@ export function PublicFeedbackSubmitForm({
   const [description, setDescription] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
-  const [productId, setProductId] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
@@ -41,7 +38,6 @@ export function PublicFeedbackSubmitForm({
       rating: rating > 0 ? rating : null,
       title,
       description,
-      productId: productId || null,
     });
     setBusy(false);
     if (res.success) {
@@ -125,18 +121,8 @@ export function PublicFeedbackSubmitForm({
         className="w-full text-sm border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-primary"
       />
 
-      {products.length > 0 && (
-        <select
-          value={productId}
-          onChange={(e) => setProductId(e.target.value)}
-          className="w-full text-sm border border-gray-300 rounded-xl px-4 py-2.5 bg-white"
-        >
-          <option value="">{t('feedback.publicSubmit.relatedProduct')}</option>
-          {products.map((p) => (
-            <option key={p.id} value={p.id}>{p.name}</option>
-          ))}
-        </select>
-      )}
+      {/* Product selection intentionally not exposed to anonymous visitors
+          (P3-24): the catalog is not disclosed on the public form. */}
 
       <div className="grid grid-cols-2 gap-2">
         <input

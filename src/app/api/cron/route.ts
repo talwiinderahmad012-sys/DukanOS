@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { checkCameraHealth } from '@/services/cctv';
-import { generateAdvisorFindings } from '@/services/advisor';
+import { syncAdvisorNotifications } from '@/services/advisor';
+import { generateDailyBusinessDigest } from '@/services/digest';
 import { runScheduledReports } from '@/services/reports/scheduled';
 import { logger, createCorrelationIdFromRequest } from '@/lib/logging';
 import { authorizeCronRequest } from '@/lib/security/cron-auth';
@@ -56,7 +57,7 @@ async function handleCron(req: NextRequest) {
     let advisorSweeps = 0;
     for (const business of activeBusinesses) {
       try {
-        await generateAdvisorFindings(business.id, business.timezone);
+        await syncAdvisorNotifications(business.id, business.timezone);
         advisorSweeps++;
       } catch {
         logger.warn('Cron advisor sweep failed for business', {
@@ -67,6 +68,21 @@ async function handleCron(req: NextRequest) {
       }
     }
     results.advisorSweeps = advisorSweeps;
+
+    let dailyDigests = 0;
+    for (const business of activeBusinesses) {
+      try {
+        const res = await generateDailyBusinessDigest(business.id);
+        if (res.created) dailyDigests++;
+      } catch {
+        logger.warn('Cron daily digest failed for business', {
+          correlationId: requestId,
+          businessId: business.id,
+          category: 'CRON',
+        });
+      }
+    }
+    results.dailyDigests = dailyDigests;
 
     const scheduledReports = await runScheduledReports();
     results.scheduledReports = scheduledReports;

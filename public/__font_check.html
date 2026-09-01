@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>DukaanOS font check harness</title>
+</head>
+<body>
+<pre id="result">PENDING</pre>
+<iframe id="app" style="width:1280px;height:1200px;border:0" title="app"></iframe>
+<script>
+(function () {
+  var out = document.getElementById('result');
+  var frame = document.getElementById('app');
+  var started = Date.now();
+
+  try { localStorage.setItem('dukaanos_lang', 'UR'); } catch (e) {}
+
+  frame.src = '/login';
+
+  function finish(data) {
+    try { localStorage.removeItem('dukaanos_lang'); } catch (e) {}
+    out.textContent = 'FONT_CHECK_JSON ' + JSON.stringify(data, null, 1);
+  }
+
+  function attempt() {
+    var doc, win;
+    try { doc = frame.contentDocument; win = frame.contentWindow; } catch (e) { doc = null; }
+    if (!doc || doc.readyState !== 'complete') {
+      if (Date.now() - started > 90000) finish({ error: 'timeout waiting for frame' });
+      else setTimeout(attempt, 500);
+      return;
+    }
+    var html = doc.documentElement;
+    var h1 = doc.querySelector('h1');
+    var label = doc.querySelector('label');
+    var button = doc.querySelector('button[type="submit"]');
+    var input = doc.querySelector('input[name="email"]');
+    var bodyCS = win.getComputedStyle(doc.body);
+
+    function styles(el) {
+      if (!el) return null;
+      var cs = win.getComputedStyle(el);
+      return { tag: el.tagName, text: (el.textContent || '').trim().slice(0, 40), fontFamily: cs.fontFamily, fontSize: cs.fontSize };
+    }
+
+    function collectFonts(extra) {
+      var info = {
+        htmlLang: html.getAttribute('lang'),
+        htmlDir: html.getAttribute('dir'),
+        hasLangUrClass: html.classList.contains('lang-ur'),
+        bodyFontFamily: bodyCS.fontFamily,
+        bodyCustomProp: win.getComputedStyle(html).getPropertyValue('--font-urdu') || '(not on html)',
+        bodyDeclaredProp: bodyCS.getPropertyValue('--font-urdu'),
+        h1: styles(h1),
+        label: styles(label),
+        submitButton: styles(button),
+        emailInput: styles(input),
+        h1Text: h1 ? h1.textContent.trim() : null,
+        fontsCheck16: null,
+        loadedFaces: [],
+        error: extra || null
+      };
+      try {
+        info.fontsCheck16 = doc.fonts.check('16px "Jameel Noori Nastaleeq"', '\u0633\u0627\u0626\u0646');
+      } catch (e) { info.fontsCheck16 = 'ERR ' + e.message; }
+      try {
+        doc.fonts.forEach(function (f) {
+          info.loadedFaces.push({ family: f.family, status: f.status, src: (f.url || '').slice(0, 90) });
+        });
+      } catch (e) { info.loadedFaces = 'ERR ' + e.message; }
+      return info;
+    }
+
+    if (!h1) {
+      if (Date.now() - started > 90000) finish(collectFonts('h1 never rendered'));
+      else setTimeout(attempt, 500);
+      return;
+    }
+
+    var checkPromise;
+    try {
+      checkPromise = doc.fonts.load('16px "Jameel Noori Nastaleeq"', '\u0633\u0627\u0626\u0646 \u0627\u067E\u0646\u06d2');
+    } catch (e) {
+      checkPromise = Promise.reject(e);
+    }
+
+    Promise.resolve(checkPromise)
+      .then(function () { return doc.fonts.ready; })
+      .catch(function (e) { return e; })
+      .then(function () { setTimeout(function () { finish(collectFonts()); }, 300); });
+  }
+
+  setTimeout(attempt, 1000);
+})();
+</script>
+</body>
+</html>

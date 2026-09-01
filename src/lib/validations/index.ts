@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PaymentMethod } from '@/generated/prisma/client';
+import { PaymentMethod, CommunicationChannel } from '@/generated/prisma/client';
 
 export const productSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -63,7 +63,7 @@ export const saleFilterSchema = z.object({
 
 export const stockAdjustmentSchema = z.object({
   productId: z.string().uuid(),
-  newStock: z.number().int().min(0),
+  delta: z.number().int("Adjustment must be a whole number of units").refine((v) => v !== 0, { message: "Adjustment quantity must not be zero" }),
   reason: z.string().min(5).max(200),
 });
 
@@ -332,6 +332,34 @@ export const updateBusinessStatusSchema = z.object({
   operatingHours: z.string().max(200).optional().nullable(),
 });
 
+// ----------------------------------------
+// Customer Communications (Step 28)
+// ----------------------------------------
+export const sendCustomerMessageSchema = z.object({
+  customerId: z.string().uuid("Invalid customer ID"),
+  channel: z.nativeEnum(CommunicationChannel).default(CommunicationChannel.WHATSAPP),
+  messageType: z.string().default('TRANSACTIONAL'),
+  templateType: z.string().optional().nullable(),
+  content: z.string().min(1, "Message content is required").max(4000),
+});
+
+export const createMessageTemplateSchema = z.object({
+  type: z.string().min(1, "Type is required").max(50),
+  channel: z.nativeEnum(CommunicationChannel),
+  name: z.string().min(3, "Name must be at least 3 characters").max(100),
+  subject: z.string().max(200).optional().nullable(),
+  body: z.string().min(1, "Body is required").max(4000),
+  isEnabled: z.boolean().default(true),
+  isDefault: z.boolean().default(false),
+});
+
+export const toggleAutomationSchema = z.object({
+  automationId: z.string().uuid("Invalid automation ID"),
+  isEnabled: z.boolean(),
+});
 
 
 
+
+
+ 

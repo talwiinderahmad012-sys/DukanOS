@@ -1,6 +1,4 @@
-import { prisma } from '@/lib/db/prisma';
 import { PublicFeedbackPageClient } from './public-feedback-page-client';
-import { notFound } from 'next/navigation';
 
 export const metadata = {
   title: 'Share Your Feedback',
@@ -13,29 +11,15 @@ export default async function PublicFeedbackPage({
 }) {
   const { businessId } = await params;
 
-  const business = await prisma.business.findFirst({
-    where: { id: businessId, status: 'ACTIVE' },
-    select: {
-      id: true,
-      name: true,
-      products: {
-        where: { isActive: true },
-        select: { id: true, name: true },
-        take: 100,
-        orderBy: { name: 'asc' },
-      },
-    },
-  });
-
-  if (!business) {
-    notFound();
-  }
-
+  // Privacy (P3-24): this public route must not act as a business-existence
+  // oracle and must not expose product lists to anonymous visitors. We render
+  // the form unconditionally with a generic title. Missing or inactive businesses
+  // fail silently on submission.
   return (
     <PublicFeedbackPageClient
-      businessId={business.id}
-      businessName={business.name}
-      products={business.products}
+      available={true}
+      businessId={businessId}
+      businessName="Business Feedback"
     />
   );
 }

@@ -1,4 +1,6 @@
 import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
+import { ForbiddenView } from '@/components/access/forbidden';
 import { SyncCenterView } from '@/components/sync/sync-center-view';
 import { redirect } from 'next/navigation';
 

@@ -8,14 +8,32 @@ import {
   type AnnouncementPageData,
 } from './communications-page-client';
 
+import { 
+  getProviderStatus, 
+  listCommunicationLogs,
+  listMessageTemplates,
+  listMessageAutomations 
+} from '@/services/customer-communications';
+
 export default async function CommunicationsPage() {
   const { user, business, membership } = await getActiveBusiness().catch(() =>
     redirect('/onboarding')
   );
 
-  const [fetchedConversations, fetchedAnnouncements] = await Promise.all([
+  const [
+    fetchedConversations, 
+    fetchedAnnouncements,
+    providerStatus,
+    customerLogs,
+    templates,
+    automations
+  ] = await Promise.all([
     listUserConversations(business.id, user.id),
     listAnnouncements(business.id, user.id, membership.role),
+    getProviderStatus(business.id, 'WHATSAPP'),
+    listCommunicationLogs(business.id, { limit: 50 }),
+    listMessageTemplates(business.id),
+    listMessageAutomations(business.id),
   ]);
 
   const initialConversations: ConversationPageData[] = fetchedConversations.map((c) => ({
@@ -64,6 +82,10 @@ export default async function CommunicationsPage() {
       userRole={membership.role}
       initialConversations={initialConversations}
       initialAnnouncements={initialAnnouncements}
+      providerStatus={providerStatus}
+      customerLogs={customerLogs.messages}
+      templates={templates}
+      automations={automations}
     />
   );
 }

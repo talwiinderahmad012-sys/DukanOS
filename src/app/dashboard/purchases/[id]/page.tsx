@@ -1,6 +1,8 @@
 import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { getPurchaseById } from '@/services/purchases';
 import { notFound, redirect } from 'next/navigation';
+import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
+import { ForbiddenView } from '@/components/access/forbidden';
 import {
   PurchaseDetailClient,
   type PurchaseDetailData,
@@ -14,6 +16,10 @@ export default async function PurchaseDetailPage({
 }) {
   const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
   const { id } = await params;
+
+  if (!canAccessDashboardPath(membership.role, '/dashboard/purchases')) {
+    return <ForbiddenView role={membership.role} />;
+  }
 
   const purchase = await getPurchaseById(business.id, id);
   if (!purchase) {

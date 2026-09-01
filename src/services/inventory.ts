@@ -11,10 +11,14 @@ export async function adjustStock(
   businessId: string,
   userId: string,
   productId: string,
-  newStock: number,
+  delta: number,
   reason: string,
   branchId?: string
 ) {
+  if (!Number.isInteger(delta) || delta === 0) {
+    throw new AppError(ErrorCodes.VALIDATION_ERROR, 'Stock adjustment must be a non-zero whole number of units.', 400);
+  }
+
   const result = await prisma.$transaction(async (tx) => {
     const product = await tx.product.findUnique({
       where: { id: productId, businessId },
@@ -24,23 +28,31 @@ export async function adjustStock(
       throw new AppError(ErrorCodes.NOT_FOUND, 'Product not found', 404);
     }
 
-    if (newStock < 0) {
+    // Delta is applied atomically against the server-side authoritative stock
+    // with a non-negativity guard. The client never sends a baseline stock
+    // value, so concurrent purchases/sales/adjustments cannot lose updates.
+    const updated: Array<{ currentStock: number }> = await tx.$queryRaw`
+      UPDATE "public"."Product"
+      SET "currentStock" = "currentStock" + ${delta}::integer,
+          "updatedAt" = NOW()
+      WHERE "id" = ${productId}::text
+        AND "businessId" = ${businessId}::text
+        AND ("currentStock" + ${delta}::integer) >= 0
+      RETURNING "currentStock";
+    `;
+
+    if (!updated || updated.length === 0) {
+      logger.warn('Stock adjustment rejected: would make stock negative', { businessId, productId, delta, reason });
       throw new AppError(ErrorCodes.INSUFFICIENT_STOCK, 'Insufficient stock', 409);
     }
 
-    const previousStock = product.currentStock;
-    const diff = newStock - previousStock;
-    
-    if (diff === 0) return product; // No change needed
+    const resultingStock = Number(updated[0].currentStock);
+    const previousStock = resultingStock - delta;
 
-    const updatedProduct = await tx.product.update({
-      where: { id: productId },
-      data: {
-        currentStock: newStock,
-      },
-    });
-
-    const movementType = diff > 0 ? MovementType.ADJUSTMENT : MovementType.LOSS;
+    let movementType: MovementType = MovementType.ADJUSTMENT;
+    if (reason === 'Damage') movementType = MovementType.DAMAGE;
+    else if (reason === 'Loss') movementType = MovementType.LOSS;
+    else if (reason === 'Opening Stock') movementType = MovementType.OPENING;
 
     await tx.stockMovement.create({
       data: {
@@ -48,15 +60,15 @@ export async function adjustStock(
         branchId,
         productId,
         movementType,
-        quantity: diff,
+        quantity: delta,
         previousStock,
-        resultingStock: newStock,
+        resultingStock,
         notes: reason,
         createdBy: userId,
       }
     });
 
-    logger.warn('Stock adjusted', { businessId, productId, previousStock, newStock, reason });
+    logger.warn('Stock adjusted', { businessId, productId, previousStock, resultingStock, delta, reason });
 
     await recordAuditLog({
       businessId,
@@ -65,10 +77,12 @@ export async function adjustStock(
       action: 'STOCK_ADJUSTED',
       entityType: 'Product',
       entityId: productId,
-      metadata: { previousStock, newStock, reason }
+      metadata: { previousStock, newStock: resultingStock, delta, reason }
     });
 
-    return updatedProduct;
+    return await tx.product.findUnique({
+      where: { id: productId },
+    });
   });
 
   try {

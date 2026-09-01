@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { X, Megaphone, AlertCircle, Send, ShieldAlert } from 'lucide-react';
 import { createAnnouncementAction } from '@/app/actions/communication.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { useModalA11y } from '@/lib/a11y/use-modal-a11y';
 
 type PriorityOption = 'NORMAL' | 'IMPORTANT' | 'URGENT';
 type TargetOption = 'ALL' | 'OWNER' | 'MANAGER' | 'CASHIER' | 'EMPLOYEE';
@@ -27,6 +28,8 @@ export function NewAnnouncementModal({
   const [expiresAt, setExpiresAt] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const modalRef = useModalA11y(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -53,10 +56,17 @@ export function NewAnnouncementModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative">
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        tabIndex={-1}
+        className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative max-h-[90vh] overflow-y-auto"
+      >
         <button
           onClick={onClose}
+          aria-label={t('common.close') || 'Close'}
           className="absolute top-4 end-4 text-gray-400 hover:text-gray-600"
         >
           <X className="w-5 h-5" />

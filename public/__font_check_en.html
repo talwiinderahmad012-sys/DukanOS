@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>DukaanOS English mode check</title>
+</head>
+<body>
+<pre id="result">PENDING</pre>
+<iframe id="app" style="width:1280px;height:1200px;border:0" title="app"></iframe>
+<script>
+(function () {
+  var out = document.getElementById('result');
+  var frame = document.getElementById('app');
+  var started = Date.now();
+  try { localStorage.setItem('dukaanos_lang', 'EN'); } catch (e) {}
+  frame.src = '/login';
+
+  function attempt() {
+    var doc, win;
+    try { doc = frame.contentDocument; win = frame.contentWindow; } catch (e) { doc = null; }
+    if (!doc || doc.readyState !== 'complete') {
+      if (Date.now() - started > 60000) out.textContent = 'EN_CHECK_JSON ' + JSON.stringify({ error: 'timeout' });
+      else setTimeout(attempt, 500);
+      return;
+    }
+    var h1 = doc.querySelector('h1');
+    if (!h1) { setTimeout(attempt, 500); return; }
+    var cs = win.getComputedStyle(h1);
+    var btn = doc.querySelector('button[type="submit"]');
+    var btnCs = btn ? win.getComputedStyle(btn) : null;
+    out.textContent = 'EN_CHECK_JSON ' + JSON.stringify({
+      htmlLang: doc.documentElement.getAttribute('lang'),
+      hasLangUrClass: doc.documentElement.classList.contains('lang-ur'),
+      h1Text: h1.textContent.trim().slice(0, 40),
+      h1FontFamily: cs.fontFamily,
+      buttonFontFamily: btnCs ? btnCs.fontFamily : null
+    });
+  }
+  setTimeout(attempt, 1000);
+})();
+</script>
+</body>
+</html>

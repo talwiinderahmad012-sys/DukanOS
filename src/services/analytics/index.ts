@@ -9,7 +9,7 @@ export type AnalyticsPeriod = { start: Date; end: Date; label: string };
 export type KPIData = { current: number; previous: number; growth: GrowthResult };
 export type MonthlyGrowthRow = { month: number; monthName: string; year: number; revenue: number; grossProfit: number; expenses: number; netProfit: number; orders: number; avgOrderValue: number; growthPercent: number | null; growthStatus: string };
 export type TopProduct = { productId: string; name: string; sku?: string | null; unit: string; currentStock: number; quantitySold: number; revenue: number; profit: number; profitMarginPercent: number };
-export type SlowProduct = { productId: string; name: string; sku?: string | null; currentStock: number; purchasePrice: number; stockValue: number; lastSaleDate: Date | null; daysSinceLastSale: number };
+export type SlowProduct = { productId: string; name: string; sku?: string | null; unit: string; currentStock: number; purchasePrice: number; stockValue: number; lastSaleDate: Date | null; daysSinceLastSale: number };
 export type TopCustomer = { customerId: string; name: string; phone?: string | null; totalSpent: number; orderCount: number; outstanding: number; lastPurchaseDate: Date | null };
 export type BranchStat = { branchId: string; branchName: string; branchCode: string; revenue: number; grossProfit: number; expenses: number; netProfit: number; orderCount: number };
 export type DecliningProduct = { productId: string; name: string; sku?: string | null; unit: string; currentStock: number; previousRevenue: number; currentRevenue: number; declinePercent: number | null; declineAmount: number };
@@ -47,8 +47,8 @@ export async function getAnalyticsKPIs(
     prisma.sale.aggregate({ where: { businessId, status: SaleStatus.COMPLETED, saleDate: { gte: comparisonPeriod.start, lte: comparisonPeriod.end }, ...bf }, _sum: { total: true }, _count: { id: true } }),
     prisma.saleItem.aggregate({ where: { sale: { businessId, status: SaleStatus.COMPLETED, saleDate: { gte: period.start, lte: period.end }, ...bf } }, _sum: { quantity: true, lineProfit: true } }),
     prisma.saleItem.aggregate({ where: { sale: { businessId, status: SaleStatus.COMPLETED, saleDate: { gte: comparisonPeriod.start, lte: comparisonPeriod.end }, ...bf } }, _sum: { quantity: true, lineProfit: true } }),
-    prisma.expense.aggregate({ where: { businessId, date: { gte: period.start, lte: period.end }, ...bf }, _sum: { amount: true } }),
-    prisma.expense.aggregate({ where: { businessId, date: { gte: comparisonPeriod.start, lte: comparisonPeriod.end }, ...bf }, _sum: { amount: true } }),
+    prisma.expense.aggregate({ where: { businessId, cancelledAt: null, date: { gte: period.start, lte: period.end }, ...bf }, _sum: { amount: true } }),
+    prisma.expense.aggregate({ where: { businessId, cancelledAt: null, date: { gte: comparisonPeriod.start, lte: comparisonPeriod.end }, ...bf }, _sum: { amount: true } }),
     prisma.purchase.aggregate({ where: { businessId, status: PurchaseStatus.RECEIVED, purchaseDate: { gte: period.start, lte: period.end }, ...(branchId ? { branchId } : {}) }, _sum: { total: true } }),
     prisma.purchase.aggregate({ where: { businessId, status: PurchaseStatus.RECEIVED, purchaseDate: { gte: comparisonPeriod.start, lte: comparisonPeriod.end }, ...(branchId ? { branchId } : {}) }, _sum: { total: true } }),
     prisma.customer.aggregate({ where: { businessId, isActive: true }, _sum: { outstanding: true } }),
@@ -92,7 +92,7 @@ export async function getMonthlyGrowthTable(businessId: string, year: number, ti
   const yr=getYearlyRange(year);
   const [sales, exps] = await Promise.all([
     prisma.sale.findMany({ where:{businessId,status:SaleStatus.COMPLETED,saleDate:{gte:yr.start,lte:yr.end}}, select:{total:true,saleDate:true,items:{select:{lineProfit:true}}} }),
-    prisma.expense.findMany({ where:{businessId,date:{gte:yr.start,lte:yr.end}}, select:{amount:true,date:true} }),
+    prisma.expense.findMany({ where:{businessId,cancelledAt:null,date:{gte:yr.start,lte:yr.end}}, select:{amount:true,date:true} }),
   ]);
   const rows: MonthlyGrowthRow[]=[];
   let prevRev=0;
@@ -118,8 +118,8 @@ export async function getYearlyComparison(businessId: string, timezone: string) 
     prisma.sale.aggregate({where:{businessId,status:SaleStatus.COMPLETED,saleDate:{gte:py.start,lte:py.end}},_sum:{total:true},_count:{id:true}}),
     prisma.saleItem.aggregate({where:{sale:{businessId,status:SaleStatus.COMPLETED,saleDate:{gte:ty.start,lte:ty.end}}},_sum:{lineProfit:true,quantity:true}}),
     prisma.saleItem.aggregate({where:{sale:{businessId,status:SaleStatus.COMPLETED,saleDate:{gte:py.start,lte:py.end}}},_sum:{lineProfit:true,quantity:true}}),
-    prisma.expense.aggregate({where:{businessId,date:{gte:ty.start,lte:ty.end}},_sum:{amount:true}}),
-    prisma.expense.aggregate({where:{businessId,date:{gte:py.start,lte:py.end}},_sum:{amount:true}}),
+    prisma.expense.aggregate({where:{businessId,cancelledAt:null,date:{gte:ty.start,lte:ty.end}},_sum:{amount:true}}),
+    prisma.expense.aggregate({where:{businessId,cancelledAt:null,date:{gte:py.start,lte:py.end}},_sum:{amount:true}}),
     prisma.customer.count({where:{businessId,createdAt:{gte:ty.start,lte:ty.end}}}),
     prisma.customer.count({where:{businessId,createdAt:{gte:py.start,lte:py.end}}}),
   ]);
@@ -163,7 +163,7 @@ export async function getSlowMovingProducts(businessId: string, daysThreshold=30
     const ls=lsMap.get(p.id)??null;
     if(!ls||ls<td){
       const days=ls?Math.floor((now.getTime()-ls.getTime())/86400000):Math.floor((now.getTime()-p.createdAt.getTime())/86400000);
-      result.push({productId:p.id,name:p.name,sku:p.sku,currentStock:p.currentStock,purchasePrice:Number(p.purchasePrice),stockValue:Number(p.purchasePrice)*p.currentStock,lastSaleDate:ls,daysSinceLastSale:days});
+      result.push({productId:p.id,name:p.name,sku:p.sku,unit:p.unit,currentStock:p.currentStock,purchasePrice:Number(p.purchasePrice),stockValue:Number(p.purchasePrice)*p.currentStock,lastSaleDate:ls,daysSinceLastSale:days});
     }
   }
   return result.sort((a,b)=>b.daysSinceLastSale-a.daysSinceLastSale).slice(0,limit);
@@ -254,7 +254,7 @@ export async function getBranchAnalytics(businessId: string, startDate: Date, en
     const [sA,iA,eA]=await Promise.all([
       prisma.sale.aggregate({where:{businessId,branchId:b.id,status:SaleStatus.COMPLETED,saleDate:{gte:startDate,lte:endDate}},_sum:{total:true},_count:{id:true}}),
       prisma.saleItem.aggregate({where:{sale:{businessId,branchId:b.id,status:SaleStatus.COMPLETED,saleDate:{gte:startDate,lte:endDate}}},_sum:{lineProfit:true}}),
-      prisma.expense.aggregate({where:{businessId,branchId:b.id,date:{gte:startDate,lte:endDate}},_sum:{amount:true}}),
+      prisma.expense.aggregate({where:{businessId,branchId:b.id,cancelledAt:null,date:{gte:startDate,lte:endDate}},_sum:{amount:true}}),
     ]);
     const rev=Number(sA._sum.total||0); const gp=Number(iA._sum.lineProfit||0); const exp=Number(eA._sum.amount||0);
     return {branchId:b.id,branchName:b.name,branchCode:b.code,revenue:rev,grossProfit:gp,expenses:exp,netProfit:gp-exp,orderCount:sA._count.id};
@@ -335,9 +335,9 @@ export async function getBestProfitProducts(businessId: string, startDate: Date,
 export async function getExpenseAnalytics(businessId: string, period: AnalyticsPeriod, comparisonPeriod: AnalyticsPeriod, branchId?: string) {
   const bf = branchId ? { branchId } : {};
   const [curExpenses, prevExpenses, curAgg] = await Promise.all([
-    prisma.expense.findMany({ where: { businessId, date: { gte: period.start, lte: period.end }, ...bf }, select: { category: true, amount: true, date: true } }),
-    prisma.expense.findMany({ where: { businessId, date: { gte: comparisonPeriod.start, lte: comparisonPeriod.end }, ...bf }, select: { category: true, amount: true } }),
-    prisma.expense.aggregate({ where: { businessId, date: { gte: period.start, lte: period.end }, ...bf }, _sum: { amount: true } }),
+    prisma.expense.findMany({ where: { businessId, cancelledAt: null, date: { gte: period.start, lte: period.end }, ...bf }, select: { category: true, amount: true, date: true } }),
+    prisma.expense.findMany({ where: { businessId, cancelledAt: null, date: { gte: comparisonPeriod.start, lte: comparisonPeriod.end }, ...bf }, select: { category: true, amount: true } }),
+    prisma.expense.aggregate({ where: { businessId, cancelledAt: null, date: { gte: period.start, lte: period.end }, ...bf }, _sum: { amount: true } }),
   ]);
   const totalCurrent = Number(curAgg._sum.amount || 0);
   const categoryMap = new Map<string, number>();

@@ -2,6 +2,7 @@ import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { listSales } from '@/services/sales';
 import { prisma } from '@/lib/db/prisma';
 import { redirect } from 'next/navigation';
+import { hasPermission } from '@/lib/permissions/permissions-core';
 import {
   SalesPageClient,
   type CustomerOption,
@@ -24,8 +25,13 @@ export default async function SalesPage({
     page?: string;
   }>;
 }) {
-  const { business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
   const params = await searchParams;
+
+  // The invoice list is visible to everyone with VIEW_SALES, but the revenue,
+  // collected, outstanding and profit KPI cards are financial summaries limited
+  // to roles with VIEW_PROFIT (OWNER / MANAGER).
+  const canViewFinancials = hasPermission(membership.role, 'VIEW_PROFIT');
 
   const search = (params.search ?? '').trim();
   const customerId = params.customerId || 'ALL';
@@ -94,6 +100,7 @@ export default async function SalesPage({
       startDate={startDate}
       endDate={endDate}
       page={page}
+      canViewFinancials={canViewFinancials}
     />
   );
 }

@@ -84,16 +84,24 @@ export function CommunicationsView({
   userRole,
   initialConversations,
   initialAnnouncements,
+  providerStatus,
+  customerLogs,
+  templates,
+  automations,
 }: {
   businessId: string;
   currentUserId: string;
   userRole: string;
   initialConversations: ConversationData[];
   initialAnnouncements: AnnouncementData[];
+  providerStatus?: any;
+  customerLogs?: any[];
+  templates?: any[];
+  automations?: any[];
 }) {
   const { t, language } = useTranslation();
   const locale = language === 'UR' ? 'ur-PK' : 'en-PK';
-  const [activeTab, setActiveTab] = useState<'messages' | 'announcements'>('messages');
+  const [activeTab, setActiveTab] = useState<'messages' | 'announcements' | 'customers' | 'templates' | 'automations'>('messages');
   const [conversations, setConversations] = useState<ConversationData[]>(initialConversations);
   const [announcements, setAnnouncements] = useState<AnnouncementData[]>(initialAnnouncements);
 
@@ -218,7 +226,7 @@ export function CommunicationsView({
         </div>
 
         {/* Tab Controls */}
-        <div className="flex items-center bg-gray-100 p-1 rounded-2xl">
+        <div className="flex items-center bg-gray-100 p-1 rounded-2xl overflow-x-auto max-w-full">
           <button
             onClick={() => setActiveTab('messages')}
             className={`px-4 py-2 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all ${
@@ -243,11 +251,51 @@ export function CommunicationsView({
             }`}
           >
             <Megaphone className="w-3.5 h-3.5" />
-            <span>{t('communications.tabAnnouncements', { count: announcements.length })}</span>
+            <span>{t('communications.tabAnnouncements')}</span>
             {announcements.some((a) => !a.isRead) && (
-              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+              <span className="w-2 h-2 rounded-full bg-red-500"></span>
             )}
           </button>
+          
+          {isOwnerOrManager && (
+            <>
+              <button
+                onClick={() => setActiveTab('customers')}
+                className={`px-4 py-2 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all ${
+                  activeTab === 'customers'
+                    ? 'bg-white text-gray-900 shadow-xs'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>Customer Comm</span>
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('templates')}
+                className={`px-4 py-2 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all ${
+                  activeTab === 'templates'
+                    ? 'bg-white text-gray-900 shadow-xs'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <CheckCheck className="w-3.5 h-3.5" />
+                <span>Templates</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('automations')}
+                className={`px-4 py-2 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all ${
+                  activeTab === 'automations'
+                    ? 'bg-white text-gray-900 shadow-xs'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Clock className="w-3.5 h-3.5" />
+                <span>Automations</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -549,6 +597,84 @@ export function CommunicationsView({
                   </div>
                 );
               })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Customer Communications (Step 28) */}
+      {activeTab === 'customers' && (
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 overflow-y-auto max-h-[calc(100vh-220px)]">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-bold text-lg">Customer Messages Log</h2>
+            <div className="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded-full font-semibold">
+              WhatsApp Provider: {providerStatus?.configured ? 'Active' : 'Not Configured'}
+            </div>
+          </div>
+          {customerLogs && customerLogs.length === 0 ? (
+            <div className="text-center py-12 text-gray-500 text-sm">No customer communication logs found.</div>
+          ) : (
+            <div className="space-y-4">
+              {customerLogs?.map((log: any) => (
+                <div key={log.id} className="p-4 border rounded-xl flex items-center justify-between text-sm">
+                  <div>
+                    <div className="font-semibold">{log.recipientName} <span className="font-normal text-gray-500">({log.recipient})</span></div>
+                    <div className="text-xs text-gray-500 mt-1">Template: {log.templateType || log.messageType} • Channel: {log.channel}</div>
+                  </div>
+                  <div className={`px-2 py-1 rounded-md text-[11px] font-bold ${
+                    log.status === 'DELIVERED' ? 'bg-green-100 text-green-700' :
+                    log.status === 'SENT' ? 'bg-blue-100 text-blue-700' :
+                    log.status === 'FAILED' ? 'bg-red-100 text-red-700' :
+                    'bg-amber-100 text-amber-700'
+                  }`}>
+                    {log.status}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'templates' && (
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 overflow-y-auto max-h-[calc(100vh-220px)]">
+          <h2 className="font-bold text-lg mb-6">Message Templates</h2>
+          {templates && templates.length === 0 ? (
+            <div className="text-center py-12 text-gray-500 text-sm">No templates configured.</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {templates?.map((t: any) => (
+                <div key={t.id} className="p-4 border rounded-xl">
+                  <div className="font-bold text-sm mb-1">{t.name}</div>
+                  <div className="text-xs text-gray-500 mb-3">{t.type} • {t.channel}</div>
+                  <div className="text-xs bg-gray-50 p-2 rounded-md">{t.body}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'automations' && (
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 overflow-y-auto max-h-[calc(100vh-220px)]">
+          <h2 className="font-bold text-lg mb-6">Communication Automations</h2>
+          {automations && automations.length === 0 ? (
+            <div className="text-center py-12 text-gray-500 text-sm">No automations active.</div>
+          ) : (
+            <div className="space-y-4">
+              {automations?.map((a: any) => (
+                <div key={a.id} className="p-4 border rounded-xl flex items-center justify-between text-sm">
+                  <div>
+                    <div className="font-bold">{a.eventType}</div>
+                    <div className="text-xs text-gray-500 mt-1">Channel: {a.channel}</div>
+                  </div>
+                  <div>
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${a.isEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                      {a.isEnabled ? 'ENABLED' : 'DISABLED'}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

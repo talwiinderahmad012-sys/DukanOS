@@ -3,7 +3,7 @@
 import { requireBusinessAccess } from '@/lib/auth/context';
 import { saleSchema, saleFilterSchema, saleCancelSchema } from '@/lib/validations';
 import { createSale, getSaleById, listSales, cancelSale } from '@/services/sales';
-import { createError, createSuccess, AppErrors } from '@/lib/utils/api-response';
+import { createError, createSuccess, AppErrors, actionError } from '@/lib/utils/api-response';
 import { MembershipRole } from '@/generated/prisma/client';
 import { AppError, ErrorCodes } from '@/lib/errors';
 
@@ -33,14 +33,13 @@ export async function createSaleAction(businessId: string, payload: unknown) {
 
     return createSuccess(sale);
   } catch (error) {
-    const err = error as Error;
-    if (err instanceof AppError && err.code === ErrorCodes.INSUFFICIENT_STOCK) {
+    if (error instanceof AppError && error.code === ErrorCodes.INSUFFICIENT_STOCK) {
       return createError(
         ErrorCodes.INSUFFICIENT_STOCK,
         'Not enough stock available for one or more items to complete this sale.'
       );
     }
-    return createError(AppErrors.INTERNAL_ERROR, 'Failed to create sale');
+    return actionError(error, 'Failed to create sale');
   }
 }
 
@@ -59,8 +58,7 @@ export async function getSaleAction(businessId: string, saleId: string) {
 
     return createSuccess(sale);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to fetch sale');
+    return actionError(error, 'Failed to fetch sale');
   }
 }
 
@@ -78,8 +76,7 @@ export async function listSalesAction(businessId: string, filters: unknown) {
     const result = await listSales(businessId, filterData);
     return createSuccess(result);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to list sales');
+    return actionError(error, 'Failed to list sales');
   }
 }
 
@@ -101,7 +98,6 @@ export async function cancelSaleAction(businessId: string, saleId: string, reaso
     const sale = await cancelSale(businessId, user.id, saleId, validated.data.reason);
     return createSuccess(sale);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to cancel sale');
+    return actionError(error, 'Failed to cancel sale');
   }
 }

@@ -19,6 +19,7 @@ import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { buttonClasses } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Table, TableWrap, TableHead, Th, Tr, Td } from '@/components/ui/table';
+import { Alert } from '@/components/ui/alert';
 import { cn } from '@/components/ui/cn';
 import { SupplierManageButtons } from '@/components/suppliers/supplier-actions';
 import { useTranslation } from '@/lib/i18n/language-context';
@@ -199,6 +200,12 @@ export function SupplierDetailClient({
           </div>
         )}
       </Card>
+
+      {summary.remainingDue > 0 && (
+        <Alert tone="warning" title="Direct Payments Deferred">
+          Direct supplier payments (bill settlements) are deferred in this version. You can track payable balances here, but cannot manually log a payment outside of a purchase invoice yet.
+        </Alert>
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {kpis.map((kpi) => (

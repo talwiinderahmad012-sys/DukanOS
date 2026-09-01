@@ -29,7 +29,7 @@ import {
 import { recordAuthAudit } from '@/services/audit';
 import { exportBusinessData } from '@/services/settings/export';
 import { getSystemDiagnostics } from '@/services/settings/system-health';
-import { createError, createSuccess, AppErrors } from '@/lib/utils/api-response';
+import { createError, createSuccess, AppErrors, actionError } from '@/lib/utils/api-response';
 
 // ----------------------------------------
 // Business Settings Actions
@@ -41,8 +41,7 @@ export async function getBusinessSettingsAction(businessId: string) {
     const data = await getOrCreateBusinessSettings(businessId);
     return createSuccess(data);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to get business settings');
+    return actionError(error, 'Failed to get business settings');
   }
 }
 
@@ -68,8 +67,7 @@ export async function updateBusinessProfileAction(
     const result = await updateBusinessProfile(businessId, payload as any);
     return createSuccess(result);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to update business profile');
+    return actionError(error, 'Failed to update business profile');
   }
 }
 
@@ -90,8 +88,7 @@ export async function updateSalesSettingsAction(
     const result = await updateSalesSettings(businessId, payload as any);
     return createSuccess(result);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to update sales settings');
+    return actionError(error, 'Failed to update sales settings');
   }
 }
 
@@ -116,8 +113,7 @@ export async function updateAdvisorSettingsAction(
     const result = await updateAdvisorSettings(businessId, payload as any);
     return createSuccess(result);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to update advisor settings');
+    return actionError(error, 'Failed to update advisor settings');
   }
 }
 
@@ -136,8 +132,7 @@ export async function updateReceiptSettingsAction(
     const result = await updateReceiptSettings(businessId, payload as any);
     return createSuccess(result);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to update receipt settings');
+    return actionError(error, 'Failed to update receipt settings');
   }
 }
 
@@ -150,8 +145,7 @@ export async function updateInventorySettingsAction(
     const result = await updateInventorySettings(businessId, payload);
     return createSuccess(result);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to update inventory settings');
+    return actionError(error, 'Failed to update inventory settings');
   }
 }
 
@@ -168,8 +162,7 @@ export async function listMembersAction(businessId: string) {
     const members = await listBusinessMembers(businessId);
     return createSuccess(members);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to list members');
+    return actionError(error, 'Failed to list members');
   }
 }
 
@@ -185,8 +178,7 @@ export async function updateMemberRoleAction(
     const result = await updateMemberRole(businessId, user.id, payload.targetUserId, payload.newRole);
     return createSuccess(result);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to update member role');
+    return actionError(error, 'Failed to update member role');
   }
 }
 
@@ -196,8 +188,7 @@ export async function removeMemberAction(businessId: string, targetUserId: strin
     const result = await removeMember(businessId, user.id, targetUserId);
     return createSuccess(result);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to remove member');
+    return actionError(error, 'Failed to remove member');
   }
 }
 
@@ -213,8 +204,7 @@ export async function attachMemberAction(
     const result = await attachUserToBusiness(businessId, user.id, payload.email, payload.role);
     return createSuccess(result);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to attach member');
+    return actionError(error, 'Failed to attach member');
   }
 }
 
@@ -231,8 +221,7 @@ export async function updateUserProfileAction(payload: {
     const updated = await updateUserProfile(user.id, payload);
     return createSuccess(updated);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to update profile');
+    return actionError(error, 'Failed to update profile');
   }
 }
 
@@ -250,9 +239,12 @@ export async function changePasswordAction(payload: {
       metadata: { email: user.email },
     })
 
+    // Note: The JWT callback re-validates passHash on every token refresh.
+    // Session invalidation is handled automatically when the password hash no longer matches.
+
     return createSuccess(result);
   } catch (error) {
-    return createError(AppErrors.INTERNAL_ERROR, 'Failed to change password');
+    return actionError(error, 'Failed to change password');
   }
 }
 
@@ -272,8 +264,7 @@ export async function exportDataAction(
     const result = await exportBusinessData(businessId, user.id, payload);
     return createSuccess(result);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to export data');
+    return actionError(error, 'Failed to export data');
   }
 }
 
@@ -286,8 +277,7 @@ export async function getSystemDiagnosticsAction(businessId: string) {
     const diagnostics = await getSystemDiagnostics(businessId);
     return createSuccess(diagnostics);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to get system diagnostics');
+    return actionError(error, 'Failed to get system diagnostics');
   }
 }
 
@@ -304,8 +294,7 @@ export async function listBranchesAction(businessId: string) {
     const branches = await listBranches(businessId);
     return createSuccess(branches);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to list branches');
+    return actionError(error, 'Failed to list branches');
   }
 }
 
@@ -324,8 +313,7 @@ export async function createBranchAction(
     const branch = await createBranch(businessId, payload as any);
     return createSuccess(branch);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to create branch');
+    return actionError(error, 'Failed to create branch');
   }
 }
 
@@ -344,8 +332,7 @@ export async function updateBranchAction(
     const branch = await updateBranch(businessId, payload.branchId, payload as any);
     return createSuccess(branch);
   } catch (error) {
-    const err = error as Error;
-    return createError(AppErrors.INTERNAL_ERROR, err.message || 'Failed to update branch');
+    return actionError(error, 'Failed to update branch');
   }
 }
 
@@ -355,8 +342,8 @@ export async function deactivateBranchAction(businessId: string, branchId: strin
     const { user } = await requireBusinessAccess(businessId, [MembershipRole.OWNER]);
     const result = await deactivateBranch(businessId, branchId);
     return createSuccess(result);
-  } catch (error: any) {
-    return createError(AppErrors.INTERNAL_ERROR, error.message || 'Failed to deactivate branch');
+  } catch (error) {
+    return actionError(error, 'Failed to deactivate branch');
   }
 }
 
@@ -365,8 +352,8 @@ export async function reactivateBranchAction(businessId: string, branchId: strin
     const { user } = await requireBusinessAccess(businessId, [MembershipRole.OWNER]);
     const result = await reactivateBranch(businessId, branchId);
     return createSuccess(result);
-  } catch (error: any) {
-    return createError(AppErrors.INTERNAL_ERROR, error.message || 'Failed to reactivate branch');
+  } catch (error) {
+    return actionError(error, 'Failed to reactivate branch');
   }
 }
 
@@ -378,7 +365,7 @@ export async function updateInvoiceDisplaySettingsAction(
     const { user } = await requireBusinessAccess(businessId, [MembershipRole.OWNER]);
     const result = await updateInvoiceDisplaySettings(businessId, payload);
     return createSuccess(result);
-  } catch (error: any) {
-    return createError(AppErrors.INTERNAL_ERROR, error.message || 'Failed to update invoice display settings');
+  } catch (error) {
+    return actionError(error, 'Failed to update invoice display settings');
   }
 }

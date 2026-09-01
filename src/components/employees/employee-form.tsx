@@ -83,7 +83,7 @@ export function EmployeeForm({
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 space-y-6">
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
+        <div role="alert" aria-live="assertive" className="p-4 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
@@ -94,8 +94,9 @@ export function EmployeeForm({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">{t('common.fullName')} *</label>
+            <label htmlFor="emp-name" className="text-xs font-semibold text-gray-700">{t('common.fullName')} *</label>
             <input
+              id="emp-name"
               type="text"
               required
               value={name}
@@ -106,8 +107,9 @@ export function EmployeeForm({
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">{t('employees.employeeCodeLabel')}</label>
+            <label htmlFor="emp-code" className="text-xs font-semibold text-gray-700">{t('employees.employeeCodeLabel')}</label>
             <input
+              id="emp-code"
               type="text"
               value={employeeCode}
               onChange={(e) => setEmployeeCode(e.target.value)}
@@ -119,8 +121,9 @@ export function EmployeeForm({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">{t('common.phoneNumber')}</label>
+            <label htmlFor="emp-phone" className="text-xs font-semibold text-gray-700">{t('common.phoneNumber')}</label>
             <input
+              id="emp-phone"
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -130,8 +133,9 @@ export function EmployeeForm({
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">{t('employees.emailOptional')}</label>
+            <label htmlFor="emp-email" className="text-xs font-semibold text-gray-700">{t('employees.emailOptional')}</label>
             <input
+              id="emp-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -142,8 +146,9 @@ export function EmployeeForm({
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-gray-700">{t('common.address')}</label>
+          <label htmlFor="emp-address" className="text-xs font-semibold text-gray-700">{t('common.address')}</label>
           <input
+            id="emp-address"
             type="text"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
@@ -158,8 +163,9 @@ export function EmployeeForm({
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">{t('employees.positionJobTitle')} *</label>
+            <label htmlFor="emp-position" className="text-xs font-semibold text-gray-700">{t('employees.positionJobTitle')} *</label>
             <input
+              id="emp-position"
               type="text"
               required
               value={position}
@@ -170,8 +176,9 @@ export function EmployeeForm({
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">{t('employees.department')}</label>
+            <label htmlFor="emp-department" className="text-xs font-semibold text-gray-700">{t('employees.department')}</label>
             <input
+              id="emp-department"
               type="text"
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
@@ -181,8 +188,9 @@ export function EmployeeForm({
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">{t('employees.joiningDate')}</label>
+            <label htmlFor="emp-joiningDate" className="text-xs font-semibold text-gray-700">{t('employees.joiningDate')}</label>
             <input
+              id="emp-joiningDate"
               type="date"
               value={joiningDate}
               onChange={(e) => setJoiningDate(e.target.value)}
@@ -194,8 +202,9 @@ export function EmployeeForm({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {branches.length > 0 && (
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700">{t('employees.branch')}</label>
+              <label htmlFor="emp-branch" className="text-xs font-semibold text-gray-700">{t('employees.branch')}</label>
               <select
+                id="emp-branch"
                 value={branchId}
                 onChange={(e) => setBranchId(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
@@ -210,8 +219,9 @@ export function EmployeeForm({
           )}
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">{t('employees.employmentStatus')}</label>
+            <label htmlFor="emp-status" className="text-xs font-semibold text-gray-700">{t('employees.employmentStatus')}</label>
             <select
+              id="emp-status"
               value={status}
               onChange={(e) => setStatus(e.target.value as EmployeeStatusOption)}
               className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
@@ -230,8 +240,9 @@ export function EmployeeForm({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">{t('employees.salaryModel')}</label>
+            <label htmlFor="emp-salaryModel" className="text-xs font-semibold text-gray-700">{t('employees.salaryModel')}</label>
             <select
+              id="emp-salaryModel"
               value={salaryType}
               onChange={(e) => setSalaryType(e.target.value as SalaryTypeOption)}
               className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
@@ -243,8 +254,9 @@ export function EmployeeForm({
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">{t('employees.basicRateLabel')}</label>
+            <label htmlFor="emp-basicRate" className="text-xs font-semibold text-gray-700">{t('employees.basicRateLabel')}</label>
             <input
+              id="emp-basicRate"
               type="number"
               min="0"
               step="any"
@@ -258,8 +270,9 @@ export function EmployeeForm({
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-gray-700">{t('employees.hrNotesLabel')}</label>
+          <label htmlFor="emp-notes" className="text-xs font-semibold text-gray-700">{t('employees.hrNotesLabel')}</label>
           <textarea
+            id="emp-notes"
             rows={2}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}

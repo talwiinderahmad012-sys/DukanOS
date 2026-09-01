@@ -4,6 +4,12 @@ import { CameraStatus, CameraType } from '@/generated/prisma/client';
 import { SanitizedCamera, CameraStreamInfo } from './types';
 import { getProviderForProtocol, checkCameraHealth } from './health';
 import { recordAuditLog } from '../audit';
+import {
+  encryptSecret,
+  isCameraEncryptionConfigured,
+  loadCameraCredentials,
+} from '@/lib/security/encryption';
+import { AppError, ErrorCodes } from '@/lib/errors';
 
 function sanitizeCamera(raw: any): SanitizedCamera {
   return {
@@ -30,6 +36,35 @@ function sanitizeCamera(raw: any): SanitizedCamera {
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
   };
+}
+
+/**
+ * Camera credentials must only ever be persisted as AES-256-GCM ciphertext.
+ * Fail closed when credentials are supplied but no encryption key is
+ * configured, rather than silently writing plaintext.
+ */
+function serializeCredentialsForStorage(username?: string, password?: string): string | null {
+  if (!username && !password) return null;
+  const ciphertext = encryptSecret(JSON.stringify({ username, password }));
+  if (ciphertext === null) {
+    throw new AppError(
+      ErrorCodes.INTERNAL_ERROR,
+      'Camera credential encryption is not configured. Set CCTV_SECRETS_ENCRYPTION_KEY before storing camera credentials.',
+      503
+    );
+  }
+  return ciphertext;
+}
+
+async function assertBranchBelongsToBusiness(businessId: string, branchId: string | null | undefined): Promise<void> {
+  if (!branchId) return;
+  const branch = await prisma.branch.findFirst({
+    where: { id: branchId, businessId },
+    select: { id: true },
+  });
+  if (!branch) {
+    throw new AppError(ErrorCodes.VALIDATION_ERROR, 'Branch does not belong to this business.', 400);
+  }
 }
 
 export async function listCameras(businessId: string, branchId?: string) {
@@ -69,16 +104,21 @@ export async function getCameraById(businessId: string, cameraId: string): Promi
   const sanitized = sanitizeCamera(camera);
   const provider = getProviderForProtocol(camera.protocol);
 
-  let secrets: any = null;
-  if (camera.encryptedSecrets) {
-    try {
-      secrets = JSON.parse(camera.encryptedSecrets);
-    } catch {
-      // ignore
+  const { credentials, reencryptNeeded } = loadCameraCredentials(camera.encryptedSecrets);
+
+  // Transparently upgrade legacy plaintext credentials to encrypted storage.
+  if (reencryptNeeded && camera.encryptedSecrets && isCameraEncryptionConfigured()) {
+    const upgraded = encryptSecret(camera.encryptedSecrets);
+    if (upgraded) {
+      prisma.camera
+        .update({ where: { id: camera.id }, data: { encryptedSecrets: upgraded } })
+        .catch(() => {
+          /* non-blocking upgrade */
+        });
     }
   }
 
-  const streamInfo = await provider.getStreamInfo(sanitized, secrets);
+  const streamInfo = await provider.getStreamInfo(sanitized, credentials ?? undefined);
 
   return {
     camera: sanitized,
@@ -105,10 +145,9 @@ export async function createCamera(
     password?: string;
   }
 ) {
-  const secrets =
-    data.username || data.password
-      ? JSON.stringify({ username: data.username, password: data.password })
-      : null;
+  await assertBranchBelongsToBusiness(businessId, data.branchId);
+
+  const secrets = serializeCredentialsForStorage(data.username, data.password);
 
   const camera = await prisma.camera.create({
     data: {
@@ -169,28 +208,31 @@ export async function updateCamera(
     password?: string;
   }
 ) {
+  await assertBranchBelongsToBusiness(businessId, data.branchId);
+
   const existing = await prisma.camera.findFirst({
     where: { id: cameraId, businessId },
   });
 
   if (!existing) {
-    throw new Error('Camera not found');
+    throw new AppError(ErrorCodes.NOT_FOUND, 'Camera not found', 404);
   }
 
+  // Merge any supplied credentials with the existing ones, always persisting
+  // the result as ciphertext (legacy plaintext values are upgraded in place).
   let updatedSecrets = existing.encryptedSecrets;
+  const { credentials: existingCredentials } = loadCameraCredentials(existing.encryptedSecrets);
   if (data.username !== undefined || data.password !== undefined) {
-    let currentParsed: any = {};
-    if (existing.encryptedSecrets) {
-      try {
-        currentParsed = JSON.parse(existing.encryptedSecrets);
-      } catch {
-        // ignore
-      }
-    }
-    updatedSecrets = JSON.stringify({
-      username: data.username !== undefined ? data.username : currentParsed.username,
-      password: data.password !== undefined ? data.password : currentParsed.password,
-    });
+    const merged = {
+      username: data.username !== undefined ? data.username : existingCredentials?.username,
+      password: data.password !== undefined ? data.password : existingCredentials?.password,
+    };
+    updatedSecrets = serializeCredentialsForStorage(merged.username, merged.password);
+  } else if (existing.encryptedSecrets && !existing.encryptedSecrets.startsWith('enc:v1:') && isCameraEncryptionConfigured()) {
+    // No credential change requested, but opportunistically encrypt legacy
+    // plaintext values whenever the key is available.
+    const upgraded = encryptSecret(existing.encryptedSecrets);
+    if (upgraded) updatedSecrets = upgraded;
   }
 
   const updated = await prisma.camera.update({

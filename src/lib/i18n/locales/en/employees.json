@@ -285,6 +285,8 @@
   "failedToRecordAttendance": "Failed to record attendance",
   "generatePayrollRecord": "Generate Monthly Payroll Record",
   "generatePayrollSubtitle": "Calculate net salary with overtime, bonuses, deductions, and advances",
+  "workerOrEmployee": "Worker / Employee",
+  "selectWorker": "Select Worker",
   "salaryPeriodLabel": "Salary Period (YYYY-MM)",
   "baseSalaryLabel": "Base Salary (Rs.)",
   "overtimeLabel": "Overtime / Extra (Rs.)",

@@ -1,8 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { logger, createCorrelationIdFromRequest } from '@/lib/logging';
+import { timingSafeEqual, createHash } from 'crypto';
 
 export const dynamic = 'force-dynamic';
+
+/**
+ * Diagnostics (environment, version, uptime, DB latency) are only disclosed
+ * to callers presenting the CRON_SECRET bearer token. Unauthenticated callers
+ * receive a minimal liveness payload so the endpoint can still be used by
+ * load-balancer probes without leaking environment details.
+ */
+function isAuthorizedForDiagnostics(req: NextRequest): boolean {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return false;
+  const header = req.headers.get('authorization') || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+  if (!token) return false;
+  try {
+    const a = createHash('sha256').update(token).digest();
+    const b = createHash('sha256').update(secret).digest();
+    return timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
+}
 
 export async function GET(req: NextRequest) {
   const requestId = createCorrelationIdFromRequest(req);
@@ -35,17 +57,24 @@ export async function GET(req: NextRequest) {
     durationMs,
   });
 
-  const responseBody = {
-    status: isHealthy ? 'healthy' : 'degraded',
-    version: '1.0.0',
-    environment: process.env.NODE_ENV || 'development',
-    timestamp: new Date().toISOString(),
-    uptimeSeconds: Math.floor(process.uptime()),
-    database: {
-      status: dbStatus,
-      latencyMs: isHealthy ? latencyMs : undefined,
-    },
-  };
+  const includeDiagnostics = isAuthorizedForDiagnostics(req);
+
+  const responseBody = includeDiagnostics
+    ? {
+        status: isHealthy ? 'healthy' : 'degraded',
+        version: '1.0.0',
+        environment: process.env.NODE_ENV || 'development',
+        timestamp: new Date().toISOString(),
+        uptimeSeconds: Math.floor(process.uptime()),
+        database: {
+          status: dbStatus,
+          latencyMs: isHealthy ? latencyMs : undefined,
+        },
+      }
+    : {
+        status: isHealthy ? 'healthy' : 'degraded',
+        timestamp: new Date().toISOString(),
+      };
 
   return NextResponse.json(responseBody, {
     status: isHealthy ? 200 : 503,

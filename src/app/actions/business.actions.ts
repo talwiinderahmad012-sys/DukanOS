@@ -9,7 +9,7 @@ import {
   archiveBusiness,
   transferBusinessOwnership,
 } from '@/services/business/context';
-import { createError, createSuccess, AppErrors } from '@/lib/utils/api-response';
+import { createError, createSuccess, AppErrors, actionError } from '@/lib/utils/api-response';
 import { recordAuditLog } from '@/services/audit';
 
 async function getCookieStore() {
@@ -59,7 +59,7 @@ export async function switchActiveBusinessAction(businessId: string) {
 
     return createSuccess({ businessId, branchId: defaultBranchId });
   } catch (error) {
-    return createError(AppErrors.INTERNAL_ERROR, 'Failed to switch business');
+    return actionError(error, 'Failed to switch business');
   }
 }
 
@@ -92,7 +92,7 @@ export async function switchActiveBranchAction(branchId: string) {
 
     return createSuccess({ branchId });
   } catch (error) {
-    return createError(AppErrors.INTERNAL_ERROR, 'Failed to switch branch');
+    return actionError(error, 'Failed to switch branch');
   }
 }
 
@@ -134,7 +134,7 @@ export async function createBusinessAction(payload: {
 
     return createSuccess(result);
   } catch (error) {
-    return createError(AppErrors.INTERNAL_ERROR, 'Failed to create business');
+    return actionError(error, 'Failed to create business');
   }
 }
 
@@ -144,7 +144,7 @@ export async function archiveBusinessAction(businessId: string) {
     const updated = await archiveBusiness(businessId, user.id);
     return createSuccess(updated);
   } catch (error) {
-    return createError(AppErrors.INTERNAL_ERROR, 'Failed to archive business');
+    return actionError(error, 'Failed to archive business');
   }
 }
 
@@ -163,7 +163,7 @@ export async function transferOwnershipAction(payload: {
     );
     return createSuccess(result);
   } catch (error) {
-    return createError(AppErrors.INTERNAL_ERROR, 'Failed to transfer ownership');
+    return actionError(error, 'Failed to transfer ownership');
   }
 }
 
@@ -173,6 +173,6 @@ export async function listUserBusinessesAction() {
     const businesses = await listUserBusinesses(user.id);
     return createSuccess(businesses);
   } catch (error) {
-    return createError(AppErrors.INTERNAL_ERROR, 'Failed to list businesses');
+    return actionError(error, 'Failed to list businesses');
   }
 }

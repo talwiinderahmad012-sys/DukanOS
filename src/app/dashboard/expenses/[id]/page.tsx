@@ -1,6 +1,8 @@
 import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { getExpenseByIdAction, getExpenseCategoriesAction } from '@/app/actions/expenses.actions';
 import { notFound, redirect } from 'next/navigation';
+import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
+import { ForbiddenView } from '@/components/access/forbidden';
 import { ExpenseDetailClient, type ExpenseDetailData } from './expense-detail-client';
 
 export default async function EditExpensePage({
@@ -9,6 +11,10 @@ export default async function EditExpensePage({
   params: Promise<{ id: string }>;
 }) {
   const { membership } = await getActiveBusiness().catch(() => notFound());
+
+  if (!canAccessDashboardPath(membership.role, '/dashboard/expenses')) {
+    return <ForbiddenView role={membership.role} />;
+  }
 
   const isOwnerOrManager = membership.role === 'OWNER' || membership.role === 'MANAGER';
   if (!isOwnerOrManager) {

@@ -94,6 +94,7 @@ export function SalesPageClient({
   startDate,
   endDate,
   page,
+  canViewFinancials,
 }: {
   sales: SaleRowData[];
   summary: SalesSummaryData;
@@ -107,6 +108,7 @@ export function SalesPageClient({
   startDate: string;
   endDate: string;
   page: number;
+  canViewFinancials: boolean;
 }) {
   const { language, t, formatCurrency, formatNumber } = useTranslation();
 
@@ -157,6 +159,7 @@ export function SalesPageClient({
         }
       />
 
+      {canViewFinancials && (
       <Card className="overflow-hidden">
         <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
           <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
@@ -220,6 +223,7 @@ export function SalesPageClient({
           </div>
         </div>
       </Card>
+      )}
 
       <Card className="overflow-hidden">
         <div className="space-y-3 border-b border-border p-4">

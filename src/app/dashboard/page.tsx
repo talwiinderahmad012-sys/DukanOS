@@ -3,10 +3,18 @@ import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { prisma } from '@/lib/db/prisma';
 import { generateAdvisorFindings } from '@/services/advisor';
 import { getSalesTrend, getUdhaarAnalytics, getCurrentMonthPeriods } from '@/services/analytics';
+import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
+import { ForbiddenView } from '@/components/access/forbidden';
 import { DashboardPageClient } from './dashboard-page-client';
 
 export default async function DashboardPage() {
   const { user, membership, business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+
+  // The overview renders financial KPI cards (revenue, profit, udhaar).
+  // Roles without VIEW_FINANCIAL_REPORTS get the accessible forbidden state.
+  if (!canAccessDashboardPath(membership.role, '/dashboard')) {
+    return <ForbiddenView role={membership.role} />;
+  }
 
   const tz = business.timezone || 'Asia/Karachi';
   const isOwnerOrManager = membership.role === 'OWNER' || membership.role === 'MANAGER';

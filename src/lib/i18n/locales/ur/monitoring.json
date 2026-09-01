@@ -39,5 +39,14 @@
   "lowReviewsTitle": "{count} کم درجہ بندی والے کسٹمر ریویو (≤ 2 ستارے)",
   "lowReviewsDesc": "کسٹمر کی ناراضگی کی تحقیقات کریں",
   "noPendingIssues": "کوئی زیر التوا آپریشنل مسئلہ نہیں!",
-  "noPendingIssuesDesc": "اسٹاک کی سطح درست ہے، وصولیاں معمول کے مطابق ہیں اور کوئی حل طلب شکایت موجود نہیں۔"
+  "noPendingIssuesDesc": "اسٹاک کی سطح درست ہے، وصولیاں معمول کے مطابق ہیں اور کوئی حل طلب شکایت موجود نہیں۔",
+  "cctvSectionTitle": "سیکیورٹی کیمرہ لائیو اسٹیٹس",
+  "cctvOnlineCount": "{total} میں سے {count} کیمرے قابل رسائی",
+  "cctvOnline": "آن لائن",
+  "cctvDegraded": "کم کارکردگی",
+  "cctvOffline": "آف لائن",
+  "cctvAttentionList": "توجہ درکار کیمرے",
+  "cctvViewCameras": "سی سی ٹی وی کیمرے کھولیں",
+  "cctvOfflineTitle": "{count} سی سی ٹی وی کیمرے ناقابل رسائی",
+  "cctvOfflineDesc": "ایک سیکیورٹی کیمرہ آف لائن یا کم کارکردگی پر ہے۔ کنیکٹیویٹی کا معائنہ کریں۔"
 }

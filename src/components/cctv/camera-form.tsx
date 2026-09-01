@@ -186,8 +186,9 @@ export function CameraForm({
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">{t('cctv.cameraName')} *</label>
+              <label htmlFor="camera-name" className="text-xs font-semibold text-gray-700 block">{t('cctv.cameraName')} *</label>
               <input
+                id="camera-name"
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -198,8 +199,9 @@ export function CameraForm({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">{t('cctv.locationZone')}</label>
+              <label htmlFor="camera-location" className="text-xs font-semibold text-gray-700 block">{t('cctv.locationZone')}</label>
               <input
+                id="camera-location"
                 type="text"
                 value={form.location}
                 onChange={(e) => setForm({ ...form, location: e.target.value })}
@@ -210,8 +212,9 @@ export function CameraForm({
 
             {branches.length > 0 && (
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-700 block">{t('cctv.branchGroup')}</label>
+                <label htmlFor="camera-branch" className="text-xs font-semibold text-gray-700 block">{t('cctv.branchGroup')}</label>
                 <select
+                  id="camera-branch"
                   value={form.branchId}
                   onChange={(e) => setForm({ ...form, branchId: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
@@ -227,8 +230,9 @@ export function CameraForm({
             )}
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">{t('cctv.hardwareType')}</label>
+              <label htmlFor="camera-type" className="text-xs font-semibold text-gray-700 block">{t('cctv.hardwareType')}</label>
               <select
+                id="camera-type"
                 value={form.type}
                 onChange={(e) => setForm({ ...form, type: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
@@ -252,8 +256,9 @@ export function CameraForm({
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">{t('cctv.protocol')}</label>
+              <label htmlFor="camera-protocol" className="text-xs font-semibold text-gray-700 block">{t('cctv.protocol')}</label>
               <select
+                id="camera-protocol"
                 value={form.protocol}
                 onChange={(e) => handleProtocolChange(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
@@ -265,8 +270,9 @@ export function CameraForm({
             </div>
 
             <div className="space-y-1 sm:col-span-2">
-              <label className="text-xs font-semibold text-gray-700 block">{t('cctv.hostIp')} *</label>
+              <label htmlFor="camera-host" className="text-xs font-semibold text-gray-700 block">{t('cctv.hostIp')} *</label>
               <input
+                id="camera-host"
                 type="text"
                 value={form.host}
                 onChange={(e) => setForm({ ...form, host: e.target.value })}
@@ -277,8 +283,9 @@ export function CameraForm({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">{t('cctv.port')}</label>
+              <label htmlFor="camera-port" className="text-xs font-semibold text-gray-700 block">{t('cctv.port')}</label>
               <input
+                id="camera-port"
                 type="number"
                 value={form.port}
                 onChange={(e) => setForm({ ...form, port: Number(e.target.value) })}
@@ -287,8 +294,9 @@ export function CameraForm({
             </div>
 
             <div className="space-y-1 sm:col-span-2">
-              <label className="text-xs font-semibold text-gray-700 block">{t('cctv.streamPath')}</label>
+              <label htmlFor="camera-path" className="text-xs font-semibold text-gray-700 block">{t('cctv.streamPath')}</label>
               <input
+                id="camera-path"
                 type="text"
                 value={form.path}
                 onChange={(e) => setForm({ ...form, path: e.target.value })}
@@ -299,10 +307,11 @@ export function CameraForm({
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700 block">
+            <label htmlFor="camera-hls" className="text-xs font-semibold text-gray-700 block">
               {t('cctv.hlsUrlLabel')}
             </label>
             <input
+              id="camera-hls"
               type="text"
               value={form.hlsStreamUrl}
               onChange={(e) => setForm({ ...form, hlsStreamUrl: e.target.value })}

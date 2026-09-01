@@ -1,22 +1,26 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Menu, X, Store, LogOut } from 'lucide-react';
+import { useState } from 'react';
+import { Menu, X, Store } from 'lucide-react';
 import { DashboardNavSections } from '@/components/layout/nav-sections';
 import { NotificationBell } from '@/components/notifications/notification-bell';
 import { LanguageToggle } from '@/components/layout/language-toggle';
 import { useRoleLabel } from '@/components/layout/sidebar-business-header';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { useModalA11y } from '@/lib/a11y/use-modal-a11y';
+import { SignOutButton } from '@/components/layout/sign-out-button';
 
 export function MobileNav({
   businessName,
   role,
+  platformAdmin = false,
   businessId,
   userName,
   logoutAction,
 }: {
   businessName: string;
   role: string;
+  platformAdmin?: boolean;
   businessId: string;
   userName: string;
   logoutAction: () => Promise<void>;
@@ -26,21 +30,8 @@ export function MobileNav({
   const roleLabel = useRoleLabel();
   const displayName = userName || t('ui.userFallback');
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsOpen(false);
-    };
-    document.addEventListener('keydown', onKeyDown);
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [isOpen]);
-
   const close = () => setIsOpen(false);
+  const drawerRef = useModalA11y(isOpen, close);
 
   return (
     <>
@@ -53,6 +44,7 @@ export function MobileNav({
               onClick={() => setIsOpen(!isOpen)}
               aria-expanded={isOpen}
               aria-controls="mobile-drawer"
+              aria-haspopup="dialog"
               aria-label={isOpen ? t('nav.closeMenu') : t('nav.openMenu')}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
             >
@@ -82,6 +74,11 @@ export function MobileNav({
       {/* Drawer */}
       <div
         id="mobile-drawer"
+        ref={drawerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation Menu"
+        tabIndex={-1}
         aria-hidden={!isOpen}
         className={`md:hidden fixed inset-y-0 start-0 z-50 flex w-[19rem] max-w-[85vw] flex-col border-e border-border bg-surface transition-[transform,visibility] duration-200 ease-in-out ${
           isOpen ? 'visible translate-x-0' : isRTL ? 'invisible translate-x-full' : 'invisible -translate-x-full'
@@ -107,7 +104,7 @@ export function MobileNav({
           </button>
         </div>
 
-        <DashboardNavSections role={role} variant="drawer" onNavigate={close} />
+        <DashboardNavSections role={role} platformAdmin={platformAdmin} variant="drawer" onNavigate={close} />
 
         {/* User account area */}
         <div className="border-t border-border p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
@@ -125,15 +122,10 @@ export function MobileNav({
               <p className="truncate text-xs font-medium capitalize text-muted">{roleLabel(role)}</p>
             </div>
           </div>
-          <form action={logoutAction} className="mt-1">
-            <button
-              type="submit"
-              className="group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-danger-soft hover:text-danger"
-            >
-              <LogOut className="h-5 w-5 shrink-0 text-gray-400 transition-colors group-hover:text-danger rtl-flip" aria-hidden="true" />
-              <span>{t('nav.signOut', 'Sign out')}</span>
-            </button>
-          </form>
+          <SignOutButton
+            logoutAction={logoutAction}
+            className="group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-danger-soft hover:text-danger"
+          />
         </div>
       </div>
     </>

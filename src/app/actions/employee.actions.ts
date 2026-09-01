@@ -429,6 +429,7 @@ export async function checkOutAction(businessId: string, rawData?: unknown) {
 // ----------------------------------------
 
 /** Employee cancels their own pending leave; managers/owners can cancel any. */
+// DEFERRED (P3-17): This action is currently dead code and not wired to the UI.
 export async function cancelLeaveAction(businessId: string, rawData: unknown) {
   try {
     const { user } = await requireBusinessAccess(businessId);
@@ -449,6 +450,7 @@ export async function cancelLeaveAction(businessId: string, rawData: unknown) {
 }
 
 /** Leave balances for the caller or a specific employee (elevated roles). */
+// DEFERRED (P3-17): This action is currently dead code and not wired to the UI.
 export async function getLeaveBalancesAction(businessId: string, employeeId?: string) {
   try {
     await requireBusinessAccess(businessId);
@@ -474,6 +476,7 @@ export async function getLeaveBalancesAction(businessId: string, employeeId?: st
 // Step 30: Salary Structure / Branch / Deactivation
 // ----------------------------------------
 
+// DEFERRED (P3-17): This action is currently dead code and not wired to the UI.
 export async function updateSalaryStructureAction(businessId: string, rawData: unknown) {
   try {
     const { user } = await requireBusinessAccess(businessId, [
@@ -494,6 +497,7 @@ export async function updateSalaryStructureAction(businessId: string, rawData: u
   }
 }
 
+// DEFERRED (P3-17): This action is currently dead code and not wired to the UI.
 export async function assignBranchAction(businessId: string, rawData: unknown) {
   try {
     const { user } = await requireBusinessAccess(businessId, [
@@ -514,6 +518,7 @@ export async function assignBranchAction(businessId: string, rawData: unknown) {
   }
 }
 
+// DEFERRED (P3-17): This action is currently dead code and not wired to the UI.
 export async function deactivateEmployeeAction(businessId: string, rawData: unknown) {
   try {
     const { user } = await requireBusinessAccess(businessId, [

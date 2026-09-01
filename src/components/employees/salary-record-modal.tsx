@@ -5,27 +5,31 @@ import { useRouter } from 'next/navigation';
 import { DollarSign, AlertCircle, X, CreditCard } from 'lucide-react';
 import { createSalaryRecordAction, recordSalaryPaymentAction } from '@/app/actions/employee.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { useModalA11y } from '@/lib/a11y/use-modal-a11y';
 
 type PaymentMethodType = 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'MOBILE_WALLET';
 
 export function CreateSalaryModal({
   businessId,
   employeeId,
+  employees,
   defaultBaseSalary,
   isOpen,
   onClose,
 }: {
   businessId: string;
-  employeeId: string;
-  defaultBaseSalary: number;
+  employeeId?: string;
+  employees?: { id: string; name: string; basicSalary: number }[];
+  defaultBaseSalary?: number;
   isOpen: boolean;
   onClose: () => void;
 }) {
   const router = useRouter();
   const { t, tm, formatCurrency } = useTranslation();
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(employeeId || '');
   const currentPeriod = new Date().toISOString().slice(0, 7);
   const [period, setPeriod] = useState(currentPeriod);
-  const [baseSalary, setBaseSalary] = useState(defaultBaseSalary);
+  const [baseSalary, setBaseSalary] = useState(defaultBaseSalary || 0);
   const [overtime, setOvertime] = useState(0);
   const [bonus, setBonus] = useState(0);
   const [deductions, setDeductions] = useState(0);
@@ -33,6 +37,8 @@ export function CreateSalaryModal({
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const modalRef = useModalA11y(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -44,7 +50,7 @@ export function CreateSalaryModal({
     setError(null);
 
     const res = await createSalaryRecordAction(businessId, {
-      employeeId,
+      employeeId: selectedEmployeeId,
       period,
       baseSalary: Number(baseSalary),
       overtime: Number(overtime),
@@ -64,8 +70,14 @@ export function CreateSalaryModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative">
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        tabIndex={-1}
+        className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative max-h-[90vh] overflow-y-auto"
+      >
         <button
           onClick={onClose}
           className="absolute top-4 end-4 text-gray-400 hover:text-gray-600"
@@ -92,6 +104,34 @@ export function CreateSalaryModal({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-3.5">
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-gray-700">{t('employees.workerOrEmployee')}</label>
+            {employees ? (
+              <select
+                required
+                value={selectedEmployeeId}
+                onChange={(e) => {
+                  setSelectedEmployeeId(e.target.value);
+                  const emp = employees.find(em => em.id === e.target.value);
+                  if (emp) setBaseSalary(emp.basicSalary);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-primary focus:outline-none bg-white"
+              >
+                <option value="" disabled>{t('employees.selectWorker')}</option>
+                {employees.map(emp => (
+                  <option key={emp.id} value={emp.id}>{emp.name}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="text"
+                readOnly
+                value={employeeId} // In case employees is missing but id is provided
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs bg-gray-50 text-gray-500 cursor-not-allowed"
+              />
+            )}
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <label className="text-xs font-semibold text-gray-700">{t('employees.salaryPeriodLabel')}</label>
@@ -232,6 +272,8 @@ export function RecordPaymentModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const modalRef = useModalA11y(isOpen, onClose);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -255,8 +297,14 @@ export function RecordPaymentModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative">
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        tabIndex={-1}
+        className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative max-h-[90vh] overflow-y-auto"
+      >
         <button
           onClick={onClose}
           className="absolute top-4 end-4 text-gray-400 hover:text-gray-600"

@@ -175,8 +175,9 @@ export function BusinessProfileForm({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">{t('settings.businessNameLabel')} *</label>
+              <label htmlFor="field-name" className="text-xs font-semibold text-gray-700 block">{t('settings.businessNameLabel')} *</label>
               <input
+                id="field-name"
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -186,8 +187,9 @@ export function BusinessProfileForm({
             </div>
             
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">{t('settings.businessType')}</label>
+              <label htmlFor="field-type" className="text-xs font-semibold text-gray-700 block">{t('settings.businessType')}</label>
               <select
+                id="field-type"
                 value={form.type}
                 onChange={(e) => setForm({ ...form, type: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
@@ -207,8 +209,9 @@ export function BusinessProfileForm({
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">{t('common.phoneNumber')}</label>
+              <label htmlFor="field-phone" className="text-xs font-semibold text-gray-700 block">{t('common.phoneNumber')}</label>
               <input
+                id="field-phone"
                 type="text"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -218,8 +221,9 @@ export function BusinessProfileForm({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">{t('common.emailAddress')}</label>
+              <label htmlFor="field-email" className="text-xs font-semibold text-gray-700 block">{t('common.emailAddress')}</label>
               <input
+                id="field-email"
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -229,8 +233,9 @@ export function BusinessProfileForm({
             </div>
             
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">{t('settings.websiteLabel')}</label>
+              <label htmlFor="field-website" className="text-xs font-semibold text-gray-700 block">{t('settings.websiteLabel')}</label>
               <input
+                id="field-website"
                 type="url"
                 value={form.website}
                 onChange={(e) => setForm({ ...form, website: e.target.value })}
@@ -240,8 +245,9 @@ export function BusinessProfileForm({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">{t('settings.operatingHours')}</label>
+              <label htmlFor="field-hours" className="text-xs font-semibold text-gray-700 block">{t('settings.operatingHours')}</label>
               <input
+                id="field-hours"
                 type="text"
                 value={form.operatingHours}
                 onChange={(e) => setForm({ ...form, operatingHours: e.target.value })}
@@ -257,8 +263,9 @@ export function BusinessProfileForm({
             {t('settings.locationSection')}
           </h2>
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700 block">{t('settings.streetAddress')}</label>
+            <label htmlFor="field-address" className="text-xs font-semibold text-gray-700 block">{t('settings.streetAddress')}</label>
             <input
+              id="field-address"
               type="text"
               value={form.address}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
@@ -269,8 +276,9 @@ export function BusinessProfileForm({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">{t('common.city')}</label>
+              <label htmlFor="field-city" className="text-xs font-semibold text-gray-700 block">{t('common.city')}</label>
               <input
+                id="field-city"
                 type="text"
                 value={form.city}
                 onChange={(e) => setForm({ ...form, city: e.target.value })}
@@ -280,8 +288,9 @@ export function BusinessProfileForm({
             </div>
             
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">{t('settings.districtLabel')}</label>
+              <label htmlFor="field-district" className="text-xs font-semibold text-gray-700 block">{t('settings.districtLabel')}</label>
               <input
+                id="field-district"
                 type="text"
                 value={form.district}
                 onChange={(e) => setForm({ ...form, district: e.target.value })}
@@ -290,8 +299,9 @@ export function BusinessProfileForm({
             </div>
             
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">{t('settings.provinceLabel')}</label>
+              <label htmlFor="field-province" className="text-xs font-semibold text-gray-700 block">{t('settings.provinceLabel')}</label>
               <input
+                id="field-province"
                 type="text"
                 value={form.province}
                 onChange={(e) => setForm({ ...form, province: e.target.value })}
@@ -300,8 +310,9 @@ export function BusinessProfileForm({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">{t('common.country')}</label>
+              <label htmlFor="field-country" className="text-xs font-semibold text-gray-700 block">{t('common.country')}</label>
               <input
+                id="field-country"
                 type="text"
                 value={form.country}
                 onChange={(e) => setForm({ ...form, country: e.target.value })}
@@ -319,8 +330,9 @@ export function BusinessProfileForm({
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">{t('settings.timezoneLabel')}</label>
+              <label htmlFor="field-timezone" className="text-xs font-semibold text-gray-700 block">{t('settings.timezoneLabel')}</label>
               <select
+                id="field-timezone"
                 value={form.timezone}
                 onChange={(e) => setForm({ ...form, timezone: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
@@ -334,8 +346,9 @@ export function BusinessProfileForm({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">{t('settings.currency')}</label>
+              <label htmlFor="field-currencySymbol" className="text-xs font-semibold text-gray-700 block">{t('settings.currency')}</label>
               <input
+                id="field-currencySymbol"
                 type="text"
                 value={form.currencySymbol}
                 onChange={(e) => setForm({ ...form, currencySymbol: e.target.value })}
@@ -345,8 +358,9 @@ export function BusinessProfileForm({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700 block">{t('settings.currencyPositionLabel')}</label>
+              <label htmlFor="field-currencyPosition" className="text-xs font-semibold text-gray-700 block">{t('settings.currencyPositionLabel')}</label>
               <select
+                id="field-currencyPosition"
                 value={form.currencyPosition}
                 onChange={(e) => setForm({ ...form, currencyPosition: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none"
@@ -363,7 +377,9 @@ export function BusinessProfileForm({
             {t('settings.descriptionSection')}
           </h2>
           <div className="space-y-1">
+            <label htmlFor="field-description" className="sr-only">{t('settings.businessDescriptionPlaceholder')}</label>
             <textarea
+              id="field-description"
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder={t('settings.businessDescriptionPlaceholder')}

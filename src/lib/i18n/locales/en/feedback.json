@@ -285,7 +285,9 @@
   },
   "publicPage": {
     "header": "We value your opinion! Share your feedback, review, or complaint below — it goes directly to the owner.",
-    "footer": "Powered by DukaanOS · Your submission is private and only visible to the business owner."
+    "footer": "Powered by DukaanOS · Your submission is private and only visible to the business owner.",
+    "unavailableTitle": "Feedback Unavailable",
+    "unavailableMessage": "This feedback page is not available. Please contact the store directly if you need assistance."
   },
   "product": {
     "badge": "Continuous Improvement & Triage",

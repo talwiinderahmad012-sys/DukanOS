@@ -159,8 +159,8 @@ async function runTests() {
     paymentMethod: PaymentMethod.CASH,
   });
 
-  const saleItemA = discountedSale.items.find((i) => i.productId === prodA.id);
-  const saleItemB = discountedSale.items.find((i) => i.productId === prodB.id);
+  const saleItemA = discountedSale.items.find((i: any) => i.productId === prodA.id);
+  const saleItemB = discountedSale.items.find((i: any) => i.productId === prodB.id);
 
   if (Number(saleItemA?.lineProfit) !== 60) {
     throw new Error(`Expected Prod A lineProfit to be 60 after proportional discount, got: ${saleItemA?.lineProfit}`);

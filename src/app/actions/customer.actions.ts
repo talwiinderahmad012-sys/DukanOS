@@ -49,13 +49,46 @@ export async function recordCustomerPaymentAction(businessId: string, payload: u
       );
     }
 
+    // Resolve branch attribution (P2-03): use the user's active branch when it
+    // belongs to this business; for "all branches" fall back to the branch only
+    // when the business has exactly one (an accurate, non-fabricated
+    // attribution). Otherwise leave the payment unattributed (branchId null).
+    let branchId: string | null = null;
+    try {
+      const { cookies } = await import('next/headers');
+      const cookieStore = await cookies();
+      const activeBranchId = cookieStore.get('dukaanos_active_branch_id')?.value;
+      if (activeBranchId && activeBranchId !== 'all') {
+        const branch = await prisma.branch.findFirst({
+          where: { id: activeBranchId, businessId },
+          select: { id: true },
+        });
+        if (branch) branchId = branch.id;
+      } else {
+        const branchCount = await prisma.branch.count({
+          where: { businessId, status: 'ACTIVE' },
+        });
+        if (branchCount === 1) {
+          const soleBranch = await prisma.branch.findFirst({
+            where: { businessId, status: 'ACTIVE' },
+            select: { id: true },
+          });
+          if (soleBranch) branchId = soleBranch.id;
+        }
+      }
+    } catch {
+      // Attribution is best-effort; payment must not fail because of it.
+      branchId = null;
+    }
+
     const updatedCustomer = await recordCustomerPayment(
       businessId,
       user.id,
       validated.data.customerId,
       validated.data.amount,
       validated.data.method,
-      validated.data.notes
+      validated.data.notes,
+      branchId
     );
 
     return createSuccess(updatedCustomer);

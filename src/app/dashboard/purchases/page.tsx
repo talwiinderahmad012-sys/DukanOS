@@ -2,6 +2,8 @@ import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { listPurchases } from '@/services/purchases';
 import { prisma } from '@/lib/db/prisma';
 import { redirect } from 'next/navigation';
+import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
+import { ForbiddenView } from '@/components/access/forbidden';
 import {
   PurchasesPageClient,
   type PurchaseRowData,
@@ -25,6 +27,12 @@ export default async function PurchasesPage({
   }>;
 }) {
   const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+
+  // Purchase documents (costs, supplier invoices) require VIEW_PURCHASES.
+  if (!canAccessDashboardPath(membership.role, '/dashboard/purchases')) {
+    return <ForbiddenView role={membership.role} />;
+  }
+
   const params = await searchParams;
 
   const canManage = membership.role === 'OWNER' || membership.role === 'MANAGER';

@@ -1,6 +1,7 @@
 import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
 import { getSaleById } from '@/services/sales';
 import { notFound, redirect } from 'next/navigation';
+import { hasPermission } from '@/lib/permissions/permissions-core';
 import { SaleDetailClient, type SaleDetailData } from './sale-detail-client';
 
 export default async function SaleDetailPage({
@@ -8,13 +9,17 @@ export default async function SaleDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
   const { id } = await params;
 
   const sale = await getSaleById(business.id, id);
   if (!sale) {
     notFound();
   }
+
+  // Realized profit is restricted to VIEW_PROFIT roles. For denied roles the
+  // figure is stripped server-side (never serialized) and the UI hides it.
+  const canViewProfit = hasPermission(membership.role, 'VIEW_PROFIT');
 
   const saleData: SaleDetailData = {
     id: sale.id,
@@ -26,7 +31,9 @@ export default async function SaleDetailPage({
     paidAmount: Number(sale.paidAmount),
     discount: Number(sale.discount),
     subtotal: Number(sale.subtotal),
-    totalProfit: sale.items.reduce((acc, item) => acc + Number(item.lineProfit), 0),
+    totalProfit: canViewProfit
+      ? sale.items.reduce((acc, item) => acc + Number(item.lineProfit), 0)
+      : 0,
     customer: sale.customer
       ? {
           id: sale.customer.id,
@@ -55,5 +62,5 @@ export default async function SaleDetailPage({
     })),
   };
 
-  return <SaleDetailClient businessId={business.id} sale={saleData} />;
+  return <SaleDetailClient businessId={business.id} sale={saleData} canViewProfit={canViewProfit} />;
 }

@@ -270,9 +270,17 @@ export async function getCustomerWithLedger(businessId: string, customerId: stri
 
   let currentBalance = 0;
   const ledger: LedgerEntry[] = rawEvents.map((evt) => {
-    currentBalance += evt.debit - evt.credit;
+    let credit = evt.credit;
+    if (evt.type === 'SALE_CANCELLED') {
+      // The server clamps a cancellation reversal to the customer's current
+      // outstanding balance, so mirror that here to keep the ledger consistent
+      // with the authoritative Customer.outstanding value.
+      credit = Math.min(currentBalance, evt.credit);
+    }
+    currentBalance += evt.debit - credit;
     return {
       ...evt,
+      credit,
       runningBalance: currentBalance,
     };
   });
@@ -312,23 +320,58 @@ export async function recordCustomerPayment(
   customerId: string,
   amount: number,
   method: PaymentMethod = PaymentMethod.CASH,
-  notes?: string | null
+  notes?: string | null,
+  branchId?: string | null
 ) {
   if (amount <= 0) {
     throw new AppError(ErrorCodes.VALIDATION_ERROR, 'Payment amount must be greater than 0', 400);
   }
 
-  const result = await prisma.$transaction(async (tx) => {
-    const customer = await tx.customer.findUnique({
-      where: { id: customerId, businessId },
+  // Attribute the payment to a branch only when the branch genuinely belongs
+  // to this business; otherwise store NULL (never fabricate attribution).
+  let resolvedBranchId: string | null = null;
+  if (branchId) {
+    const branch = await prisma.branch.findFirst({
+      where: { id: branchId, businessId },
+      select: { id: true },
     });
+    if (!branch) {
+      throw new AppError(ErrorCodes.VALIDATION_ERROR, 'Branch not found in this business.', 400);
+    }
+    resolvedBranchId = branch.id;
+  }
 
-    if (!customer) throw new AppError(ErrorCodes.NOT_FOUND, 'Customer not found', 404);
+  const result = await prisma.$transaction(async (tx) => {
+    // Lock the customer row for the duration of the transaction so concurrent
+    // payments/cancellations serialize and the balance cannot be corrupted.
+    const lockedRows: Array<{ outstanding: string | number }> = await tx.$queryRaw`
+      SELECT "outstanding"
+      FROM "public"."Customer"
+      WHERE "id" = ${customerId}::text
+        AND "businessId" = ${businessId}::text
+      FOR UPDATE;
+    `;
+
+    if (lockedRows.length === 0) {
+      throw new AppError(ErrorCodes.NOT_FOUND, 'Customer not found', 404);
+    }
+
+    const currentOutstanding = Number(lockedRows[0].outstanding);
+
+    // A payment must never reduce the outstanding balance below zero.
+    if (amount > currentOutstanding) {
+      throw new AppError(
+        ErrorCodes.VALIDATION_ERROR,
+        `Payment amount exceeds the outstanding balance of ${currentOutstanding}. Record at most the amount currently due.`,
+        400
+      );
+    }
 
     const payment = await tx.customerPayment.create({
       data: {
         businessId,
         customerId,
+        branchId: resolvedBranchId,
         amount,
         method,
         notes: notes || null,
@@ -355,6 +398,8 @@ export async function recordCustomerPayment(
         customerId,
         amount,
         method,
+        branchId: resolvedBranchId,
+        previousOutstanding: currentOutstanding,
         remainingOutstanding: Number(updatedCustomer.outstanding),
       },
     });
