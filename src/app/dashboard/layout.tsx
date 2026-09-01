@@ -41,7 +41,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const platformAdmin = isPlatformAdminEmail(user.email);
 
   return (
-    <div className="min-h-screen bg-page transition-colors duration-200 flex flex-col md:flex-row md:pl-64">
+    <div className="h-[100dvh] bg-page transition-colors duration-200 flex flex-col md:flex-row md:pl-64">
 
       {/* Mobile Header & Nav */}
       <MobileNav
@@ -54,7 +54,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       />
 
       {/* Sidebar (Desktop) */}
-      <aside className="hidden md:fixed md:top-0 md:left-0 md:flex md:h-screen w-64 shrink-0 flex-col border-e border-border bg-surface">
+      <aside className="hidden md:fixed md:top-0 md:left-0 md:flex md:h-[100dvh] w-64 shrink-0 flex-col border-e border-border bg-surface">
         {/* Business context */}
         <SidebarBusinessHeader businessName={activeBusiness.name} role={activeMembership.role} />
 
@@ -63,7 +63,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-h-screen max-w-full overflow-hidden">
+      <main className="flex-1 flex flex-col min-h-0 max-w-full overflow-hidden">
         {/* Top Header */}
         <DashboardHeader userName={userLabel} businessId={activeBusiness.id} role={activeMembership.role} logoutAction={logoutAction} />
 

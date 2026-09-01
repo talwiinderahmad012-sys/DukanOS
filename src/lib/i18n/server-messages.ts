@@ -16,6 +16,19 @@ const UR: Record<string, string> = {
   'Email already registered': 'یہ ای میل پہلے سے رجسٹرڈ ہے',
   'Something went wrong': 'کوئی مسئلہ پیش آ گیا',
   'Please try again': 'براہ کرم دوبارہ کوشش کریں',
+  'Insufficient stock': 'اسٹاک ناکافی ہے',
+  'Failed to create employee': 'ملازم بنانے میں ناکامی',
+  'Failed to update employee': 'ملازم کی معلومات اپ ڈیٹ کرنے میں ناکامی',
+  'Failed to archive employee': 'ملازم کو آرکائیو کرنے میں ناکامی',
+  'Failed to check in': 'چیک اِن میں ناکامی',
+  'Failed to check out': 'چیک آؤٹ میں ناکامی',
+  'Failed to record attendance': 'حاضری ریکارڈ کرنے میں ناکامی',
+  'Failed to submit complaint': 'شکایت درج کرنے میں ناکامی',
+  'Failed to resolve complaint': 'شکایت حل کرنے میں ناکامی',
+  'Failed to assign branch': 'برانچ تفویض کرنے میں ناکامی',
+  'Failed to fetch data': 'ڈیٹا لانے میں ناکامی',
+  'Rate limit exceeded': 'درخواستوں کی حد تجاوز کر گئی',
+  'An internal database error occurred.': 'اندرونی ڈیٹا بیس کی خرابی پیش آ گئی',
 };
 
 const EN: Record<string, string> = {};

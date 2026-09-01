@@ -2,13 +2,11 @@
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Store } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
 
 export default function LoginPage() {
-  const router = useRouter();
   const { t, language, setLanguage } = useTranslation();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,13 +17,13 @@ export default function LoginPage() {
     setError('');
 
     const formData = new FormData(e.currentTarget);
-    const email = (formData.get('email') as string)?.trim() || '';
+    const identifier = (formData.get('identifier') as string)?.trim() || '';
     const password = formData.get('password') as string;
 
     try {
       const res = await signIn('credentials', {
         redirect: false,
-        email,
+        identifier,
         password,
       });
 
@@ -39,8 +37,7 @@ export default function LoginPage() {
         }
         setLoading(false);
       } else {
-        router.push('/dashboard');
-        router.refresh();
+        window.location.href = '/dashboard';
       }
     } catch {
       setError('common.somethingWentWrong');
@@ -97,17 +94,17 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">
-              {t('auth.emailLabel')}
+            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="identifier">
+              {t('auth.identifierLabel')}
             </label>
             <input
-              id="email"
-              name="email"
-              type="email"
+              id="identifier"
+              name="identifier"
+              type="text"
               required
-              autoComplete="email"
+              autoComplete="username"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-blue-500 outline-none transition-colors"
-              placeholder={t('auth.emailPlaceholder')}
+              placeholder={t('auth.identifierPlaceholder')}
               disabled={loading}
             />
           </div>
