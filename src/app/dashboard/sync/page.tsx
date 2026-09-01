@@ -1,11 +1,10 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
 import { ForbiddenView } from '@/components/access/forbidden';
 import { SyncCenterView } from '@/components/sync/sync-center-view';
-import { redirect } from 'next/navigation';
 
 export default async function SyncCenterPage() {
-  const { business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business } = await requireActiveBusiness();
 
   return (
     <div className="max-w-6xl mx-auto">

@@ -1,14 +1,13 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { prisma } from '@/lib/db/prisma';
 import { POSCheckoutScreen } from '@/components/pos/pos-checkout-screen';
-import { redirect } from 'next/navigation';
 import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
 import { ForbiddenView } from '@/components/access/forbidden';
 import { getServerContentLanguage } from '@/lib/translation/server-language';
 import { getLocalizedValue } from '@/lib/translation/localized';
 
 export default async function POSPage() {
-  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await requireActiveBusiness();
 
   // The POS must never present a usable checkout interface to roles that
   // cannot create sales. EMPLOYEE has no CREATE_SALE capability, so the page

@@ -1,7 +1,6 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { prisma } from '@/lib/db/prisma';
 import { Prisma } from '@/generated/prisma/client';
-import { redirect } from 'next/navigation';
 import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
 import { ForbiddenView } from '@/components/access/forbidden';
 import {
@@ -36,7 +35,7 @@ export default async function ProductsPage({
     page?: string;
   }>;
 }) {
-  const { membership, business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { membership, business } = await requireActiveBusiness();
 
   // The catalog exposes cost prices and is restricted to MANAGE_PRODUCTS roles.
   if (!canAccessDashboardPath(membership.role, '/dashboard/products')) {

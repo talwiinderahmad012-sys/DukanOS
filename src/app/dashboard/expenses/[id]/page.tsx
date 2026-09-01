@@ -1,4 +1,4 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { getExpenseByIdAction, getExpenseCategoriesAction } from '@/app/actions/expenses.actions';
 import { notFound, redirect } from 'next/navigation';
 import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
@@ -10,7 +10,7 @@ export default async function EditExpensePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { membership } = await getActiveBusiness().catch(() => notFound());
+  const { membership } = await requireActiveBusiness();
 
   if (!canAccessDashboardPath(membership.role, '/dashboard/expenses')) {
     return <ForbiddenView role={membership.role} />;

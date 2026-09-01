@@ -1,11 +1,9 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { DataExportView } from '@/components/settings/data-export-view';
 import { redirect } from 'next/navigation';
 
 export default async function DataExportPage() {
-  const { user, business, membership } = await getActiveBusiness().catch(() =>
-    redirect('/onboarding')
-  );
+  const { user, business, membership } = await requireActiveBusiness();
 
   if (membership.role !== 'OWNER') {
     redirect('/dashboard/settings');

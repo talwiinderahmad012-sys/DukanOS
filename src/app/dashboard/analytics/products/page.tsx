@@ -1,4 +1,4 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { redirect } from 'next/navigation';
 import {
   getTopProducts,
@@ -13,7 +13,7 @@ export default async function ProductsAnalyticsPage({
 }: {
   searchParams: Promise<{ preset?: string; start?: string; end?: string }>;
 }) {
-  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await requireActiveBusiness();
   if (membership.role !== 'OWNER' && membership.role !== 'MANAGER') redirect('/dashboard');
 
   const params = await searchParams;

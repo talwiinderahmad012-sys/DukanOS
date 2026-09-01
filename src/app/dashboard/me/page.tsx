@@ -1,14 +1,13 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { getMyEmployeeProfile } from '@/services/employees';
 import { getDailyRange } from '@/lib/utils/date-utils';
 import { getEmployeeLeaveBalances } from '@/services/leave';
 import { getEmployeeNotifications } from '@/services/employee-notification';
 import { prisma } from '@/lib/db/prisma';
-import { redirect } from 'next/navigation';
 import { MePageClient } from './me-client';
 
 export default async function MyWorkspacePage() {
-  const { business, user } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, user } = await requireActiveBusiness();
 
   const profile = await getMyEmployeeProfile(business.id, user.id);
 

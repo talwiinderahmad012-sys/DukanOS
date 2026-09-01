@@ -1,4 +1,4 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { getBusinessSubscription } from '@/services/billing/plans';
 import { STANDARD_FEATURES } from '@/services/billing/features';
 import { PlanView } from '@/components/settings/plan-view';
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function BusinessPlanPage() {
-  const { business } = await getActiveBusiness();
+  const { business } = await requireActiveBusiness();
   const { plan, subscription } = await getBusinessSubscription(business.id);
 
   return (

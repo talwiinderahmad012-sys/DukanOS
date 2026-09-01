@@ -1,12 +1,9 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { listUserNotifications } from '@/services/notifications';
 import { NotificationCenterView } from '@/components/notifications/notification-center-view';
-import { redirect } from 'next/navigation';
 
 export default async function NotificationsPage() {
-  const { user, business, membership } = await getActiveBusiness().catch(() =>
-    redirect('/onboarding')
-  );
+  const { user, business, membership } = await requireActiveBusiness();
 
   const { notifications, total } = await listUserNotifications(
     business.id,

@@ -1,6 +1,5 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { getDailyReport } from '@/services/reports';
-import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db/prisma';
 import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
 import { ForbiddenView } from '@/components/access/forbidden';
@@ -18,7 +17,7 @@ export default async function DailyReportPage({
 }: {
   searchParams: Promise<{ date?: string; branchId?: string }>;
 }) {
-  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await requireActiveBusiness();
   if (!canAccessDashboardPath(membership.role, '/dashboard/reports/daily')) {
     return <ForbiddenView role={membership.role} />;
   }

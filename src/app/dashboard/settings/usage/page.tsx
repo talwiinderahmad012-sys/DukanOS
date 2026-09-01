@@ -1,4 +1,4 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { getBusinessUsage } from '@/services/billing/limits';
 import { UsageView } from '@/components/settings/usage-view';
 import type { Metadata } from 'next';
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function BusinessUsagePage() {
-  const { business } = await getActiveBusiness();
+  const { business } = await requireActiveBusiness();
   const usage = await getBusinessUsage(business.id);
 
   return (

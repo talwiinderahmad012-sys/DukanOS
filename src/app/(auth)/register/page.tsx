@@ -3,8 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Store, User, Building, Lock } from 'lucide-react';
-import { registerUserAction } from '@/app/actions/auth.actions';
-import { signIn } from 'next-auth/react';
+import { registerAndSignInAction } from '@/app/actions/auth.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { Select } from '@/components/ui/select';
 
@@ -23,23 +22,16 @@ export default function RegisterPage() {
     setFieldErrors({});
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    const firstName = formData.get('firstName') as string;
-    const lastName = formData.get('lastName') as string;
-    const username = formData.get('username') as string;
-    const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
-    
     const payload = Object.fromEntries(formData.entries());
 
     try {
-      const res = await registerUserAction(payload);
+      const res = await registerAndSignInAction(payload);
 
-      if (!res.success) {
-        if (res.fieldErrors) {
+      if (!res || !res.success) {
+        if (res?.fieldErrors) {
           setFieldErrors(res.fieldErrors as Record<string, string[]>);
         }
-        if (res.message) {
+        if (res?.message) {
           setServerError(res.message);
         } else {
           setError('auth.registrationFailed');
@@ -48,27 +40,8 @@ export default function RegisterPage() {
         return;
       }
 
-      const signInRes = await signIn('credentials', {
-        redirect: false,
-        identifier: email,
-        password,
-      });
-
-      if (signInRes?.error) {
-        if (signInRes.error === 'ServiceUnavailable') {
-          setError('common.somethingWentWrong');
-          setLoading(false);
-          return;
-        }
-        if (signInRes.error === 'RateLimited') {
-          setError('auth.tooManyAttempts');
-          setLoading(false);
-          return;
-        }
-        window.location.href = '/login';
-      } else {
-        window.location.href = '/dashboard';
-      }
+      // On success the server action has already created a confirmed
+      // server-side session and redirects to /dashboard itself.
     } catch (err) {
       setError('common.somethingWentWrong');
       setLoading(false);

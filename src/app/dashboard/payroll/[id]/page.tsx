@@ -1,10 +1,10 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { prisma } from '@/lib/db/prisma';
 import { redirect } from 'next/navigation';
 import { PayrollDetailView } from './payroll-detail-view';
 
 export default async function PayrollDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business } = await requireActiveBusiness();
   const { id } = await params;
 
   const payroll = await prisma.payroll.findUnique({

@@ -67,13 +67,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20.x
+      - name: Setup Node.js 22.x
         uses: actions/setup-node@v4
         with:
-          # Pinned explicitly to 20.x per requirement. NOTE: your .nvmrc
-          # currently says v24 — consider aligning it to "20" so local == CI
-          # and you avoid "works on my machine" drift.
-          node-version: '20'
+          # Pinned to 22.x (LTS) and aligned with engines/package.json
+          # ("^20.19.0 || ^22.12.0 || >=24.0.0") so local == CI.
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: package-lock.json
 

@@ -1,11 +1,8 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { SettingsHubView } from '@/components/settings/settings-hub-view';
-import { redirect } from 'next/navigation';
 
 export default async function SettingsHubPage() {
-  const { user, business, membership } = await getActiveBusiness().catch(() =>
-    redirect('/onboarding')
-  );
+  const { user, business, membership } = await requireActiveBusiness();
 
   const isOwner = membership.role === 'OWNER';
   const isManager = membership.role === 'MANAGER';

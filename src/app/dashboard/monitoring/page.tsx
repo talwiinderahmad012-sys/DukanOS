@@ -1,12 +1,9 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { getRemoteBusinessStatus } from '@/services/monitoring';
 import { RemoteMonitoringView } from '@/components/monitoring/remote-monitoring-view';
-import { redirect } from 'next/navigation';
 
 export default async function RemoteMonitoringPage() {
-  const { business, membership } = await getActiveBusiness().catch(() =>
-    redirect('/onboarding')
-  );
+  const { business, membership } = await requireActiveBusiness();
 
   const data = await getRemoteBusinessStatus(business.id);
   const isOwnerOrManager = membership.role === 'OWNER' || membership.role === 'MANAGER';

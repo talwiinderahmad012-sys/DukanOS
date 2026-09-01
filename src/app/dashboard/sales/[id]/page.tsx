@@ -1,4 +1,4 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { getSaleById } from '@/services/sales';
 import { notFound, redirect } from 'next/navigation';
 import { hasPermission } from '@/lib/permissions/permissions-core';
@@ -9,7 +9,7 @@ export default async function SaleDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await requireActiveBusiness();
   const { id } = await params;
 
   const sale = await getSaleById(business.id, id);

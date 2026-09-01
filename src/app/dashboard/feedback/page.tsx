@@ -1,4 +1,4 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { getFeedbackStats, listFeedbackRecords } from '@/services/feedback-management';
 import { getFeedbackDashboardStats, listBusinessFeedback } from '@/services/feedback';
 import {
@@ -10,7 +10,6 @@ import {
   type LegacyFeedbackStats,
   type LegacyFeedbacksData,
 } from '@/components/feedback/feedback-hub';
-import { redirect } from 'next/navigation';
 import {
   CustomerFeedbackType,
   FeedbackCategory,
@@ -36,7 +35,7 @@ export default async function FeedbackDashboardPage({
     page?: string;
   }>;
 }) {
-  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await requireActiveBusiness();
   const params = await searchParams;
 
   const page = Number(params.page) || 1;

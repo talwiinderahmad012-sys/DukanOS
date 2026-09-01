@@ -1,12 +1,9 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { getBusinessActivityFeed } from '@/services/activity';
 import { ActivityFeedView } from '@/components/activity/activity-feed-view';
-import { redirect } from 'next/navigation';
 
 export default async function ActivityPage() {
-  const { business, membership } = await getActiveBusiness().catch(() =>
-    redirect('/onboarding')
-  );
+  const { business, membership } = await requireActiveBusiness();
 
   const initialEvents = await getBusinessActivityFeed(business.id, membership.role, {
     limit: 60,

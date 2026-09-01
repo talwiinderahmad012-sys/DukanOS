@@ -1,7 +1,6 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { prisma } from '@/lib/db/prisma';
 import { Prisma } from '@/generated/prisma/client';
-import { redirect } from 'next/navigation';
 import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
 import { ForbiddenView } from '@/components/access/forbidden';
 import { CategoriesPageClient, type CategoryRow } from './categories-page-client';
@@ -15,7 +14,7 @@ export default async function CategoriesPage({
 }: {
   searchParams: Promise<{ q?: string; status?: string; page?: string }>;
 }) {
-  const { membership, business } = await getActiveBusiness().catch(() => redirect('/login'));
+  const { membership, business } = await requireActiveBusiness();
 
   if (!canAccessDashboardPath(membership.role, '/dashboard/categories')) {
     return <ForbiddenView role={membership.role} />;

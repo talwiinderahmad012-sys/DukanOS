@@ -1,4 +1,4 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { getSupplierWithPurchases } from '@/services/suppliers';
 import { notFound, redirect } from 'next/navigation';
 import {
@@ -11,7 +11,7 @@ export default async function SupplierDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await requireActiveBusiness();
   const { id } = await params;
 
   const data = await getSupplierWithPurchases(business.id, id);

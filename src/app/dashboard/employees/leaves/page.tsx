@@ -1,6 +1,5 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { listEmployeeLeaves } from '@/services/leave';
-import { redirect } from 'next/navigation';
 import { LeaveStatus } from '@/generated/prisma/client';
 import { LeavesPageClient, type LeavesBoardData } from './leaves-page-client';
 
@@ -9,7 +8,7 @@ export default async function LeavesPage({
 }: {
   searchParams: Promise<{ status?: string; page?: string }>;
 }) {
-  const { business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business } = await requireActiveBusiness();
   const params = await searchParams;
   const status = (params.status || 'ALL') as LeaveStatus | 'ALL';
   const page = Number(params.page) || 1;

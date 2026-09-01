@@ -1,7 +1,6 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { prisma } from '@/lib/db/prisma';
 import { Prisma } from '@/generated/prisma/client';
-import { redirect } from 'next/navigation';
 import {
   isOutOfStock,
   isLowStock,
@@ -25,7 +24,7 @@ export default async function InventoryPage({
     page?: string;
   }>;
 }) {
-  const { membership, business } = await getActiveBusiness().catch(() => redirect('/login'));
+  const { membership, business } = await requireActiveBusiness();
   const params = await searchParams;
 
   const q = (params.q ?? '').trim();

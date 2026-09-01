@@ -37,9 +37,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const identifier = typeof credentials?.identifier === 'string' ? credentials.identifier.trim() : '';
         const password = typeof credentials?.password === 'string' ? credentials.password : '';
 
-        // [AUTH-DEBUG] temporary logging — remove after diagnosing login
-        console.log('[AUTH-DEBUG] authorize() called', { identifier, hasSecret: !!process.env.AUTH_SECRET, strategy: process.env.AUTH_SECRET ? 'env' : 'missing' });
-
         if (!identifier || !password) {
           return null
         }
@@ -75,9 +72,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new ServiceUnavailableError();
         }
 
-        // [AUTH-DEBUG] temporary logging — remove after diagnosing login
-        console.log('[AUTH-DEBUG] user lookup', { found: !!user, hasPassword: !!user?.password, userId: user?.id ?? null });
-
+        // [AUTH] user lookup is intentionally silent — failures are audited below.
         if (!user || !user.password) {
           await recordAuthAudit({
             userId: user?.id ?? null,
@@ -91,9 +86,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           password,
           user.password
         )
-
-        // [AUTH-DEBUG] temporary logging — remove after diagnosing login
-        console.log('[AUTH-DEBUG] password compare', { isValid });
 
         if (!isValid) {
           await recordAuthAudit({
@@ -123,7 +115,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60,
+    maxAge: 30 * 24 * 60 * 60, // 30 days — sessions survive restarts
+    updateAge: 24 * 60 * 60,   // refresh the JWT at most once every 24h
+  },
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60, // 30 days — must match session.maxAge
+  },
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === "production"
+        ? "__Secure-authjs.session-token"
+        : "authjs.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
   },
   events: {
     async signOut({ token, session }: { token?: unknown; session?: unknown }) {
@@ -142,17 +151,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async session({ session, token }) {
       if (token?.sub && session.user) {
-        session.user.id = token.sub;
-        if (token.email) session.user.email = token.email as string;
-        if (token.name) session.user.name = token.name as string;
+        // Unconditional assignments: username-only users have no email/name
+        // on the token, and conditional assignment lets stale values bleed
+        // across identities when a token is reused.
+        const su = session.user as {
+          id: string;
+          email: string | null;
+          name: string | null;
+        };
+        su.id = token.sub;
+        su.email = token.email ?? null;
+        su.name = token.name ?? null;
       }
       return session
     },
     async jwt({ token, user }) {
       if (user) {
+        // Unconditional: username-only users may legitimately have
+        // email === null / name === null — the token must reflect that
+        // instead of silently inheriting a previous token's identity.
         token.sub = user.id;
-        if (user.email) token.email = user.email;
-        if (user.name) token.name = user.name;
+        token.email = user.email ?? null;
+        token.name = user.name ?? null;
       }
 
       if (!token.sub) return token

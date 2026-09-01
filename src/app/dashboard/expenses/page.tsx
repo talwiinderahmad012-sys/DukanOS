@@ -1,7 +1,6 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { getExpensesAction, getExpenseCategoriesAction } from '@/app/actions/expenses.actions';
 import { prisma } from '@/lib/db/prisma';
-import { redirect } from 'next/navigation';
 import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
 import { ForbiddenView } from '@/components/access/forbidden';
 import {
@@ -25,7 +24,7 @@ export default async function ExpensesPage({
     page?: string;
   }>;
 }) {
-  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await requireActiveBusiness();
 
   // Expenses are financial data restricted to OWNER / MANAGER
   // (VIEW_FINANCIAL_REPORTS). CASHIER / EMPLOYEE are denied here.

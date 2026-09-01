@@ -9,6 +9,9 @@ import { AppError } from '@/lib/errors';
 import { recordAuthAudit } from '@/services/audit';
 import { normalizeEmail } from '@/lib/auth/email';
 import { MembershipRole, BusinessType } from '@/generated/prisma/client';
+import { AuthError } from 'next-auth';
+import { redirect, unstable_rethrow } from 'next/navigation';
+import { signIn } from '@/lib/auth/auth';
 
 const registerSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -134,4 +137,56 @@ export async function registerUserAction(formData: Record<string, unknown>) {
     }
     return createError(AppErrors.INTERNAL_ERROR, 'Registration is temporarily unavailable. Please try again.');
   }
+}
+
+/**
+ * Registration + automatic sign-in, performed entirely server-side.
+ *
+ * The old flow called client-side signIn() from next-auth/react and treated
+ * "no error object" as success, which could silently produce broken sessions.
+ * Here the credentials sign-in happens inside this server action
+ * (redirect: false), AuthError is translated into a normal error result,
+ * framework control-flow errors are rethrown via unstable_rethrow, and only a
+ * confirmed server-side session redirects the user to /dashboard.
+ */
+export async function registerAndSignInAction(formData: Record<string, unknown>) {
+  // 1. Register (validation, duplicate checks, user+business+branch+membership).
+  const result = await registerUserAction(formData);
+  if (!result.success) {
+    return result;
+  }
+
+  const identifier = typeof formData.email === 'string' ? formData.email : '';
+  const password = typeof formData.password === 'string' ? formData.password : '';
+
+  // 2. Server-side credentials sign-in — no client signIn(), no guessing.
+  try {
+    const signInUrl = await signIn('credentials', {
+      redirect: false,
+      identifier,
+      password,
+    });
+
+    // With redirect:false Auth.js returns the target URL; an `error=` query
+    // param means authorize() failed (rate limited / DB down / etc.).
+    if (typeof signInUrl === 'string' && /[?&]error=/.test(signInUrl)) {
+      return createError(
+        AppErrors.INTERNAL_ERROR,
+        'Account created, but automatic sign-in failed. Please sign in manually.'
+      );
+    }
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return createError(
+        AppErrors.INTERNAL_ERROR,
+        'Account created, but automatic sign-in failed. Please sign in manually.'
+      );
+    }
+    // Re-throw Next.js control-flow errors (redirect/notFound) untouched.
+    unstable_rethrow(error);
+    throw error;
+  }
+
+  // 3. Confirmed session → dashboard.
+  redirect('/dashboard');
 }

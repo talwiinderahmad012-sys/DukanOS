@@ -1,10 +1,9 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { prisma } from '@/lib/db/prisma';
-import { redirect } from 'next/navigation';
 import { EmployeeNewClient } from './employee-new-client';
 
 export default async function NewEmployeePage() {
-  const { business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business } = await requireActiveBusiness();
 
   const branches = await prisma.branch.findMany({
     where: { businessId: business.id },

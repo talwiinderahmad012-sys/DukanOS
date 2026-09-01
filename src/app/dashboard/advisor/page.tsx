@@ -1,12 +1,11 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { generateAdvisorFindings } from '@/services/advisor';
 import { AdvisorPageView } from '@/components/advisor/advisor-page-view';
-import { redirect } from 'next/navigation';
 import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
 import { ForbiddenView } from '@/components/access/forbidden';
 
 export default async function AdvisorPage() {
-  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await requireActiveBusiness();
 
   // Advisor findings expose profit/revenue/expense guidance. Roles without
   // VIEW_PROFIT get the accessible forbidden state instead of the data.

@@ -1,4 +1,4 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { prisma } from '@/lib/db/prisma';
 import { notFound, redirect } from 'next/navigation';
 import { movementReferenceHref } from '@/components/inventory/stock-helpers';
@@ -13,7 +13,7 @@ export default async function InventoryDetailsPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { membership, business } = await getActiveBusiness().catch(() => redirect('/login'));
+  const { membership, business } = await requireActiveBusiness();
   const { id } = await params;
 
   const product = await prisma.product.findUnique({

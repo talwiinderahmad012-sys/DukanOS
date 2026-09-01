@@ -1,7 +1,6 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { prisma } from '@/lib/db/prisma';
 import { Prisma, PurchaseStatus } from '@/generated/prisma/client';
-import { redirect } from 'next/navigation';
 import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
 import { ForbiddenView } from '@/components/access/forbidden';
 import { SuppliersPageClient, type SupplierListRow } from './suppliers-page-client';
@@ -15,7 +14,7 @@ export default async function SuppliersPage({
 }: {
   searchParams: Promise<{ q?: string; status?: string; page?: string }>;
 }) {
-  const { membership, business } = await getActiveBusiness().catch(() => redirect('/login'));
+  const { membership, business } = await requireActiveBusiness();
 
   if (!canAccessDashboardPath(membership.role, '/dashboard/suppliers')) {
     return <ForbiddenView role={membership.role} />;

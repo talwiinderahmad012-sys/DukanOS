@@ -1,4 +1,4 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { listAvailablePlans } from '@/services/billing/plans';
 import type { Metadata } from 'next';
 import { PlansPageClient } from './plans-client';
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function PlatformPlansPage() {
-  const { membership } = await getActiveBusiness();
+  const { membership } = await requireActiveBusiness();
 
   const isAuthorized = membership.role === 'OWNER';
 

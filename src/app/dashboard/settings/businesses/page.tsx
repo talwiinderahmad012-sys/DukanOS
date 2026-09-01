@@ -1,4 +1,4 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { listUserBusinesses } from '@/services/business/context';
 import { BusinessManagementView } from '@/components/business/business-management-view';
 
@@ -7,7 +7,7 @@ export const metadata = {
 };
 
 export default async function BusinessesPage() {
-  const { user, business: activeBusiness } = await getActiveBusiness();
+  const { user, business: activeBusiness } = await requireActiveBusiness();
   const userBusinesses = await listUserBusinesses(user.id);
 
   return (

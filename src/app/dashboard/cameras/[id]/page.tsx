@@ -1,4 +1,4 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { getCameraById } from '@/services/cctv/cameras';
 import { notFound, redirect } from 'next/navigation';
 import { CameraDetailClient, type CameraDetailPageData } from './camera-detail-client';
@@ -9,9 +9,7 @@ export default async function CameraDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { business, membership } = await getActiveBusiness().catch(() =>
-    redirect('/onboarding')
-  );
+  const { business, membership } = await requireActiveBusiness();
 
   if (membership.role !== 'OWNER' && membership.role !== 'MANAGER') {
     redirect('/dashboard/cameras');

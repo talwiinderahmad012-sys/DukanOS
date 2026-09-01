@@ -1,4 +1,4 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { redirect } from 'next/navigation';
 import { getPurchaseAnalytics } from '@/services/analytics';
 import { PurchasesAnalyticsClient } from './purchases-analytics-client';
@@ -8,7 +8,7 @@ export default async function PurchasesAnalyticsPage({
 }: {
   searchParams: Promise<{ preset?: string }>;
 }) {
-  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await requireActiveBusiness();
   if (membership.role !== 'OWNER' && membership.role !== 'MANAGER') redirect('/dashboard');
 
   const params = await searchParams;

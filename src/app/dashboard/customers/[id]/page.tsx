@@ -1,4 +1,4 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { prisma } from '@/lib/db/prisma';
 import { getCustomerWithLedger } from '@/services/customers';
 import { getCustomerInsights } from '@/services/customer-insights';
@@ -18,7 +18,7 @@ export default async function CustomerDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await requireActiveBusiness();
   const { id } = await params;
 
   if (!canAccessDashboardPath(membership.role, '/dashboard/customers')) {

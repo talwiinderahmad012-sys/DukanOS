@@ -1,12 +1,10 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { prisma } from '@/lib/db/prisma';
 import { redirect } from 'next/navigation';
 import { CameraNewClient } from './camera-new-client';
 
 export default async function NewCameraPage() {
-  const { business, membership } = await getActiveBusiness().catch(() =>
-    redirect('/onboarding')
-  );
+  const { business, membership } = await requireActiveBusiness();
 
   if (membership.role !== 'OWNER' && membership.role !== 'MANAGER') {
     redirect('/dashboard/cameras');

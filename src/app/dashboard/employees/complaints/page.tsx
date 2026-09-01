@@ -1,6 +1,5 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { listComplaints } from '@/services/complaints';
-import { redirect } from 'next/navigation';
 import { ComplaintStatus } from '@/generated/prisma/client';
 import { ComplaintsPageClient, type ComplaintsBoardData } from './complaints-page-client';
 
@@ -9,7 +8,7 @@ export default async function ComplaintsPage({
 }: {
   searchParams: Promise<{ status?: string; page?: string }>;
 }) {
-  const { business, user, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, user, membership } = await requireActiveBusiness();
   const params = await searchParams;
   const status = (params.status || 'ALL') as ComplaintStatus | 'ALL';
   const page = Number(params.page) || 1;

@@ -1,6 +1,5 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { isPlatformAdminEmail } from '@/lib/auth/platform-admin';
-import { redirect } from 'next/navigation';
 import { signOut } from '@/lib/auth/auth';
 import { recordAuditLog } from '@/services/audit';
 import { SidebarBusinessHeader } from '@/components/layout/sidebar-business-header';
@@ -14,10 +13,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // business cookie handling) lives in getActiveBusiness; the layout must not
   // duplicate it. Unauthenticated -> /login; authenticated with no membership
   // -> /onboarding (both matching prior behavior).
-  const { user, membership: activeMembership, business: activeBusiness } = await getActiveBusiness().catch((err) => {
-    if (err instanceof Error && err.message === 'NO_BUSINESS') redirect('/onboarding');
-    redirect('/login');
-  });
+  const { user, membership: activeMembership, business: activeBusiness } = await requireActiveBusiness();
 
   async function logoutAction() {
     'use server';

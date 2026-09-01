@@ -1,12 +1,11 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { prisma } from '@/lib/db/prisma';
-import { redirect } from 'next/navigation';
 import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
 import { ForbiddenView } from '@/components/access/forbidden';
 import { NewPurchaseClient } from './new-purchase-client';
 
 export default async function NewPurchasePage() {
-  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await requireActiveBusiness();
 
   // Creating purchase orders requires CREATE_PURCHASE (OWNER/MANAGER).
   if (!canAccessDashboardPath(membership.role, '/dashboard/purchases/new')) {

@@ -1,7 +1,6 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { listSales } from '@/services/sales';
 import { prisma } from '@/lib/db/prisma';
-import { redirect } from 'next/navigation';
 import { hasPermission } from '@/lib/permissions/permissions-core';
 import {
   SalesPageClient,
@@ -25,7 +24,7 @@ export default async function SalesPage({
     page?: string;
   }>;
 }) {
-  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await requireActiveBusiness();
   const params = await searchParams;
 
   // The invoice list is visible to everyone with VIEW_SALES, but the revenue,

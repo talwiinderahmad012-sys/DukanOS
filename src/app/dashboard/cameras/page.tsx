@@ -1,12 +1,10 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { listCameras } from '@/services/cctv/cameras';
 import { redirect } from 'next/navigation';
 import { CamerasPageClient, type CameraPageItem } from './cameras-page-client';
 
 export default async function CamerasPage() {
-  const { business, membership } = await getActiveBusiness().catch(() =>
-    redirect('/onboarding')
-  );
+  const { business, membership } = await requireActiveBusiness();
 
   // Strictly enforce role-based access: OWNER and MANAGER only
   if (membership.role !== 'OWNER' && membership.role !== 'MANAGER') {

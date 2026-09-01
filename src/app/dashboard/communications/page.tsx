@@ -1,7 +1,6 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { listUserConversations } from '@/services/communications';
 import { listAnnouncements } from '@/services/announcements';
-import { redirect } from 'next/navigation';
 import {
   CommunicationsPageClient,
   type ConversationPageData,
@@ -16,9 +15,7 @@ import {
 } from '@/services/customer-communications';
 
 export default async function CommunicationsPage() {
-  const { user, business, membership } = await getActiveBusiness().catch(() =>
-    redirect('/onboarding')
-  );
+  const { user, business, membership } = await requireActiveBusiness();
 
   const [
     fetchedConversations, 

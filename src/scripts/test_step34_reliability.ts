@@ -442,16 +442,28 @@ async function main() {
       try {
         const bIds = [businessA?.id, businessB?.id].filter(Boolean) as string[];
         if (bIds.length > 0) {
-          await prisma.saleItem.deleteMany({ where: { sale: { branch: { businessId: { in: bIds } } } } });
-          await prisma.sale.deleteMany({ where: { branch: { businessId: { in: bIds } } } });
-          await prisma.purchaseItem.deleteMany({ where: { purchase: { branch: { businessId: { in: bIds } } } } });
-          await prisma.purchase.deleteMany({ where: { branch: { businessId: { in: bIds } } } });
-          await prisma.stockMovement.deleteMany({ where: { branch: { businessId: { in: bIds } } } });
+          // FK-complete cleanup: every delete is scoped by the fixture
+          // businesses through ALL relation paths (branch AND businessId),
+          // because child rows created without a branch (e.g. purchases in
+          // Test 26) are invisible to branch-only filters and would leave
+          // dangling FK references behind.
+          await prisma.saleItem.deleteMany({ where: { OR: [{ sale: { branch: { businessId: { in: bIds } } } }, { sale: { businessId: { in: bIds } } }] } });
+          await prisma.sale.deleteMany({ where: { OR: [{ branch: { businessId: { in: bIds } } }, { businessId: { in: bIds } }] } });
+          await prisma.purchaseItem.deleteMany({ where: { OR: [{ purchase: { branch: { businessId: { in: bIds } } } }, { product: { businessId: { in: bIds } } }] } });
+          await prisma.purchase.deleteMany({ where: { OR: [{ branch: { businessId: { in: bIds } } }, { businessId: { in: bIds } }] } });
+          await prisma.stockMovement.deleteMany({ where: { OR: [{ branch: { businessId: { in: bIds } } }, { product: { businessId: { in: bIds } } }] } });
           await prisma.product.deleteMany({ where: { businessId: { in: bIds } } });
+          await prisma.customerPayment.deleteMany({ where: { businessId: { in: bIds } } });
           await prisma.customer.deleteMany({ where: { businessId: { in: bIds } } });
           await prisma.supplier.deleteMany({ where: { businessId: { in: bIds } } });
           await prisma.payroll.deleteMany({ where: { businessId: { in: bIds } } });
-          await prisma.expense.deleteMany({ where: { branch: { businessId: { in: bIds } } } });
+          await prisma.employeeSalary.deleteMany({ where: { businessId: { in: bIds } } });
+          await prisma.employeeLeave.deleteMany({ where: { businessId: { in: bIds } } });
+          await prisma.leaveBalance.deleteMany({ where: { businessId: { in: bIds } } });
+          await prisma.employeeFeedback.deleteMany({ where: { businessId: { in: bIds } } });
+          await prisma.employeeComplaint.deleteMany({ where: { businessId: { in: bIds } } });
+          await prisma.employee.deleteMany({ where: { businessId: { in: bIds } } });
+          await prisma.expense.deleteMany({ where: { OR: [{ branch: { businessId: { in: bIds } } }, { businessId: { in: bIds } }] } });
           await prisma.employeeAttendance.deleteMany({ where: { branch: { businessId: { in: bIds } } } });
           await prisma.branch.deleteMany({ where: { businessId: { in: bIds } } });
           await prisma.businessMembership.deleteMany({ where: { businessId: { in: bIds } } });

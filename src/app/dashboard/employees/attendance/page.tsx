@@ -1,6 +1,5 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { getDailyAttendance } from '@/services/attendance';
-import { redirect } from 'next/navigation';
 import { AttendancePageClient, type AttendanceBoardData } from './attendance-page-client';
 
 export default async function AttendancePage({
@@ -8,7 +7,7 @@ export default async function AttendancePage({
 }: {
   searchParams: Promise<{ date?: string }>;
 }) {
-  const { business } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business } = await requireActiveBusiness();
   const params = await searchParams;
   const date = params.date || new Date().toISOString().slice(0, 10);
 

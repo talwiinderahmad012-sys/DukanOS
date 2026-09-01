@@ -1,4 +1,4 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { redirect } from 'next/navigation';
 import {
   getTopCustomers,
@@ -16,7 +16,7 @@ export default async function CustomersAnalyticsPage({
 }: {
   searchParams: Promise<{ preset?: string; start?: string; end?: string }>;
 }) {
-  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await requireActiveBusiness();
   if (membership.role !== MembershipRole.OWNER && membership.role !== MembershipRole.MANAGER) {
     redirect('/dashboard');
   }

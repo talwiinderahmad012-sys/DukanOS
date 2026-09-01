@@ -1,4 +1,4 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import {
   getAnalyticsKPIs,
   getSalesTrend,
@@ -19,13 +19,12 @@ import {
 } from '@/services/analytics';
 import { calculateBusinessHealth } from '@/services/analytics/health-score';
 import { generateBusinessInsights } from '@/services/analytics/insights';
-import { redirect } from 'next/navigation';
 import { canAccessDashboardPath } from '@/lib/permissions/permissions-core';
 import { ForbiddenView } from '@/components/access/forbidden';
 import { AnalyticsPageClient } from './analytics-page-client';
 
 export default async function AnalyticsPage() {
-  const { business, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, membership } = await requireActiveBusiness();
 
   // Analytics exposes revenue/profit/expense metrics. Denied roles render the
   // accessible forbidden state instead of a silent redirect.

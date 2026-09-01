@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { revalidatePath } from 'next/cache';
 
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { requireBusinessAccess } from '@/lib/auth/context';
 import { prisma } from '@/lib/db/prisma';
 import { getAnalyticsCacheStats } from '@/lib/cache/analytics-cache';
@@ -52,7 +52,7 @@ function toLogEntries(logs: { id: string; action: string; entityType: string; cr
 }
 
 export default async function SystemObservabilityPage() {
-  const { business } = await getActiveBusiness();
+  const { business } = await requireActiveBusiness();
   await requireBusinessAccess(business.id, [MembershipRole.OWNER]);
 
   const baseUrl =

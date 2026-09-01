@@ -1,12 +1,10 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { listBranches } from '@/services/settings/business-settings';
 import { BranchesView } from '@/components/settings/branches-view';
 import { redirect } from 'next/navigation';
 
 export default async function BranchesSettingsPage() {
-  const { user, business, membership } = await getActiveBusiness().catch(() =>
-    redirect('/onboarding')
-  );
+  const { user, business, membership } = await requireActiveBusiness();
 
   if (membership.role !== 'OWNER' && membership.role !== 'MANAGER') {
     redirect('/dashboard/settings');

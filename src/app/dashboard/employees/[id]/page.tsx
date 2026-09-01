@@ -1,4 +1,4 @@
-import { getActiveBusiness } from '@/lib/auth/getActiveBusiness';
+import { requireActiveBusiness } from '@/lib/auth/guards';
 import { prisma } from '@/lib/db/prisma';
 import { getEmployeeById, getMyEmployeeProfile } from '@/services/employees';
 import { getEmployeeLeaveBalances } from '@/services/leave';
@@ -15,7 +15,7 @@ export default async function EmployeeProfilePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { business, user, membership } = await getActiveBusiness().catch(() => redirect('/onboarding'));
+  const { business, user, membership } = await requireActiveBusiness();
   const { id } = await params;
 
   const myProfile = await getMyEmployeeProfile(business.id, user.id);
