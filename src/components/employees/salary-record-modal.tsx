@@ -19,7 +19,7 @@ export function CreateSalaryModal({
 }: {
   businessId: string;
   employeeId?: string;
-  employees?: { id: string; name: string; basicSalary: number }[];
+  employees?: { id: string; name: string; basicSalary: number; employeeCode?: string | null; position?: string | null }[];
   defaultBaseSalary?: number;
   isOpen: boolean;
   onClose: () => void;
@@ -27,6 +27,7 @@ export function CreateSalaryModal({
   const router = useRouter();
   const { t, tm, formatCurrency } = useTranslation();
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(employeeId || '');
+  const [employeeSearch, setEmployeeSearch] = useState('');
   const currentPeriod = new Date().toISOString().slice(0, 7);
   const [period, setPeriod] = useState(currentPeriod);
   const [baseSalary, setBaseSalary] = useState(defaultBaseSalary || 0);
@@ -70,7 +71,7 @@ export function CreateSalaryModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-xs flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div
         ref={modalRef}
         role="dialog"
@@ -105,23 +106,56 @@ export function CreateSalaryModal({
 
         <form onSubmit={handleSubmit} className="space-y-3.5">
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">{t('employees.workerOrEmployee')}</label>
+            <label className="text-xs font-semibold text-gray-700" htmlFor="salary-employee-search">
+              {t('employees.workerOrEmployee')}
+            </label>
             {employees ? (
-              <select
-                required
-                value={selectedEmployeeId}
-                onChange={(e) => {
-                  setSelectedEmployeeId(e.target.value);
-                  const emp = employees.find(em => em.id === e.target.value);
-                  if (emp) setBaseSalary(emp.basicSalary);
-                }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-primary focus:outline-none bg-white"
-              >
-                <option value="" disabled>{t('employees.selectWorker')}</option>
-                {employees.map(emp => (
-                  <option key={emp.id} value={emp.id}>{emp.name}</option>
-                ))}
-              </select>
+              <>
+                {employees.length > 1 && (
+                  <input
+                    id="salary-employee-search"
+                    type="search"
+                    value={employeeSearch}
+                    onChange={(e) => setEmployeeSearch(e.target.value)}
+                    placeholder={t('employees.searchEmployeesFilter')}
+                    autoComplete="off"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-primary focus:outline-none"
+                  />
+                )}
+                <select
+                  required
+                  value={selectedEmployeeId}
+                  onChange={(e) => {
+                    setSelectedEmployeeId(e.target.value);
+                    const emp = employees.find(em => em.id === e.target.value);
+                    if (emp) setBaseSalary(emp.basicSalary);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-primary focus:outline-none bg-white"
+                >
+                  <option value="" disabled>{t('employees.selectWorker')}</option>
+                  {(() => {
+                    const query = employeeSearch.trim().toLowerCase();
+                    const filtered = query
+                      ? employees.filter((emp) =>
+                          [emp.name, emp.employeeCode ?? '', emp.position ?? '']
+                            .join(' ')
+                            .toLowerCase()
+                            .includes(query)
+                        )
+                      : employees;
+                    if (filtered.length === 0) {
+                      return <option value="" disabled>{t('employees.noEmployeesFound')}</option>;
+                    }
+                    return filtered.map((emp) => (
+                      <option key={emp.id} value={emp.id}>
+                        {emp.name}
+                        {emp.employeeCode ? ` — ${emp.employeeCode}` : ''}
+                        {emp.position ? ` · ${emp.position}` : ''}
+                      </option>
+                    ));
+                  })()}
+                </select>
+              </>
             ) : (
               <input
                 type="text"
@@ -297,7 +331,7 @@ export function RecordPaymentModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-xs flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div
         ref={modalRef}
         role="dialog"

@@ -7,18 +7,14 @@ function createPrismaClient(): PrismaClient {
   const rawDatabaseUrl = process.env.DATABASE_URL
 
   if (typeof rawDatabaseUrl !== 'string' || rawDatabaseUrl.trim().length === 0) {
-    if (process.env.NODE_ENV === 'production') {
-      console.error('[prisma] FATAL: DATABASE_URL is not configured in production.')
-      throw new Error('DATABASE_URL is not configured.')
-    }
-    console.warn('[prisma] DATABASE_URL is missing. Falling back to localhost for development only.')
+    throw new Error(
+      '[prisma] FATAL: DATABASE_URL is not configured.\n' +
+      'Set it in .env.local (e.g. postgresql://postgres:postgres@localhost:5432/dukaanos)\n' +
+      'and restart the process. Refusing to start with a credential-less fallback.'
+    )
   }
 
-  const connectionString = typeof rawDatabaseUrl === 'string' && rawDatabaseUrl.trim().length > 0
-    ? rawDatabaseUrl
-    : 'postgresql://localhost:5432/dukaanos'
-
-  const pool = new Pool({ connectionString })
+  const pool = new Pool({ connectionString: rawDatabaseUrl })
   const adapter = new PrismaPg(pool)
 
   return new PrismaClient({ adapter })

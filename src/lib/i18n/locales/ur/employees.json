@@ -287,6 +287,7 @@
   "generatePayrollSubtitle": "اوور ٹائم، بونس، کٹوتیوں اور ایڈوانس کے ساتھ خالص تنخواہ کا حساب لگائیں",
   "workerOrEmployee": "ملازم / کارکن",
   "selectWorker": "ملازم منتخب کریں",
+  "searchEmployeesFilter": "نام، کوڈ یا عہدے سے تلاش کریں…",
   "salaryPeriodLabel": "تنخواہ کی مدت (YYYY-MM)",
   "baseSalaryLabel": "بنیادی تنخواہ (روپے)",
   "overtimeLabel": "اوور ٹائم / اضافی (روپے)",

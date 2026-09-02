@@ -71,7 +71,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           # Pinned to 22.x (LTS) and aligned with engines/package.json
-          # ("^20.19.0 || ^22.12.0 || >=24.0.0") so local == CI.
+          # (">=22.12.0") so local == CI.
           node-version: '22'
           cache: 'npm'
           cache-dependency-path: package-lock.json

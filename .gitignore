@@ -58,16 +58,19 @@ _mv*.txt
 /.kilo
 
 # dev artifacts
-cookies.txt
-login_test.py
-post_body.txt
-post_body2.txt
 __shot_urdu.html
+login_test.py
+*_diag_*.ts
 
-# local PostgreSQL / runtime logs
-postgres.log
-pg_log.txt
-postgres_start.log
+# HTTP/session dumps - auth artifacts must NEVER be committed
+cookies*.txt
+*.cookiejar
+post_body*.txt
+session-dump*.*
+
+# pg_dump / maintenance backups (may contain business data)
+*.sql
+!prisma/migrations/**/*.sql
 
 # agent / IDE internal workspace (not project code)
 /.workbuddy-ai/
@@ -77,3 +80,8 @@ postgres_start.log
 
 # Local runtime logs
 *.log
+
+# dev output / scratch logs
+*_err.txt
+*_out.txt
+ports.txt

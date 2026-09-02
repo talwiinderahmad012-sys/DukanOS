@@ -21,7 +21,7 @@ export default async function PayrollPage() {
     }),
     prisma.employee.findMany({
       where: { businessId: business.id, status: { in: ['ACTIVE', 'ON_LEAVE'] } },
-      select: { id: true, name: true, basicSalary: true }
+      select: { id: true, name: true, basicSalary: true, employeeCode: true, position: true }
     })
   ]);
 
@@ -38,7 +38,9 @@ export default async function PayrollPage() {
   const employeeOptions = employees.map(emp => ({
     id: emp.id,
     name: emp.name,
-    basicSalary: Number(emp.basicSalary)
+    basicSalary: Number(emp.basicSalary),
+    employeeCode: emp.employeeCode,
+    position: emp.position,
   }));
 
   return <PayrollView businessId={business.id} payrolls={rows} employees={employeeOptions} />;

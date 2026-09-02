@@ -1,13 +1,16 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Store } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { SiteHeader } from '@/components/layout/site-header';
 
 export default function LoginPage() {
   const { t, language, setLanguage } = useTranslation();
+  const router = useRouter();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -20,9 +23,6 @@ export default function LoginPage() {
     const identifier = (formData.get('identifier') as string)?.trim() || '';
     const password = formData.get('password') as string;
 
-    // [AUTH-DEBUG] temporary logging — remove after diagnosing login
-    console.log('[AUTH-DEBUG] login submit', { identifier, passwordLength: password?.length });
-
     try {
       const res = await signIn('credentials', {
         redirect: false,
@@ -30,12 +30,9 @@ export default function LoginPage() {
         password,
       });
 
-      // [AUTH-DEBUG] temporary logging — remove after diagnosing login
-      console.log('[AUTH-DEBUG] signIn() result', { ok: !res?.error, error: res?.error ?? null, status: res?.status ?? null, url: res?.url ?? null });
-
       if (res?.error) {
         if (res.error === 'ServiceUnavailable') {
-          setError('common.somethingWentWrong');
+          setError('auth.serviceUnavailable');
         } else if (res.error === 'RateLimited') {
           setError('auth.tooManyAttempts');
         } else {
@@ -43,7 +40,10 @@ export default function LoginPage() {
         }
         setLoading(false);
       } else {
-        window.location.href = '/dashboard';
+        // Server-side session is now set; navigate via the App Router so the
+        // middleware re-evaluates auth state (no full page reload).
+        router.push('/dashboard');
+        router.refresh();
       }
     } catch {
       setError('common.somethingWentWrong');
@@ -59,7 +59,12 @@ export default function LoginPage() {
     }`;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <div className="flex min-h-screen flex-col bg-gray-50">
+      {/* Sticky brand bar — the in-card EN/اردو switcher below is kept as-is,
+          so the header only carries the theme control. */}
+      <SiteHeader showLanguageToggle={false} />
+
+      <div className="flex flex-1 items-center justify-center p-4">
       <div className="relative max-w-md w-full bg-white rounded-xl shadow-sm border border-gray-100 p-8">
         <div
           className="absolute top-4 end-4 flex items-center gap-1.5"
@@ -146,6 +151,7 @@ export default function LoginPage() {
             {t('auth.createAccountLink')}
           </Link>
         </p>
+      </div>
       </div>
     </div>
   );

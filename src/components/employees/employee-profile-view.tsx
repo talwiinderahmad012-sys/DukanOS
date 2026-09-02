@@ -656,7 +656,7 @@ export function EmployeeProfileView({
       <CreateSalaryModal
         businessId={businessId}
         employeeId={employee.id}
-        employees={[{ id: employee.id, name: employee.name, basicSalary: Number(employee.basicSalary) }]}
+        employees={[{ id: employee.id, name: employee.name, basicSalary: Number(employee.basicSalary), employeeCode: employee.employeeCode, position: employee.position }]}
         defaultBaseSalary={Number(employee.basicSalary)}
         isOpen={salaryModalOpen}
         onClose={() => setSalaryModalOpen(false)}

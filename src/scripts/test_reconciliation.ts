@@ -24,6 +24,23 @@ async function main() {
   const { PaymentMethod, MovementType } = await import('../generated/prisma/client');
   const bcrypt = (await import('bcryptjs')).default;
 
+  let testUserId: string;
+  let testBusinessId: string;
+
+  async function cleanup() {
+    try {
+      if (testBusinessId) {
+        await prisma.businessMembership.deleteMany({ where: { businessId: testBusinessId } });
+        await prisma.business.deleteMany({ where: { id: testBusinessId } });
+      }
+      if (testUserId) {
+        await prisma.user.deleteMany({ where: { id: testUserId } });
+      }
+    } catch {
+      // Cleanup must never mask the real test result.
+    }
+  }
+
   // Initialize a fresh business for mathematical reconciliation
   const hashedPassword = await bcrypt.hash('ReconcilePass123!', 10);
   const testUser = await prisma.user.create({
@@ -33,6 +50,7 @@ async function main() {
       password: hashedPassword,
     },
   });
+  testUserId = testUser.id;
 
   const reconStore = await createBusinessForUser(testUser.id, {
     name: 'Audited Commerce Mart',
@@ -42,6 +60,7 @@ async function main() {
   });
 
   const businessId = reconStore.business.id;
+  testBusinessId = businessId;
   const branchId = reconStore.branch.id;
 
   // ==========================================
@@ -218,10 +237,11 @@ async function main() {
   console.log(`✓ Concurrency Race Condition Verified: Atomic row lock successfully protected stock balance (Remaining: ${finalRaceStock.currentStock}, Over-sale prevented).`);
 
   console.log('\n🎉 ALL RECONCILIATION & CONCURRENCY TESTS PASSED (100% ACCURACY)!\n');
+  await cleanup();
   process.exit(0);
 }
 
-main().catch((err) => {
+main().catch(async (err) => {
   console.error('❌ Reconciliation failed:', err);
   process.exit(1);
 });

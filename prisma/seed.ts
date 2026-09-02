@@ -28,6 +28,8 @@ Module.prototype.require = function (id: string, ...args: any[]) {
   return originalRequire.apply(this, [id, ...args]);
 };
 
+import bcrypt from 'bcryptjs';
+
 import {
   BusinessType,
   BusinessStatus,
@@ -63,6 +65,24 @@ async function main() {
     },
   });
 
+  // 1b. Demo user "ahmad" (login credential) — bcrypt-hashed password123.
+  // Upserted so re-running the seed never violates the email/username uniques.
+  const ahmadHashedPassword = await bcrypt.hash('password123', 10);
+  const ahmad = await prisma.user.upsert({
+    where: { email: 'ahmad@dukaanos.local' },
+    update: {
+      name: 'Ahmad',
+      username: 'ahmad',
+      password: ahmadHashedPassword,
+    },
+    create: {
+      name: 'Ahmad',
+      username: 'ahmad',
+      email: 'ahmad@dukaanos.local',
+      password: ahmadHashedPassword,
+    },
+  });
+
   // 2. Business (no natural unique → fixed-id upsert)
   const business = await prisma.business.upsert({
     where: { id: SEED_BUSINESS_ID },
@@ -95,6 +115,19 @@ async function main() {
     update: { role: MembershipRole.OWNER },
     create: {
       userId: user.id,
+      businessId: business.id,
+      role: MembershipRole.OWNER,
+    },
+  });
+
+  // 3b. Membership for the "ahmad" demo user (unique: userId+businessId).
+  await prisma.businessMembership.upsert({
+    where: {
+      userId_businessId: { userId: ahmad.id, businessId: business.id },
+    },
+    update: { role: MembershipRole.OWNER },
+    create: {
+      userId: ahmad.id,
       businessId: business.id,
       role: MembershipRole.OWNER,
     },
@@ -196,6 +229,7 @@ async function main() {
   console.log('Seed completed successfully (all records upserted — safe to re-run).');
   console.log(`  business : ${business.name} (${business.id})`);
   console.log(`  owner    : ${user.email}`);
+  console.log(`  demo     : ahmad@dukaanos.local (username: ahmad — demo password as documented in prisma/seed.ts)`);
   console.log(`  branch   : ${branch.name} (${branch.code})`);
   console.log(`  supplier : ${supplier.name}`);
 }

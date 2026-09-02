@@ -3,12 +3,16 @@
 import Link from 'next/link';
 import { Store, Home, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { SiteHeader } from '@/components/layout/site-header';
 
 export default function NotFound() {
   const { t } = useTranslation();
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-gray-50 to-gray-100 flex items-center justify-center p-4">
+    <div className="flex min-h-screen flex-col bg-linear-to-b from-gray-50 to-gray-100">
+      <SiteHeader />
+
+      <div className="flex flex-1 items-center justify-center p-4">
       <div className="max-w-md w-full text-center space-y-6 bg-white p-8 rounded-3xl border border-gray-200/80 shadow-xl">
         <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
           <Store className="w-8 h-8" />
@@ -44,6 +48,7 @@ export default function NotFound() {
         <div className="pt-4 border-t border-gray-100">
           <p className="text-xs text-gray-400 font-mono">DukaanOS v1.0.0 — {t('staticPages.versionTagline')}</p>
         </div>
+      </div>
       </div>
     </div>
   );

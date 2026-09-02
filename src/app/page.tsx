@@ -1,12 +1,16 @@
 'use client';
 
 import { useTranslation } from '@/lib/i18n/language-context';
+import { SiteHeader } from '@/components/layout/site-header';
 
 export default function Home() {
   const { t } = useTranslation();
 
   return (
-    <main className="home-hero flex min-h-screen flex-col items-center justify-center p-24 bg-gray-50 text-gray-900">
+    <div className="flex min-h-screen flex-col bg-gray-50">
+      <SiteHeader showLanguageToggle={false} />
+
+      <main className="home-hero flex flex-1 flex-col items-center justify-center p-6 sm:p-12 lg:p-24 text-gray-900">
       <div className="max-w-md text-center space-y-4">
         <h1 className="text-4xl font-bold tracking-tight text-gray-900">
           DukaanOS
@@ -33,6 +37,7 @@ export default function Home() {
           {t('staticPages.homeStatusNote')}
         </p>
       </div>
-    </main>
+      </main>
+    </div>
   );
 }

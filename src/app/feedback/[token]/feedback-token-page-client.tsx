@@ -3,6 +3,7 @@
 import { AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { PublicFeedbackForm } from '@/components/feedback/public-feedback-form';
+import { SiteHeader } from '@/components/layout/site-header';
 
 interface Verification {
   valid: boolean;
@@ -30,7 +31,9 @@ export function FeedbackTokenPageClient({ verification }: FeedbackTokenPageClien
           : 'tokenPage.invalidTitle';
 
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="flex min-h-screen flex-col bg-gray-50">
+        <SiteHeader />
+        <div className="flex flex-1 items-center justify-center p-4">
         <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center space-y-4 border border-gray-200 shadow-xl">
           <div className="w-14 h-14 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
             {verification.reason === 'ALREADY_USED' ? (
@@ -50,18 +53,22 @@ export function FeedbackTokenPageClient({ verification }: FeedbackTokenPageClien
 
           <p className="text-[11px] text-gray-400 pt-2">{t('tokenPage.assistance')}</p>
         </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-blue-50/50 via-gray-50 to-white py-12 px-4 flex items-center justify-center">
+    <div className="flex min-h-screen flex-col bg-linear-to-b from-blue-50/50 via-gray-50 to-white">
+      <SiteHeader />
+      <div className="flex flex-1 items-center justify-center py-12 px-4">
       <PublicFeedbackForm
         token={verification.token!}
         businessName={verification.business!.name}
         customerName={verification.customer?.name}
         invoiceNumber={verification.sale?.invoiceNumber}
       />
+      </div>
     </div>
   );
 }

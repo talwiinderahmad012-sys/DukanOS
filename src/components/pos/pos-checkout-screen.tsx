@@ -407,8 +407,9 @@ export function POSCheckoutScreen({
 
   return (
     <div className="-m-4 flex min-h-full flex-col bg-page md:-m-8">
-      {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-30 border-b border-border bg-surface">
+      {/* Top Navigation Bar — secondary bar, pinned under the app header
+          (z-50) and above page content. */}
+      <header className="sticky top-0 z-40 border-b border-border bg-surface">
         <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-on-primary" aria-hidden="true">

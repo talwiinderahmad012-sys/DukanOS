@@ -7,7 +7,7 @@ import { useTranslation } from '@/lib/i18n/language-context';
 import { PayrollList, type PayrollListItem } from './payroll-list';
 import { CreateSalaryModal } from '@/components/employees/salary-record-modal';
 
-export function PayrollView({ businessId, payrolls, employees }: { businessId: string, payrolls: PayrollListItem[], employees: { id: string; name: string; basicSalary: number }[] }) {
+export function PayrollView({ businessId, payrolls, employees }: { businessId: string, payrolls: PayrollListItem[], employees: { id: string; name: string; basicSalary: number; employeeCode?: string | null; position?: string | null }[] }) {
   const { t, formatNumber } = useTranslation();
   const [recordSalaryModalOpen, setRecordSalaryModalOpen] = useState(false);
 

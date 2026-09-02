@@ -77,8 +77,15 @@ export default async function RootLayout({
           />
         )}
       </head>
+      {/*
+       * `min-h-[100dvh]` (not `min-h-screen` / 100vh): dashboard routes size
+       * their shell to 100dvh. On mobile, 100vh is the LARGE viewport height
+       * (URL bar hidden) while 100dvh is the visible one, so a 100vh floor here
+       * would make the document a few dozen pixels taller than the viewport and
+       * reintroduce a document scroll that drags the whole sticky shell around.
+       */}
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${notoNastaliqUrdu.variable} antialiased min-h-screen bg-background text-foreground transition-colors`}
+        className={`${geistSans.variable} ${geistMono.variable} ${notoNastaliqUrdu.variable} antialiased min-h-[100dvh] bg-background text-foreground transition-colors`}
       >
         <ThemeProvider>
           <LanguageProvider initialLanguage={isUrdu ? 'UR' : 'EN'}>

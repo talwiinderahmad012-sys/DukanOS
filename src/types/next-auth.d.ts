@@ -14,6 +14,8 @@ declare module "next-auth" {
     user: {
       /** Stable user id (JWT `sub`). */
       id: string;
+      /** Username (may be absent for email-only accounts). */
+      username?: string;
     } & DefaultSession["user"];
   }
 }
@@ -22,5 +24,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     /** Optional readable mirror of `sub` for callbacks/logging. */
     id?: string;
+    /** Username carried from the credentials authorize() step. */
+    username?: string | null;
   }
 }

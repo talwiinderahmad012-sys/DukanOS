@@ -6,6 +6,7 @@ import { Store, MapPin, Settings } from 'lucide-react';
 import { submitOnboardingAction } from '@/app/actions/onboarding.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { Select } from '@/components/ui/select';
+import { SiteHeader } from '@/components/layout/site-header';
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -46,7 +47,10 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <div className="flex min-h-screen flex-col bg-gray-50">
+      <SiteHeader />
+
+      <div className="flex flex-1 items-center justify-center p-4">
       <div className="max-w-2xl w-full bg-white rounded-xl shadow-sm border border-gray-100 p-8">
         
         <div className="mb-8 border-b pb-6">
@@ -139,6 +143,7 @@ export default function OnboardingPage() {
             <div className="clear-both"></div>
           </div>
         </form>
+      </div>
       </div>
     </div>
   );

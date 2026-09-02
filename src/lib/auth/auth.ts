@@ -106,6 +106,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: user.id,
           email: user.email,
           name: user.name,
+          username: user.username,
         }
       }
     })
@@ -154,14 +155,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // Unconditional assignments: username-only users have no email/name
         // on the token, and conditional assignment lets stale values bleed
         // across identities when a token is reused.
+        //
+        // The JWT surface from Auth.js is typed as a loose index signature, so
+        // we read through a narrow local projection instead of relying on the
+        // module augmentation (which is not guaranteed to merge in every
+        // next-auth beta build).
+        const tok = token as {
+          id?: string | null;
+          sub?: string | null;
+          email?: string | null;
+          name?: string | null;
+          username?: string | null;
+        };
         const su = session.user as {
           id: string;
           email: string | null;
           name: string | null;
+          username: string | null;
         };
-        su.id = token.sub;
-        su.email = token.email ?? null;
-        su.name = token.name ?? null;
+        su.id = tok.id ?? tok.sub ?? '';
+        su.email = tok.email ?? null;
+        su.name = tok.name ?? null;
+        su.username = tok.username ?? null;
       }
       return session
     },
@@ -170,9 +185,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // Unconditional: username-only users may legitimately have
         // email === null / name === null — the token must reflect that
         // instead of silently inheriting a previous token's identity.
+        token.id = user.id;
         token.sub = user.id;
         token.email = user.email ?? null;
         token.name = user.name ?? null;
+        token.username = (user as { username?: string | null }).username ?? null;
       }
 
       if (!token.sub) return token

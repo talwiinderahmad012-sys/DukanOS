@@ -9,6 +9,7 @@ import { useRoleLabel } from '@/components/layout/sidebar-business-header';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { useModalA11y } from '@/lib/a11y/use-modal-a11y';
 import { SignOutButton } from '@/components/layout/sign-out-button';
+import { ConnectionBanner } from '@/components/pwa/pwa-provider';
 
 export function MobileNav({
   businessName,
@@ -35,9 +36,15 @@ export function MobileNav({
 
   return (
     <>
-      {/* Mobile Header */}
-      <div className="md:hidden sticky top-0 z-40 bg-surface border-b border-border pt-[env(safe-area-inset-top)]">
-        <div className="flex h-14 items-center justify-between gap-2 px-3">
+      {/*
+        Mobile Header — ONE sticky unit (banner + bar): sticky top-0, opaque
+        (`bg-surface`), above page content (z-50) and below the nav drawer
+        (z-[60]) and modals. It is a flex SIBLING of the scrolling page
+        container, so it can never scroll away on any viewport.
+      */}
+      <div className="md:hidden sticky top-0 z-50 w-full shrink-0 bg-surface pt-[env(safe-area-inset-top)]">
+        <ConnectionBanner />
+        <div className="flex h-14 items-center justify-between gap-2 border-b border-border px-3">
           <div className="flex min-w-0 items-center gap-1.5">
             <button
               type="button"
@@ -64,7 +71,7 @@ export function MobileNav({
 
       {/* Backdrop */}
       <div
-        className={`md:hidden fixed inset-0 z-[45] bg-gray-900/50 transition-opacity duration-200 ${
+        className={`md:hidden fixed inset-0 z-[55] bg-gray-900/50 transition-opacity duration-200 ${
           isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={close}
@@ -80,7 +87,7 @@ export function MobileNav({
         aria-label="Navigation Menu"
         tabIndex={-1}
         aria-hidden={!isOpen}
-        className={`md:hidden fixed inset-y-0 start-0 z-50 flex w-[19rem] max-w-[85vw] flex-col border-e border-border bg-surface transition-[transform,visibility] duration-200 ease-in-out ${
+        className={`md:hidden fixed inset-y-0 start-0 z-[60] flex w-[19rem] max-w-[85vw] flex-col border-e border-border bg-surface transition-[transform,visibility] duration-200 ease-in-out ${
           isOpen ? 'visible translate-x-0' : isRTL ? 'invisible translate-x-full' : 'invisible -translate-x-full'
         }`}
       >

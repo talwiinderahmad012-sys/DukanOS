@@ -6,6 +6,7 @@ import { Store, User, Building, Lock } from 'lucide-react';
 import { registerAndSignInAction } from '@/app/actions/auth.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { Select } from '@/components/ui/select';
+import { SiteHeader } from '@/components/layout/site-header';
 
 export default function RegisterPage() {
   const { t, tm, language, setLanguage } = useTranslation();
@@ -56,7 +57,12 @@ export default function RegisterPage() {
     }`;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 py-12">
+    <div className="flex min-h-screen flex-col bg-gray-50">
+      {/* Sticky brand bar — the in-card EN/اردو switcher below is kept as-is,
+          so the header only carries the theme control. */}
+      <SiteHeader showLanguageToggle={false} />
+
+      <div className="flex flex-1 items-center justify-center p-4 py-12">
       <div className="relative max-w-2xl w-full bg-white rounded-xl shadow-sm border border-gray-100 p-8">
         <div
           className="absolute top-4 end-4 flex items-center gap-1.5"
@@ -213,6 +219,7 @@ export default function RegisterPage() {
             {t('auth.signInLink')}
           </Link>
         </p>
+      </div>
       </div>
     </div>
   );

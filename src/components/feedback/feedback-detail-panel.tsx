@@ -99,7 +99,7 @@ export function FeedbackDetailPanel({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/50" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex justify-end bg-black/50" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"

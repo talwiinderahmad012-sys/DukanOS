@@ -146,28 +146,9 @@ export function PWAProvider({
         promptInstall,
       }}
     >
-      {/* Global Connection Warning Banner */}
-      {networkStatus === 'OFFLINE' && (
-        <div className="bg-amber-500 text-amber-950 px-4 py-2 text-xs font-semibold flex items-center justify-between shadow-xs sticky top-0 z-50">
-          <div className="flex items-center gap-2 max-w-4xl mx-auto w-full">
-            <WifiOff className="w-4 h-4 shrink-0 text-amber-900" />
-            <span>
-              <strong>{t('ui.offlineTitle')}</strong> {t('ui.offlineMessage')}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {networkStatus === 'RECONNECTING' && (
-        <div className="bg-primary text-on-primary px-4 py-2 text-xs font-semibold flex items-center justify-center gap-2 shadow-xs sticky top-0 z-50 animate-pulse">
-          <RefreshCw className="w-4 h-4 animate-spin" />
-          <span>{t('ui.reconnectingMessage')}</span>
-        </div>
-      )}
-
       {/* PWA Install Promotion Banner */}
       {showInstallBanner && (
-        <div className="fixed bottom-4 end-4 z-50 bg-white border border-blue-200 rounded-3xl p-4 shadow-2xl max-w-sm flex items-center justify-between gap-3 animate-in slide-in-from-bottom-5">
+        <div className="fixed bottom-4 end-4 z-[70] bg-white border border-blue-200 rounded-3xl p-4 shadow-2xl max-w-sm flex items-center justify-between gap-3 animate-in slide-in-from-bottom-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-primary text-on-primary flex items-center justify-center shrink-0 shadow-xs font-bold text-base">
               D
@@ -199,7 +180,7 @@ export function PWAProvider({
 
       {/* iOS Safari Add-To-Home-Screen Hint */}
       {showIosHint && (
-        <div className="fixed bottom-4 start-4 end-4 z-50 bg-gray-900 text-white rounded-2xl p-3.5 shadow-2xl max-w-md mx-auto flex items-center justify-between gap-3 text-xs">
+        <div className="fixed bottom-4 start-4 end-4 z-[70] bg-gray-900 text-white rounded-2xl p-3.5 shadow-2xl max-w-md mx-auto flex items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2.5">
             <Share className="w-5 h-5 text-blue-400 shrink-0" />
             <p className="text-[11px] text-gray-200 leading-snug">
@@ -220,9 +201,65 @@ export function PWAProvider({
         </div>
       )}
 
-      {children}
+      {/*
+       * App shell column. `min-h-[100dvh]` (not `h-…`) keeps PUBLIC routes on
+       * the natural document scroller — their headers are `sticky top-0`
+       * against the document and must keep working that way.
+       *
+       * Dashboard routes give this column a definite height themselves (see
+       * `src/app/dashboard/layout.tsx`), which is what makes the inner
+       * `overflow-y-auto` page container the real scroller there.
+       */}
+      <div className="flex min-h-[100dvh] flex-col">
+        {/* Flex child that owns the remaining viewport height. */}
+        <div className="flex min-h-0 grow flex-col">
+          {children}
+        </div>
+      </div>
     </PWAContext.Provider>
   );
+}
+
+/**
+ * Global connection banner (amber OFFLINE / green brand-coloured RECONNECTING).
+ *
+ * This is rendered as the FIRST CHILD of each header's sticky container (see
+ * `docs/STICKY_HEADER.md`), so the banner and the header are pinned as ONE
+ * unit. It deliberately does NOT carry its own `sticky`/`z-index`: if it did,
+ * two independent `sticky top-0` blocks would both resolve to viewport top and
+ * the header would slide underneath the banner and disappear while scrolling.
+ *
+ * Rendering nothing while ONLINE keeps the header height unchanged.
+ */
+export function ConnectionBanner() {
+  const { networkStatus } = usePWA();
+  const { t } = useTranslation();
+
+  if (networkStatus === 'OFFLINE') {
+    return (
+      <div className="shrink-0 bg-amber-500 px-4 py-2 text-xs font-semibold text-amber-950 shadow-xs">
+        <div className="mx-auto flex w-full max-w-4xl items-center gap-2">
+          <WifiOff className="h-4 w-4 shrink-0 text-amber-900" />
+          <span>
+            <strong>{t('ui.offlineTitle')}</strong> {t('ui.offlineMessage')}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (networkStatus === 'RECONNECTING') {
+    return (
+      <div className="shrink-0 bg-primary px-4 py-2 text-xs font-semibold text-on-primary shadow-xs animate-pulse">
+        <div className="flex items-center justify-center gap-2">
+          <RefreshCw className="h-4 w-4 animate-spin" />
+          <span>{t('ui.reconnectingMessage')}</span>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 export function NetworkStatusBadge() {

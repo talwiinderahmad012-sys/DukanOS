@@ -1,129 +1,103 @@
-# DukaanOS — Auth Login Troubleshooting & One-Command Recovery
+# DukaanOS — Auth & Login Troubleshooting
 
-**Symptom:** `Invalid email or password` every time you reboot Windows and try to
-log in with `ahmad`.
+Symptom: `Invalid email or password` on login.
 
-Stack: Next.js 16 · Auth.js v5 (next-auth beta) · Prisma 7 · PostgreSQL 16 (native, Windows service).
+Stack: Next.js 16 · Auth.js v5 (next-auth beta) · Prisma 7 · PostgreSQL 16.
 
 ---
 
-## 0. The ONE-COMMAND fix (run as Administrator, from project root)
+## 1. What "Invalid email or password" means
+
+The Credentials provider `authorize()` returns `null` (which Auth.js maps to this
+message) only when:
+
+- no user matches the identifier (case-insensitive), or
+- the user row has no password (social/imported account), or
+- the bcrypt password comparison fails.
+
+Database/connection failures are *never* reported as "Invalid email or password".
+If PostgreSQL is unreachable the login page shows the dedicated
+"service unavailable" message (`auth.serviceUnavailable`), which distinguishes an
+infrastructure problem from bad credentials.
+
+---
+
+## 2. Supported login identifiers
+
+A single canonical field `identifier` accepts BOTH:
+
+- an email address, or
+- a username.
+
+Matching is case-insensitive and the identifier is trimmed before lookup.
+The form label is "Email or Username" (`auth.identifierLabel`) but the backend
+only ever reads `identifier` — there is no separate `email`/`username` credential
+field (no conflicting names). See `src/lib/auth/auth.ts`.
+
+---
+
+## 3. Safe diagnosis (no debug logs)
+
+Temporary `[AUTH-DEBUG]` console logging has been removed. Use the safe, automated
+checkers instead — they never print passwords, hashes, cookies, or connection
+strings:
+
+```bash
+npm run test:db       # PostgreSQL availability (DB health gate)
+npm run test:auth     # full authorized-flow regression suite
+npm run test:qa       # whole-app QA orchestration
+```
+
+If PostgreSQL is down, the suites report `BLOCKED — DATABASE UNAVAILABLE`
+(infrastructure), not a code failure.
+
+### Manual checks (safe)
 
 ```powershell
-pwsh scripts/fix-auth-everything.ps1
+Get-Service -Name *postgres*     # Status should be Running, StartType Automatic
+pg_isready -h localhost -p 5432  # "accepting connections"
+$env:AUTH_SECRET.Length          # must be >= 32 and identical in .env/.env.local
 ```
 
-This single script: starts PostgreSQL + sets it to auto-start, ensures a **stable**
-`AUTH_SECRET`, regenerates the Prisma client, applies migrations, and creates/repairs
-the `ahmad` account with password `password123`.
-
-After it finishes, **restart the dev server** (`Ctrl+C` then `npm run dev`) and log in.
+Never print `.env`/`.env.local` values to logs, terminals you do not control, or
+screenshots: they contain secrets.
 
 ---
 
-## 1. What was actually wrong
+## 4. Correct recovery steps
 
-The error `Invalid email or password` is returned by the **Credentials provider**
-`authorize()` when it returns `null` — i.e. the user row is missing / has no password /
-or the password does not match. It is **not** the "database unavailable" path (that
-shows a different message). That tells us:
-
-- ✅ The DB connection itself works (so `DATABASE_URL` is fine — keep the `postgres:ahmad` password).
-- ❌ The most likely real causes are: (a) PostgreSQL not running after reboot, and
-  (b) the `ahmad` account missing or with the wrong password.
-
-Two things were already correct and were left alone:
-- `AUTH_SECRET` is a **fixed** value in `.env` (it does **not** regenerate on restart).
-- `session.strategy = "jwt"` with `maxAge = 30 days` (sessions survive restarts).
-
-> NOTE: The local `DATABASE_URL` password is `ahmad`, **not** `postgres`. Do not
-> "fix" it to `postgres:postgres` — that would break the connection. (The Docker
-> Compose DB uses `postgres:postgres`; the native Windows service uses `ahmad`.)
+1. **PostgreSQL isn’t running** → `pwsh scripts/start-postgresql.ps1` (Admin).
+2. **Database reachable but login still fails** → verify the account exists and its
+   password is correct by attempting a password reset, or register a fresh account
+   (`/register`). Registration uses bcrypt (cost 10) and stores only the hash.
+3. **Session lost after restart** → `AUTH_SECRET` must be stable.
+   `session.strategy = "jwt"` (30-day maxAge) means sessions survive restarts as
+   long as the secret never changes. Changing `AUTH_SECRET` invalidates all sessions
+   once — keep it stable.
+4. **Prisma client missing** → `npm run prisma:generate` (also runs on
+   `postinstall`). `npm run build` does not need to regenerate; generation is
+   deterministic and incremental.
 
 ---
 
-## 2. Manual diagnostic checklist
+## 5. Automated registration
 
-### 2.1 PostgreSQL running + auto-start
-```powershell
-pwsh scripts/start-postgresql.ps1
-# or manually:
-Get-Service -Name *postgres*          # should be Status=Running, StartType=Automatic
-pg_isready -h localhost -p 5432       # should print "accepting connections"
-```
+Registration runs inside one server action (`registerAndSignInAction`): it creates
+user + business + branch + OWNER membership inside a single Prisma transaction,
+then performs a server-side credentials sign-in. A successfully registered user
+enters the dashboard immediately without a second manual login.
 
-### 2.2 Env vars loaded
-```bash
-cat .env.local      # AUTH_SECRET + DATABASE_URL must be present
-cat .env            # fallback source
-```
-Next.js loads `.env.local` (highest priority) and `.env`. Prisma CLI loads `.env`
-(and now `.env.local` too — see `prisma.config.ts`).
-
-### 2.3 AUTH_SECRET stable across restarts
-AUTH_SECRET is a hardcoded string in `.env`/`.env.local`. It never changes between
-boots. To confirm it did not change: compare the value before/after a reboot — it will
-be identical. If you ever regenerate it, **all existing sessions are invalidated once**
-(users must re-log-in), then it stays stable.
-
-### 2.4 User exists
-```bash
-npx tsx scripts/show-credentials.ts
-# or
-npx tsx scripts/bootstrap-ahmad-user.ts   # creates ahmad/password123 if missing
-```
-
-### 2.5 Prisma client generated
-```bash
-npx prisma generate
-npx prisma validate
-```
+Duplicates (email or username) are rejected case-insensitively, and database
+outages surface as a temporary-unavailable message — never a fabricated failure.
 
 ---
 
-## 3. Debug logging (added temporarily)
+## 6. Still failing?
 
-To see exactly where auth fails, these temporary logs were added (remove after fixing):
-
-- `src/app/(auth)/login/page.tsx` — logs submitted `identifier`, and the `signIn()`
-  result (`error`/`status`/`url`).
-- `src/lib/auth/auth.ts` — logs inside `authorize()`: the `identifier`, whether a user
-  was found and has a password, and the `bcrypt.compare` result (`isValid`).
-
-Open the browser DevTools console and the Next.js server terminal; search for
-`[AUTH-DEBUG]`.
-
----
-
-## 4. Credentials you can log in with
-
-```
-username : ahmad
-email    : ahmad@test.com
-password : password123
-```
-
----
-
-## 5. Scripts reference
-
-| Script | Purpose |
-|--------|---------|
-| `scripts/start-postgresql.ps1` | Start PostgreSQL + set auto-start (Admin) |
-| `scripts/bootstrap-ahmad-user.ts` | Create/repair `ahmad` (password123) |
-| `scripts/fix-auth-everything.ps1` | Run all fixes in one command (Admin) |
-| `scripts/verify-setup.sh` | Health check: PG up, ahmad exists, secret stable, client generated |
-| `scripts/test-auth-persistence.ts` | Verifies login works + session survives restart |
-| `scripts/show-credentials.ts` | Print all users + test credentials |
-
----
-
-## 6. If it STILL fails after the one-command fix
-
-1. Open DevTools console on the login page — note the `[AUTH-DEBUG]` line:
-   - `user lookup { found: false }` → DB has no `ahmad`; re-run bootstrap.
-   - `user lookup { found: true, hasPassword: false }` → password column empty; re-run bootstrap.
-   - `password compare { isValid: false }` → wrong password; re-run bootstrap.
-   - `authorize() ... hasSecret: false` → `AUTH_SECRET` not loaded; check `.env.local`.
-2. Confirm PostgreSQL is actually up: `pg_isready -h localhost -p 5432`.
-3. Restart the dev server so it picks up the new `.env.local`.
+1. Confirm `npm run test:db` reports `DATABASE_AVAILABLE`.
+2. Confirm `npm run test:auth` passes (it exercises email login, username login,
+   case/trim normalization, wrong-password rejection, registration, and DB-down
+   behaviour using isolated throwaway rows only).
+3. Restart the dev server so any `.env.local` changes are picked up.
+4. If everything passes but the browser is stale, hard-refresh once
+   (`Ctrl+Shift+R`); the app itself is deterministic about field names and keys.

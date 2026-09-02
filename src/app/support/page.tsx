@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ArrowLeft, HelpCircle, BookOpen, MessageSquare, Zap, CheckCircle2 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { ConnectionBanner } from '@/components/pwa/pwa-provider';
 
 export default function SupportPage() {
   const { t } = useTranslation();
@@ -18,7 +19,8 @@ export default function SupportPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white">
+        <ConnectionBanner />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
             <ArrowLeft className="w-4 h-4 rtl-flip" />

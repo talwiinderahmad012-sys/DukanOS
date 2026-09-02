@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
+import { ConnectionBanner } from '@/components/pwa/pwa-provider';
 import {
   ArrowUpRight,
   BarChart3,
@@ -225,8 +226,10 @@ function Sidebar() {
 
 function Topbar({ dark, onToggle }: { dark: boolean; onToggle: () => void }) {
   return (
-    <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-lk-border bg-lk-background/90 px-6 py-3 backdrop-blur">
-      <div className="relative w-full max-w-xs">
+    <header className="sticky top-0 z-50 flex flex-col border-b border-lk-border bg-lk-background">
+      <ConnectionBanner />
+      <div className="flex items-center gap-3 px-6 py-3">
+        <div className="relative w-full max-w-xs">
         <Search
           className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-lk-muted-foreground"
           aria-hidden="true"
@@ -246,6 +249,7 @@ function Topbar({ dark, onToggle }: { dark: boolean; onToggle: () => void }) {
           New sale
         </LkButton>
         <LkAvatar initials="AK" className="ml-1" />
+      </div>
       </div>
     </header>
   );
