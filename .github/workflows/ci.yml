@@ -20,17 +20,15 @@ env:
   # Node
   CI: 'true'
   NEXT_TELEMETRY_DISABLED: '1'
+  NODE_ENV: 'test'
   # Ephemeral PostgreSQL connection string used by Prisma + tests.
   # 127.0.0.1 is more reliable than "localhost" in CI networking.
   DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/dukaanos?schema=public
-  # Non-secret CI placeholders. For anything real, move to
-  # Settings -> Secrets and reference as ${{ secrets.AUTH_SECRET }} etc.
-  AUTH_SECRET: ci-placeholder-secret-not-for-production
-  NEXTAUTH_SECRET: ci-placeholder-secret-not-for-production
+  # Self-contained, throwaway non-secret placeholders. AUTH_SECRET / CRON_SECRET
+  # are generated at runtime (below) so the workflow needs ZERO repo secrets.
   NEXTAUTH_URL: http://localhost:3000
   APP_URL: http://localhost:3000
   NEXT_PUBLIC_APP_URL: http://localhost:3000
-  CRON_SECRET: ci-placeholder-cron-secret-not-for-production
   VAPID_SUBJECT: mailto:ci@example.com
 
 jobs:
@@ -81,6 +79,17 @@ jobs:
         # npm ci fails if package.json and package-lock.json are out of sync.
         # If this step fails, run `npm install` locally and commit the lockfile.
 
+      # --- Generate throwaway, self-contained secrets so the workflow needs
+      # ZERO repo secrets. These are written to $GITHUB_ENV and visible to every
+      # subsequent step. Never used for anything real.
+      - name: Generate throwaway CI secrets
+        run: |
+          set -euo pipefail
+          echo "AUTH_SECRET=$(openssl rand -base64 32)"        >> "$GITHUB_ENV"
+          echo "NEXTAUTH_SECRET=$(openssl rand -base64 32)"    >> "$GITHUB_ENV"
+          echo "CRON_SECRET=$(openssl rand -base64 32)"        >> "$GITHUB_ENV"
+          echo "Generated dummy AUTH_SECRET / NEXTAUTH_SECRET / CRON_SECRET for this run."
+
       # --- The #1 classic CI failure: the job starts before Postgres is ready.
       # GitHub does NOT wait for the healthcheck; we poll an actual connection.
       - name: Wait for PostgreSQL to be ready
@@ -120,11 +129,16 @@ jobs:
           set -euo pipefail
           npm run lint || { echo "::error::ESLint reported errors"; exit 1; }
 
-      # --- DB-dependent steps. Migrations must be applied before tests run.
+      # --- DB-dependent steps. Migrations must be applied before seed/test run.
       - name: Apply database migrations
         run: |
           set -euo pipefail
           npm run prisma:migrate:deploy || { echo "::error::prisma migrate deploy failed - migrations may be out of sync"; exit 1; }
+
+      - name: Seed database (idempotent)
+        run: |
+          set -euo pipefail
+          npx prisma db seed || { echo "::error::prisma db seed failed"; exit 1; }
 
       - name: Run tests
         run: |

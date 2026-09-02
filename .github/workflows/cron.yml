@@ -1,12 +1,40 @@
 name: Cron Maintenance
 
+# =============================================================================
+# PRE-LAUNCH MODE — this workflow is intentionally DORMANT.
+#
+# ROOT CAUSE OF THE RED-X FLOOD:
+#   The old workflow had `schedule: '*/15 * * * *'` and ran
+#       curl -fsSL -X POST "https://${{ secrets.APP_URL }}/api/cron" \
+#            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+#   on every tick. Those secrets (APP_URL, CRON_SECRET) live ONLY in your local
+#   .env.local — they are NOT configured in GitHub (Settings > Secrets is empty)
+#   and the app is NOT deployed yet. So the URL expanded to "https:///api/cron"
+#   and the curl failed -> every one of the ~125 Cron Maintenance runs went red.
+#
+# FIX:
+#   * The `schedule:` trigger is REMOVED so nothing auto-fires anymore.
+#   * The job is gated with `if: ${{ vars.CRON_ENABLED == 'true' }}` so that even
+#     a manual dispatch skips cleanly (grey/skipped, never red) until configured.
+#
+# HOW TO ENABLE AFTER LAUNCH (no code change needed):
+#   1. Deploy the app so it has a public URL.
+#   2. In repo Settings > Secrets and variables > Actions:
+#        - Repository variable : CRON_ENABLED = true
+#        - Repository secret   : CRON_SECRET  (= the value the app expects)
+#        - Repository secret   : APP_URL      (= https://your-production-domain)
+#   3. (Optional) Re-add a `schedule:` block below if you want it to run
+#      automatically instead of only on manual dispatch.
+# Until then: zero scheduled runs, zero red X's.
+# =============================================================================
+
 on:
-  schedule:
-    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 jobs:
   cron:
+    # Skips cleanly (never red) until CRON_ENABLED is set to 'true' after launch.
+    if: ${{ vars.CRON_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
