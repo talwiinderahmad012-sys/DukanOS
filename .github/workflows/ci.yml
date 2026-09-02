@@ -20,7 +20,6 @@ env:
   # Node
   CI: 'true'
   NEXT_TELEMETRY_DISABLED: '1'
-  NODE_ENV: 'test'
   # Ephemeral PostgreSQL connection string used by Prisma + tests.
   # 127.0.0.1 is more reliable than "localhost" in CI networking.
   DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/dukaanos?schema=public
