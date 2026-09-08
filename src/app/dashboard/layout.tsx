@@ -7,7 +7,9 @@ import { SidebarBackButton } from '@/components/layout/sidebar-back-button';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { DashboardNavSections } from '@/components/layout/nav-sections';
 import { DashboardHeader } from '@/components/layout/dashboard-header';
+import { PageTransition } from '@/components/layout/page-transition';
 import LiveAnalyticsRefresher from '@/components/analytics/live-analytics-refresher';
+import { AmbientBlobs } from '@/components/ui/AmbientBlobs';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   // Canonical active-business resolution (auth + membership lookup + active
@@ -56,6 +58,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
      */
     <div className="flex h-[100dvh] min-h-0 grow flex-col bg-page transition-colors duration-200 md:flex-row md:pl-64">
 
+      {/* Ambient colourful blobs — z-0, fixed, behind all chrome */}
+      <AmbientBlobs />
+
       {/* Mobile Header & Nav */}
       <MobileNav
         businessName={activeBusiness.name}
@@ -66,8 +71,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
         logoutAction={logoutAction}
       />
 
-      {/* Sidebar (Desktop) */}
-      <aside className="hidden md:fixed md:top-0 md:left-0 md:flex md:h-[100dvh] w-64 shrink-0 flex-col border-e border-border bg-surface">
+      {/* Sidebar (Desktop) — glass-strong over the ambient blobs */}
+      <aside className="hidden md:fixed md:top-0 md:left-0 md:flex md:h-[100dvh] w-64 shrink-0 flex-col glass-strong border-e border-white/30 dark:border-white/10 z-40">
         {/* Business context */}
         <SidebarBusinessHeader businessName={activeBusiness.name} role={activeMembership.role} />
 
@@ -86,13 +91,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
         The header is a SIBLING of that scroller, so it is pinned by layout
         alone; `sticky top-0` on the header is a safety net that costs nothing.
       */}
-      <main className="flex-1 flex flex-col min-h-0 max-w-full overflow-hidden">
-        {/* Top Header */}
+      <main className="flex-1 flex flex-col min-h-0 max-w-full overflow-hidden relative z-10">
+        {/* Top Header — glass over blobs */}
         <DashboardHeader userName={userLabel} businessId={activeBusiness.id} role={activeMembership.role} logoutAction={logoutAction} />
 
         {/* Page Content (the only scroller on dashboard routes) */}
         <div className="flex-1 p-4 md:p-8 overflow-y-auto overscroll-contain">
-          {children}
+          <PageTransition>
+            {children}
+          </PageTransition>
           <LiveAnalyticsRefresher />
         </div>
       </main>

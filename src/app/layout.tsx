@@ -8,6 +8,8 @@ import { LANGUAGE_COOKIE_KEY } from "@/lib/i18n/constants";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { NavigationHistoryProvider } from "@/lib/navigation/navigation-history";
 
+import { Providers } from "@/components/providers";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -90,11 +92,13 @@ export default async function RootLayout({
       >
         <ThemeProvider>
           <LanguageProvider initialLanguage={isUrdu ? 'UR' : 'EN'}>
-            <PWAProvider>
-              <NavigationHistoryProvider>
-                {children}
-              </NavigationHistoryProvider>
-            </PWAProvider>
+            <Providers>
+              <PWAProvider>
+                <NavigationHistoryProvider>
+                  {children}
+                </NavigationHistoryProvider>
+              </PWAProvider>
+            </Providers>
           </LanguageProvider>
         </ThemeProvider>
       </body>

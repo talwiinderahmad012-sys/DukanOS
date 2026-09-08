@@ -9,6 +9,7 @@ import { NotificationBell } from '@/components/notifications/notification-bell';
 import { LanguageToggle } from '@/components/layout/language-toggle';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { useRoleLabel } from '@/components/layout/sidebar-business-header';
+import { SoundsToggle } from '@/components/ui/SoundsToggle';
 
 export function DashboardHeader({
   userName,
@@ -57,7 +58,7 @@ export function DashboardHeader({
    * it to scroll away. See docs/STICKY_HEADER.md.
    */
   return (
-    <header className="sticky top-0 z-50 hidden w-full shrink-0 flex-col border-b border-border bg-surface md:flex">
+    <header className="sticky top-0 z-50 hidden w-full shrink-0 flex-col glass-strong border-b border-white/30 dark:border-white/10 md:flex">
       <ConnectionBanner />
       <div className="flex h-16 w-full items-center justify-between px-6">
         <div className="flex items-center gap-3">
@@ -66,6 +67,7 @@ export function DashboardHeader({
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
+          <SoundsToggle />
           <LanguageToggle />
           <NotificationBell businessId={businessId} />
           <Link
@@ -90,7 +92,7 @@ export function DashboardHeader({
 
             {isOpen && (
               <div
-                className="absolute end-0 mt-2 w-56 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-lg z-50 overflow-hidden animate-in fade-in zoom-in-95"
+                className="absolute end-0 mt-2 w-56 glass-strong rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95"
                 role="menu"
               >
                 <div className="px-3 py-3 border-b border-gray-100 dark:border-gray-800">

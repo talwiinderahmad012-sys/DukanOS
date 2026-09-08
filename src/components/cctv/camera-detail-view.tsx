@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { checkCameraHealthAction, archiveCameraAction } from '@/app/actions/cctv.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { toast } from 'sonner';
 
 export type CameraDetailItem = {
   id: string;
@@ -127,10 +128,11 @@ export function CameraDetailView({
     setArchiving(true);
     const res = await archiveCameraAction(businessId, camera.id);
     if (res.success) {
+      toast.success(t('cctv.cameraArchived') || 'Camera archived successfully');
       router.push('/dashboard/cameras');
       router.refresh();
     } else {
-      alert(tm(res.message) || t('cctv.archiveFailed'));
+      toast.error(tm(res.message) || t('cctv.archiveFailed'));
       setArchiving(false);
     }
   };

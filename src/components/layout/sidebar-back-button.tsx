@@ -38,7 +38,7 @@ export function SidebarBackButton({ className, onNavigate }: SidebarBackButtonPr
         onClick={handleClick}
         title={tooltip}
         aria-label={tooltip}
-        className="group flex w-full items-center gap-2.5 rounded-lg border border-border/70 bg-surface px-3 py-2 text-xs font-semibold text-gray-700 shadow-xs transition-all hover:border-gray-300 hover:bg-gray-100 hover:text-gray-900 active:scale-[0.98] dark:border-gray-800 dark:bg-gray-900/60 dark:text-gray-300 dark:hover:border-gray-700 dark:hover:bg-gray-800 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer"
+        className="group flex w-full items-center gap-2.5 rounded-xl border border-white/40 bg-white/30 dark:border-white/10 dark:bg-white/5 px-3 py-2 text-xs font-semibold text-gray-700 shadow-xs backdrop-blur-sm transition-all hover:bg-white/50 dark:hover:bg-white/10 hover:text-gray-900 active:scale-[0.98] dark:text-gray-300 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer"
       >
         <Icon
           className="h-4 w-4 shrink-0 text-gray-500 transition-transform group-hover:-translate-x-0.5 rtl:group-hover:translate-x-0.5 dark:text-gray-400 dark:group-hover:text-white"

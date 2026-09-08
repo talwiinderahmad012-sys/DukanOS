@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Clock, CheckCircle2, ShieldCheck, AlertOctagon } from 'lucide-react';
 import { resolveComplaintAction } from '@/app/actions/employee.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { toast } from 'sonner';
 
 const CATEGORY_KEY: Record<string, string> = {
   WORKPLACE: 'employees.categoryWorkplace',
@@ -57,9 +58,10 @@ export function ComplaintsBoard({
 
     setLoadingId(null);
     if (res.success) {
+      toast.success(t('employees.complaintUpdated') || 'Complaint status updated');
       router.refresh();
     } else {
-      alert(tm(res.message) || t('employees.failedToUpdateComplaint'));
+      toast.error(tm(res.message) || t('employees.failedToUpdateComplaint'));
     }
   };
 

@@ -27,6 +27,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge, badgeClasses, type BadgeTone } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
 import { buttonClasses } from '@/components/ui/button';
+import { AnimatedNumber } from '@/components/ui/animated-number';
+import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/components/ui/cn';
 import { useTranslation } from '@/lib/i18n/language-context';
 
@@ -127,34 +129,50 @@ function SectionHeader({
 function Kpi({
   label,
   value,
+  numericValue,
+  formatter,
   sub,
   icon: Icon,
   accent,
   valueClass,
 }: {
   label: string;
-  value: string;
+  value?: string;
+  numericValue?: number;
+  formatter?: (val: number) => string;
   sub?: string;
   icon: LucideIcon;
   accent: string;
   valueClass?: string;
 }) {
+  const shouldReduceMotion = useReducedMotion();
+
   return (
-    <div className="flex flex-col gap-3 bg-surface p-5">
+    <motion.div
+      whileHover={shouldReduceMotion ? undefined : { y: -4, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.08)' }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+      className="flex flex-col gap-3 bg-surface p-5 transition-all duration-200 cursor-default"
+    >
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted">{label}</p>
         <span
-          className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', accent)}
+          className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-transform hover:scale-110', accent)}
           aria-hidden="true"
         >
           <Icon className="h-4 w-4" />
         </span>
       </div>
       <div>
-        <p className={cn('text-2xl font-bold leading-tight text-gray-900', valueClass)}>{value}</p>
+        <div className={cn('text-2xl font-bold leading-tight text-gray-900 dark:text-slate-100', valueClass)}>
+          {numericValue !== undefined ? (
+            <AnimatedNumber value={numericValue} formatter={formatter} duration={1} />
+          ) : (
+            value
+          )}
+        </div>
         {sub && <p className="mt-1 text-xs text-muted">{sub}</p>}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -260,14 +278,16 @@ export function DashboardPageClient({
         <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
           <Kpi
             label={t('overview.todaySales')}
-            value={money(todaySalesTotal)}
+            numericValue={todaySalesTotal}
+            formatter={money}
             sub={t(todaySalesCount === 1 ? 'overview.ordersProcessedOne' : 'overview.ordersProcessedOther', { count: todaySalesCount })}
             icon={ShoppingCart}
             accent="bg-primary-soft text-primary"
           />
           <Kpi
             label={t('overview.todayProfit')}
-            value={money(todayProfitTotal)}
+            numericValue={todayProfitTotal}
+            formatter={money}
             sub={
               todaySalesTotal > 0
                 ? t('overview.realizedMargin', { margin: ((todayProfitTotal / todaySalesTotal) * 100).toFixed(1) })
@@ -279,7 +299,8 @@ export function DashboardPageClient({
           />
           <Kpi
             label={t('overview.outstandingUdhaar')}
-            value={money(totalUdhaar)}
+            numericValue={totalUdhaar}
+            formatter={money}
             sub={
               totalUdhaar > 0
                 ? t(activeCustomerCount === 1 ? 'overview.acrossCustomersOne' : 'overview.acrossCustomersOther', { count: activeCustomerCount })
@@ -291,7 +312,7 @@ export function DashboardPageClient({
           />
           <Kpi
             label={t('overview.stockAlerts')}
-            value={String(attentionCount)}
+            numericValue={attentionCount}
             sub={
               attentionCount > 0
                 ? t('overview.stockAlertsBreakdown', { out: outOfStockCount, low: lowStockCount })
@@ -539,11 +560,11 @@ export function DashboardPageClient({
                 <li key={action.href}>
                   <Link
                     href={action.href}
-                    className="flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                    className="group flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-slate-200 transition-all duration-150 hover:bg-gray-50/80 dark:hover:bg-slate-800/80 hover:text-gray-900 dark:hover:text-white hover:translate-x-1 rtl:hover:-translate-x-1"
                   >
-                    <action.icon className="h-5 w-5 text-primary" aria-hidden="true" />
+                    <action.icon className="h-5 w-5 text-primary transition-transform duration-150 group-hover:scale-110" aria-hidden="true" />
                     {action.label}
-                    <ArrowUpRight className="ms-auto h-3.5 w-3.5 rtl-flip text-gray-400" aria-hidden="true" />
+                    <ArrowUpRight className="ms-auto h-3.5 w-3.5 rtl-flip text-gray-400 group-hover:text-primary transition-colors" aria-hidden="true" />
                   </Link>
                 </li>
               ))}

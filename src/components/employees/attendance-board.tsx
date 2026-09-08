@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { CheckCircle2, AlertCircle, Clock, Calendar, Check, X } from 'lucide-react';
 import { recordAttendanceAction } from '@/app/actions/employee.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { toast } from 'sonner';
 
 type AttendanceStatusOption = 'PRESENT' | 'ABSENT' | 'LATE' | 'HALF_DAY' | 'LEAVE' | 'OFF_DAY';
 
@@ -40,9 +41,10 @@ export function AttendanceBoard({
 
     setLoadingId(null);
     if (res.success) {
+      toast.success(t('employees.attendanceRecorded') || 'Attendance updated successfully');
       router.refresh();
     } else {
-      alert(tm(res.message) || t('employees.failedToRecordAttendance'));
+      toast.error(tm(res.message) || t('employees.failedToRecordAttendance'));
     }
   };
 

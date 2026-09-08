@@ -17,6 +17,7 @@ import {
   Power
 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { toast } from 'sonner';
 import { createBranchAction, updateBranchAction, deactivateBranchAction, reactivateBranchAction } from '@/app/actions/settings.actions';
 
 const STATUS_KEYS: Record<string, string> = {
@@ -109,7 +110,7 @@ export function BranchesView({
 
   const handleDeactivate = async (branch: any) => {
     if (activeBranchCount <= 1) {
-      alert(t('settingsAdmin.branches.cannotDeactivateLast'));
+      toast.error(t('settingsAdmin.branches.cannotDeactivateLast'));
       return;
     }
     if (!confirm(t('settingsAdmin.branches.deactivateConfirm', { name: branch.name }))) return;

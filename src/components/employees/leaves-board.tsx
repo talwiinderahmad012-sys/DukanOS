@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Check, X, Calendar, Clock, AlertCircle } from 'lucide-react';
 import { reviewLeaveAction } from '@/app/actions/employee.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { toast } from 'sonner';
 
 const LEAVE_TYPE_KEY: Record<string, string> = {
   CASUAL: 'employees.casualLeave',
@@ -51,9 +52,10 @@ export function LeavesBoard({
 
     setLoadingId(null);
     if (res.success) {
+      toast.success(status === 'APPROVED' ? (t('employees.leaveApproved') || 'Leave approved') : (t('employees.leaveRejected') || 'Leave rejected'));
       router.refresh();
     } else {
-      alert(tm(res.message) || (status === 'APPROVED' ? t('employees.failedToApproveLeave') : t('employees.failedToRejectLeave')));
+      toast.error(tm(res.message) || (status === 'APPROVED' ? t('employees.failedToApproveLeave') : t('employees.failedToRejectLeave')));
     }
   };
 

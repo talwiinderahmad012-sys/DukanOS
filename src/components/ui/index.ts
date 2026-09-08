@@ -36,7 +36,14 @@ export {
 } from './input';
 export { Alert, type AlertProps, type AlertTone } from './alert';
 export { EmptyState, type EmptyStateProps } from './empty-state';
-export { Skeleton, SkeletonText } from './skeleton';
+export {
+  Skeleton,
+  SkeletonText,
+  SkeletonCard,
+  SkeletonTable,
+  SkeletonStat,
+  SkeletonChart,
+} from './skeleton';
 export { DialogFooter, Modal, type DialogFooterProps, type ModalProps, type ModalSize } from './modal';
 export {
   Table,
@@ -49,3 +56,18 @@ export {
   type TableEmptyProps,
   type TrProps,
 } from './table';
+export { AnimatedNumber, type AnimatedNumberProps } from './animated-number';
+export {
+  FadeIn,
+  SlideUp,
+  ScaleIn,
+  SlideHorizontal,
+  StaggerChildren,
+  Shake,
+  SpringCheckmark,
+  FloatingIcon,
+} from './motion';
+export { GlassCard } from './GlassCard';
+export { GlassPanel } from './GlassPanel';
+export { AmbientBlobs } from './AmbientBlobs';
+

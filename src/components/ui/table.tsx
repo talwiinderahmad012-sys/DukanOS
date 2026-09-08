@@ -25,14 +25,16 @@ export function Th({ className, ...props }: ComponentProps<'th'>) {
 
 export interface TrProps extends ComponentProps<'tr'> {
   selected?: boolean;
+  interactive?: boolean;
 }
 
-export function Tr({ selected = false, className, ...props }: TrProps) {
+export function Tr({ selected = false, interactive = true, className, ...props }: TrProps) {
   return (
     <tr
       className={cn(
-        'border-b border-gray-100 transition-colors hover:bg-gray-50/60',
-        selected && 'bg-primary-soft/50 hover:bg-primary-soft/60',
+        'border-b border-border/60 transition-all duration-200',
+        interactive && 'hover:bg-gray-50/90 dark:hover:bg-slate-800/80',
+        selected && 'bg-primary-soft/50 hover:bg-primary-soft/70',
         className,
       )}
       {...props}
