@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Apple Liquid Glass Design System & Micro-Interactions**:
+  - Full-screen animated `AuroraBackground` with GPU-composited morphing gradient blobs (lime green, cyan-teal, soft violet, warm amber) and micro-noise grain texture.
+  - Frosted glass component wrappers (`GlassCard`, `GlassPanel`) and CSS utility classes (`.glass`, `.glass-strong`, `.glass-panel`, `.glass-section`).
+  - Interactive `TiltCard` with 3D cursor-tracking tilt, specular glare highlight reflection, gradient border hover glow, and ripple touch feedback.
+  - Zero-asset Web Audio API sound engine (`sound-engine.ts`) with custom synthesized audio feedback for navigation, clicks, confirmations, theme toggles, and errors.
+  - Global click listener (`GlobalSoundHandler`) executing declarative sound interactions via `data-sound` attributes.
+  - Tactile haptic vibration triggers (`haptics.ts`) for mobile touch devices.
+  - Sound preference controls (`SoundsToggle`) supporting persistent user settings.
+  - Framer Motion spring physics animations, staggered entrance lists, and count-up numeric displays.
+
 ## [1.0.0] - 2026-08-23
 
 ### Added

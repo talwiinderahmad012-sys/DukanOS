@@ -74,6 +74,7 @@ export function DashboardNavSections({
                       href={item.href}
                       aria-current={active ? 'page' : undefined}
                       onClick={onNavigate}
+                      data-sound="nav-click"
                       className={cn(
                         'relative z-10 flex items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-150',
                         touch ? 'py-2.5' : 'py-2',

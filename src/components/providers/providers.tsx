@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 import { MotionConfig } from 'framer-motion';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { IosBannerProvider } from '@/components/notifications/IosBanner';
+import { GlobalSoundHandler } from '@/components/ui/GlobalSoundHandler';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const { language } = useTranslation();
@@ -13,6 +14,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <MotionConfig reducedMotion="user">
       <IosBannerProvider>
+        <GlobalSoundHandler />
         {children}
         <Toaster
           position={isUrdu ? 'top-left' : 'top-right'}
@@ -20,7 +22,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           richColors
           closeButton
           toastOptions={{
-            className: 'rounded-xl shadow-lg border text-sm font-medium',
+            className: 'glass-strong rounded-2xl shadow-xl border text-sm font-medium',
             duration: 3500,
           }}
         />

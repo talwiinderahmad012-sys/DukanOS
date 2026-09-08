@@ -38,6 +38,7 @@ export function SidebarBackButton({ className, onNavigate }: SidebarBackButtonPr
         onClick={handleClick}
         title={tooltip}
         aria-label={tooltip}
+        data-sound="back"
         className="group flex w-full items-center gap-2.5 rounded-xl border border-white/40 bg-white/30 dark:border-white/10 dark:bg-white/5 px-3 py-2 text-xs font-semibold text-gray-700 shadow-xs backdrop-blur-sm transition-all hover:bg-white/50 dark:hover:bg-white/10 hover:text-gray-900 active:scale-[0.98] dark:text-gray-300 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer"
       >
         <Icon

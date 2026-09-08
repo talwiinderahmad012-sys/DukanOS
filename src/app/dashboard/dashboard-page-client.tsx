@@ -23,11 +23,10 @@ import type { LucideIcon } from 'lucide-react';
 import { SimpleBarChart } from '@/components/charts/bar-chart';
 import { HealthGauge } from '@/components/charts/health-gauge';
 import { PageHeader } from '@/components/ui/page-header';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge, badgeClasses, type BadgeTone } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
 import { buttonClasses } from '@/components/ui/button';
-import { AnimatedNumber } from '@/components/ui/animated-number';
+import { TiltCard } from '@/components/ui/TiltCard';
 import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/components/ui/cn';
 import { useTranslation } from '@/lib/i18n/language-context';
@@ -98,6 +97,26 @@ export type DashboardOverviewProps = {
   topDebtors: OverviewDebtor[];
 };
 
+// ── Glass panel wrapper for content sections ──────────────────────────────────
+function GlassSection({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
+      className={cn('glass rounded-2xl overflow-hidden', className)}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 function SectionHeader({
   title,
   description,
@@ -108,71 +127,22 @@ function SectionHeader({
   action?: { href: string; label: string };
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-5 py-4">
+    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/30 dark:border-white/10 px-5 py-4">
       <div>
-        <h2 className="text-base font-bold text-gray-900">{title}</h2>
-        {description && <p className="text-sm text-muted">{description}</p>}
+        <h2 className="text-base font-bold text-gray-900 dark:text-white">{title}</h2>
+        {description && <p className="text-sm text-gray-500 dark:text-slate-400">{description}</p>}
       </div>
       {action && (
         <Link
           href={action.href}
           className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-hover"
+          data-sound="nav-click"
         >
           {action.label}
           <ArrowRight className="h-3.5 w-3.5 rtl-flip" aria-hidden="true" />
         </Link>
       )}
     </div>
-  );
-}
-
-function Kpi({
-  label,
-  value,
-  numericValue,
-  formatter,
-  sub,
-  icon: Icon,
-  accent,
-  valueClass,
-}: {
-  label: string;
-  value?: string;
-  numericValue?: number;
-  formatter?: (val: number) => string;
-  sub?: string;
-  icon: LucideIcon;
-  accent: string;
-  valueClass?: string;
-}) {
-  const shouldReduceMotion = useReducedMotion();
-
-  return (
-    <motion.div
-      whileHover={shouldReduceMotion ? undefined : { y: -4, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.08)' }}
-      transition={{ duration: 0.2, ease: 'easeOut' }}
-      className="flex flex-col gap-3 bg-surface p-5 transition-all duration-200 cursor-default"
-    >
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted">{label}</p>
-        <span
-          className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-transform hover:scale-110', accent)}
-          aria-hidden="true"
-        >
-          <Icon className="h-4 w-4" />
-        </span>
-      </div>
-      <div>
-        <div className={cn('text-2xl font-bold leading-tight text-gray-900 dark:text-slate-100', valueClass)}>
-          {numericValue !== undefined ? (
-            <AnimatedNumber value={numericValue} formatter={formatter} duration={1} />
-          ) : (
-            value
-          )}
-        </div>
-        {sub && <p className="mt-1 text-xs text-muted">{sub}</p>}
-      </div>
-    </motion.div>
   );
 }
 
@@ -189,19 +159,25 @@ function FindingRow({ finding, tm }: { finding: OverviewFinding; tm: (m: string 
         : 'text-primary';
   return (
     <div className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
-      <span className={cn('mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gray-50', toneText)} aria-hidden="true">
+      <span className={cn('mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/50 dark:bg-white/10', toneText)} aria-hidden="true">
         <ToneIcon className="h-3.5 w-3.5" />
       </span>
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-1.5">
-          <h3 className="text-sm font-semibold text-gray-900">{tm(finding.title)}</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{tm(finding.title)}</h3>
           {finding.metric && <Badge tone={tone} className="px-1.5 py-0 text-[10px]">{tm(finding.metric)}</Badge>}
         </div>
-        <p className="mt-0.5 text-xs text-muted">{tm(finding.message)}</p>
+        <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">{tm(finding.message)}</p>
       </div>
     </div>
   );
 }
+
+// Stagger animation for lists
+const listItemVariants = {
+  hidden: { opacity: 0, x: -12 },
+  visible: (i: number) => ({ opacity: 1, x: 0, transition: { delay: i * 0.06, duration: 0.3 } }),
+};
 
 export function DashboardPageClient({
   businessName,
@@ -231,6 +207,7 @@ export function DashboardPageClient({
 }: DashboardOverviewProps) {
   const { language, t, tm, formatCurrency } = useTranslation();
   const locale = language === 'UR' ? 'ur-PK' : 'en-PK';
+  const shouldReduceMotion = useReducedMotion();
 
   const money = (n: number) => formatCurrency(Math.round(n));
 
@@ -262,11 +239,11 @@ export function DashboardPageClient({
         description={t('overview.headerDescription', { name: businessName })}
         actions={
           <>
-            <Link href="/dashboard/reports" className={buttonClasses('outline', 'sm')}>
+            <Link href="/dashboard/reports" className={buttonClasses('outline', 'sm')} data-sound="nav-click">
               <BarChart3 className="h-3.5 w-3.5" aria-hidden="true" />
               {t('overview.reports')}
             </Link>
-            <Link href="/dashboard/pos" className={buttonClasses('primary', 'sm')}>
+            <Link href="/dashboard/pos" className={buttonClasses('primary', 'sm')} data-sound="primary">
               <ShoppingCart className="h-3.5 w-3.5" aria-hidden="true" />
               {t('overview.posTerminal')}
             </Link>
@@ -274,65 +251,74 @@ export function DashboardPageClient({
         }
       />
 
-      <Card className="overflow-hidden">
-        <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
-          <Kpi
-            label={t('overview.todaySales')}
-            numericValue={todaySalesTotal}
-            formatter={money}
-            sub={t(todaySalesCount === 1 ? 'overview.ordersProcessedOne' : 'overview.ordersProcessedOther', { count: todaySalesCount })}
-            icon={ShoppingCart}
-            accent="bg-primary-soft text-primary"
-          />
-          <Kpi
-            label={t('overview.todayProfit')}
-            numericValue={todayProfitTotal}
-            formatter={money}
-            sub={
-              todaySalesTotal > 0
-                ? t('overview.realizedMargin', { margin: ((todayProfitTotal / todaySalesTotal) * 100).toFixed(1) })
-                : t('overview.realizedNetMargin')
-            }
-            icon={TrendingUp}
-            accent="bg-success-soft text-success"
-            valueClass="text-success"
-          />
-          <Kpi
-            label={t('overview.outstandingUdhaar')}
-            numericValue={totalUdhaar}
-            formatter={money}
-            sub={
-              totalUdhaar > 0
-                ? t(activeCustomerCount === 1 ? 'overview.acrossCustomersOne' : 'overview.acrossCustomersOther', { count: activeCustomerCount })
-                : t('overview.noPendingReceivables')
-            }
-            icon={Users}
-            accent="bg-warning-soft text-warning"
-            valueClass={totalUdhaar > 0 ? 'text-warning' : undefined}
-          />
-          <Kpi
-            label={t('overview.stockAlerts')}
-            numericValue={attentionCount}
-            sub={
-              attentionCount > 0
-                ? t('overview.stockAlertsBreakdown', { out: outOfStockCount, low: lowStockCount })
-                : t('overview.inventoryHealthy')
-            }
-            icon={Package}
-            accent={attentionCount > 0 ? 'bg-danger-soft text-danger' : 'bg-success-soft text-success'}
-            valueClass={attentionCount > 0 ? 'text-danger' : undefined}
-          />
-        </div>
-      </Card>
+      {/* ── KPI stat cards ── */}
+      <motion.div
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, staggerChildren: 0.1 }}
+      >
+        <TiltCard
+          label={t('overview.todaySales')}
+          numericValue={todaySalesTotal}
+          formatter={money}
+          sub={t(todaySalesCount === 1 ? 'overview.ordersProcessedOne' : 'overview.ordersProcessedOther', { count: todaySalesCount })}
+          icon={ShoppingCart}
+          accent="bg-primary-soft text-primary"
+          glowColor="rgba(175,243,62,0.30)"
+        />
+        <TiltCard
+          label={t('overview.todayProfit')}
+          numericValue={todayProfitTotal}
+          formatter={money}
+          sub={
+            todaySalesTotal > 0
+              ? t('overview.realizedMargin', { margin: ((todayProfitTotal / todaySalesTotal) * 100).toFixed(1) })
+              : t('overview.realizedNetMargin')
+          }
+          icon={TrendingUp}
+          accent="bg-success-soft text-success"
+          glowColor="rgba(16,185,129,0.28)"
+          valueClass="text-success"
+        />
+        <TiltCard
+          label={t('overview.outstandingUdhaar')}
+          numericValue={totalUdhaar}
+          formatter={money}
+          sub={
+            totalUdhaar > 0
+              ? t(activeCustomerCount === 1 ? 'overview.acrossCustomersOne' : 'overview.acrossCustomersOther', { count: activeCustomerCount })
+              : t('overview.noPendingReceivables')
+          }
+          icon={Users}
+          accent="bg-warning-soft text-warning"
+          glowColor="rgba(217,119,6,0.28)"
+          valueClass={totalUdhaar > 0 ? 'text-warning' : undefined}
+        />
+        <TiltCard
+          label={t('overview.stockAlerts')}
+          numericValue={attentionCount}
+          sub={
+            attentionCount > 0
+              ? t('overview.stockAlertsBreakdown', { out: outOfStockCount, low: lowStockCount })
+              : t('overview.inventoryHealthy')
+          }
+          icon={Package}
+          accent={attentionCount > 0 ? 'bg-danger-soft text-danger' : 'bg-success-soft text-success'}
+          glowColor={attentionCount > 0 ? 'rgba(220,38,38,0.26)' : 'rgba(16,185,129,0.24)'}
+          valueClass={attentionCount > 0 ? 'text-danger' : undefined}
+        />
+      </motion.div>
 
+      {/* ── Sales Trend + Business Health ── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+        <GlassSection className="lg:col-span-2">
           <SectionHeader
             title={t('overview.salesTrend')}
             description={t('overview.salesTrendDescription')}
             action={{ href: '/dashboard/reports', label: t('overview.viewReports') }}
           />
-          <CardContent>
+          <div className="p-5">
             {trendRevenueTotal === 0 ? (
               <EmptyState
                 compact
@@ -345,30 +331,31 @@ export function DashboardPageClient({
                 <SimpleBarChart data={trendChartData} label1={t('dashboard.revenue')} label2={t('overview.profitLegend')} height={200} color1="#aff33e" color2="#16a34a" />
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </GlassSection>
 
-        <Card>
+        <GlassSection>
           <SectionHeader
             title={t('overview.businessHealth')}
             action={{ href: '/dashboard/advisor', label: t('overview.openAdvisor') }}
           />
-          <CardContent className="space-y-4">
+          <div className="space-y-4 p-5">
             <HealthGauge score={healthScore} grade={healthGrade} />
-            <p className="text-center text-xs text-muted">{tm(summaryText)}</p>
+            <p className="text-center text-xs text-gray-500 dark:text-slate-400">{tm(summaryText)}</p>
             {topFindings.length > 0 && (
-              <div className="divide-y divide-border border-t border-border">
+              <div className="divide-y divide-white/20 dark:divide-white/10 border-t border-white/30 dark:border-white/10">
                 {topFindings.map((finding) => (
                   <FindingRow key={finding.id} finding={finding} tm={tm} />
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </GlassSection>
       </div>
 
+      {/* ── Recent Sales + Attention Required ── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="overflow-hidden lg:col-span-2">
+        <GlassSection className="overflow-hidden lg:col-span-2">
           <SectionHeader
             title={t('overview.recentSales')}
             description={t('overview.recentSalesDescription')}
@@ -380,14 +367,14 @@ export function DashboardPageClient({
               title={t('overview.noSalesTitle')}
               description={t('overview.noSalesDescription')}
               action={
-                <Link href="/dashboard/pos" className={buttonClasses('primary', 'sm')}>
+                <Link href="/dashboard/pos" className={buttonClasses('primary', 'sm')} data-sound="primary">
                   {t('overview.openPosTerminal')}
                 </Link>
               }
             />
           ) : (
-            <ul className="divide-y divide-border">
-              {recentSales.map((sale) => {
+            <ul className="divide-y divide-white/20 dark:divide-white/10">
+              {recentSales.map((sale, i) => {
                 const total = sale.total;
                 const paid = sale.paidAmount;
                 const isCompleted = sale.status === 'COMPLETED';
@@ -408,14 +395,21 @@ export function DashboardPageClient({
                       ? 'warning'
                       : 'info';
                 return (
-                  <li key={sale.id}>
+                  <motion.li
+                    key={sale.id}
+                    custom={i}
+                    variants={listItemVariants}
+                    initial="hidden"
+                    animate="visible"
+                  >
                     <Link
                       href={`/dashboard/sales/${sale.id}`}
-                      className="flex items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-gray-50"
+                      className="flex items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-white/30 dark:hover:bg-white/5"
+                      data-sound="nav-click"
                     >
                       <div className="min-w-0">
-                        <p className="truncate font-mono text-sm font-semibold text-gray-900">{sale.invoiceNumber}</p>
-                        <p className="truncate text-xs text-muted">
+                        <p className="truncate font-mono text-sm font-semibold text-gray-900 dark:text-white">{sale.invoiceNumber}</p>
+                        <p className="truncate text-xs text-gray-500 dark:text-slate-400">
                           {sale.customerName ?? t('overview.walkIn')} ·{' '}
                           {t(sale.itemsCount === 1 ? 'overview.itemCountOne' : 'overview.itemCountOther', { count: sale.itemsCount })} ·{' '}
                           {new Date(sale.saleDate).toLocaleDateString(locale)}
@@ -423,19 +417,19 @@ export function DashboardPageClient({
                       </div>
                       <div className="flex shrink-0 items-center gap-3 text-end">
                         <div>
-                          <p className="text-sm font-bold text-gray-900">{money(total)}</p>
+                          <p className="text-sm font-bold text-gray-900 dark:text-white">{money(total)}</p>
                         </div>
                         <Badge tone={paymentTone}>{paymentLabel}</Badge>
                       </div>
                     </Link>
-                  </li>
+                  </motion.li>
                 );
               })}
             </ul>
           )}
-        </Card>
+        </GlassSection>
 
-        <Card className="overflow-hidden">
+        <GlassSection className="overflow-hidden">
           <SectionHeader
             title={t('overview.attentionRequired')}
             description={t('overview.attentionDescription')}
@@ -449,14 +443,21 @@ export function DashboardPageClient({
               description={t('overview.noAttentionDescription')}
             />
           ) : (
-            <ul className="divide-y divide-border">
-              {attentionProducts.map((product) => {
+            <ul className="divide-y divide-white/20 dark:divide-white/10">
+              {attentionProducts.map((product, i) => {
                 const isOut = product.currentStock <= 0;
                 return (
-                  <li key={product.id} className="flex items-center justify-between gap-3 px-5 py-3">
+                  <motion.li
+                    key={product.id}
+                    custom={i}
+                    variants={listItemVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="flex items-center justify-between gap-3 px-5 py-3"
+                  >
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-gray-900">{product.name}</p>
-                      <p className="text-xs text-muted">
+                      <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">{product.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-slate-400">
                         {isOut
                           ? t('overview.noStockLeft')
                           : t('overview.threshold', { count: product.minStockThreshold ?? 0, unit: product.unit })}
@@ -465,16 +466,17 @@ export function DashboardPageClient({
                     <span className={badgeClasses(isOut ? 'danger' : 'warning', 'shrink-0')}>
                       {isOut ? t('overview.outOfStock') : t('overview.stockLeft', { count: product.currentStock })}
                     </span>
-                  </li>
+                  </motion.li>
                 );
               })}
             </ul>
           )}
-        </Card>
+        </GlassSection>
       </div>
 
+      {/* ── Customer Udhaar + Quick Actions ── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+        <GlassSection className="lg:col-span-2">
           <SectionHeader
             title={t('overview.customerUdhaar')}
             description={t('overview.creditActivity', { period: t('common.thisMonth') })}
@@ -487,52 +489,49 @@ export function DashboardPageClient({
               title={t('overview.noCustomersTitle')}
               description={t('overview.noCustomersDescription')}
               action={
-                <Link href="/dashboard/customers" className={buttonClasses('outline', 'sm')}>
+                <Link href="/dashboard/customers" className={buttonClasses('outline', 'sm')} data-sound="nav-click">
                   {t('overview.addCustomerCta')}
                 </Link>
               }
             />
           ) : (
-            <CardContent className="space-y-4">
+            <div className="space-y-4 p-5">
               <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div className="rounded-card border border-border bg-gray-50/60 p-3">
-                  <dt className="flex items-center gap-1.5 text-xs font-medium text-muted">
-                    <Wallet className="h-3.5 w-3.5" aria-hidden="true" />
-                    {t('overview.collectedThisMonth')}
-                  </dt>
-                  <dd className="mt-1 text-lg font-bold text-gray-900">{money(udhaarCollectedThisPeriod)}</dd>
-                </div>
-                <div className="rounded-card border border-border bg-gray-50/60 p-3">
-                  <dt className="flex items-center gap-1.5 text-xs font-medium text-muted">
-                    <Users className="h-3.5 w-3.5" aria-hidden="true" />
-                    {t('overview.newCreditThisMonth')}
-                  </dt>
-                  <dd className="mt-1 text-lg font-bold text-gray-900">{money(udhaarNewCreditThisPeriod)}</dd>
-                </div>
-                <div className="rounded-card border border-border bg-gray-50/60 p-3">
-                  <dt className="flex items-center gap-1.5 text-xs font-medium text-muted">
-                    <Receipt className="h-3.5 w-3.5" aria-hidden="true" />
-                    {t('overview.outstandingBalance')}
-                  </dt>
-                  <dd className={cn('mt-1 text-lg font-bold', totalUdhaar > 0 ? 'text-warning' : 'text-gray-900')}>
-                    {money(udhaarTotalOutstanding)}
-                  </dd>
-                </div>
+                {[
+                  { icon: Wallet, label: t('overview.collectedThisMonth'), value: money(udhaarCollectedThisPeriod) },
+                  { icon: Users, label: t('overview.newCreditThisMonth'), value: money(udhaarNewCreditThisPeriod) },
+                  { icon: Receipt, label: t('overview.outstandingBalance'), value: money(udhaarTotalOutstanding), highlight: totalUdhaar > 0 },
+                ].map(({ icon: Icon, label, value, highlight }) => (
+                  <div key={label} className="rounded-xl border border-white/40 dark:border-white/10 bg-white/40 dark:bg-white/5 p-3 backdrop-blur-sm">
+                    <dt className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-slate-400">
+                      <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                      {label}
+                    </dt>
+                    <dd className={cn('mt-1 text-lg font-bold', highlight ? 'text-warning' : 'text-gray-900 dark:text-white')}>{value}</dd>
+                  </div>
+                ))}
               </dl>
 
               {topDebtors.length === 0 ? (
-                <div className="flex items-center gap-2 rounded-card border border-success/25 bg-success-soft px-4 py-3 text-sm font-medium text-success">
+                <div className="flex items-center gap-2 rounded-xl border border-success/25 bg-success-soft/50 px-4 py-3 text-sm font-medium text-success backdrop-blur-sm">
                   <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
                   {t('overview.noOutstandingBalances')}
                 </div>
               ) : (
                 <div>
-                  <h3 className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted">
+                  <h3 className="mb-1 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">
                     {t('overview.highestOutstanding')}
                   </h3>
-                  <ul className="divide-y divide-border">
-                    {topDebtors.slice(0, 3).map((debtor) => (
-                      <li key={debtor.customerId} className="flex items-center justify-between gap-3 py-2.5">
+                  <ul className="divide-y divide-white/20 dark:divide-white/10">
+                    {topDebtors.slice(0, 3).map((debtor, i) => (
+                      <motion.li
+                        key={debtor.customerId}
+                        custom={i}
+                        variants={listItemVariants}
+                        initial="hidden"
+                        animate="visible"
+                        className="flex items-center justify-between gap-3 py-2.5"
+                      >
                         <div className="flex min-w-0 items-center gap-2.5">
                           <span
                             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary"
@@ -540,40 +539,47 @@ export function DashboardPageClient({
                           >
                             {debtor.name.charAt(0).toUpperCase()}
                           </span>
-                          <span className="truncate text-sm font-medium text-gray-900">{debtor.name}</span>
+                          <span className="truncate text-sm font-medium text-gray-900 dark:text-white">{debtor.name}</span>
                         </div>
                         <span className="shrink-0 text-sm font-bold text-warning">{money(debtor.outstanding)}</span>
-                      </li>
+                      </motion.li>
                     ))}
                   </ul>
                 </div>
               )}
-            </CardContent>
+            </div>
           )}
-        </Card>
+        </GlassSection>
 
-        <Card>
+        <GlassSection>
           <SectionHeader title={t('dashboard.quickActions')} description={t('overview.quickActionsDescription')} />
-          <CardContent className="p-3">
+          <div className="p-3">
             <ul className="space-y-1">
-              {quickActions.map((action) => (
-                <li key={action.href}>
+              {quickActions.map((action, i) => (
+                <motion.li
+                  key={action.href}
+                  custom={i}
+                  variants={listItemVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
                   <Link
                     href={action.href}
-                    className="group flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-slate-200 transition-all duration-150 hover:bg-gray-50/80 dark:hover:bg-slate-800/80 hover:text-gray-900 dark:hover:text-white hover:translate-x-1 rtl:hover:-translate-x-1"
+                    className="group flex min-h-10 items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-700 dark:text-slate-200 transition-all duration-150 hover:bg-white/50 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white hover:translate-x-1 rtl:hover:-translate-x-1"
+                    data-sound="nav-click"
                   >
                     <action.icon className="h-5 w-5 text-primary transition-transform duration-150 group-hover:scale-110" aria-hidden="true" />
                     {action.label}
                     <ArrowUpRight className="ms-auto h-3.5 w-3.5 rtl-flip text-gray-400 group-hover:text-primary transition-colors" aria-hidden="true" />
                   </Link>
-                </li>
+                </motion.li>
               ))}
             </ul>
-          </CardContent>
-        </Card>
+          </div>
+        </GlassSection>
       </div>
 
-      <p className="pb-2 text-center text-xs text-muted">
+      <p className="pb-2 text-center text-xs text-gray-500 dark:text-slate-500">
         {t('overview.signedInAs', {
           name: userName || t('overview.userFallback'),
           role: roleLabels[role] ?? role,

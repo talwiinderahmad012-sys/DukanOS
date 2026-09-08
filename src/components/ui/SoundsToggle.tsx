@@ -2,33 +2,26 @@
 
 import React, { useEffect, useState } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
-import { getSoundsEnabled, setSoundsEnabled, soundToggleOn, soundToggleOff } from '@/lib/feedback/sounds';
+import { getSoundEnabled, setSoundEnabled } from '@/lib/feedback/sound-engine';
 import { hapticLight } from '@/lib/feedback/haptics';
 import { cn } from '@/components/ui/cn';
 
 /**
  * SoundsToggle — global UI sounds on/off control.
- *
- * Reads and writes the `dukaan_sounds_enabled` localStorage key.
- * Can be embedded in any settings panel or the dashboard header.
+ * Defaults to ON (sound-engine defaults ON on first visit).
  */
 export function SoundsToggle({ className }: { className?: string }) {
-  const [enabled, setEnabled] = useState(false);
+  const [enabled, setEnabled] = useState(true); // optimistic: default on
 
   useEffect(() => {
-    setEnabled(getSoundsEnabled());
+    setEnabled(getSoundEnabled());
   }, []);
 
   const toggle = () => {
     const next = !enabled;
     setEnabled(next);
-    setSoundsEnabled(next);
+    setSoundEnabled(next);
     hapticLight();
-    if (next) {
-      soundToggleOn();
-    } else {
-      soundToggleOff();
-    }
   };
 
   return (
@@ -39,11 +32,12 @@ export function SoundsToggle({ className }: { className?: string }) {
       aria-label={enabled ? 'Mute UI sounds' : 'Enable UI sounds'}
       className={cn(
         'flex h-9 w-9 items-center justify-center rounded-full transition-colors',
-        'text-gray-500 hover:bg-gray-100 hover:text-gray-700',
-        'dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
+        'text-gray-500 hover:bg-white/50 hover:text-gray-700',
+        'dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-200',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
         className
       )}
+      data-sound="secondary"
     >
       {enabled ? (
         <Volume2 className="h-4 w-4" aria-hidden="true" />

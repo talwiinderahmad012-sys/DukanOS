@@ -38,11 +38,12 @@ export function ThemeToggle() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-white/50 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         title={t('ui.toggleTheme')}
         aria-label={t('ui.toggleTheme')}
         aria-expanded={isOpen}
         aria-haspopup="menu"
+        data-sound="theme"
       >
         <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
         <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -50,7 +51,7 @@ export function ThemeToggle() {
 
       {isOpen && (
         <div 
-          className="absolute end-0 mt-2 w-36 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-lg z-50 overflow-hidden animate-in fade-in zoom-in-95" 
+          className="absolute end-0 mt-2 w-36 glass-strong rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95" 
           role="menu"
         >
           <div className="py-1">

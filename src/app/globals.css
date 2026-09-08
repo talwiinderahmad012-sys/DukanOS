@@ -181,40 +181,158 @@
 }
 
 /* ============================================================================
- * LIQUID GLASS — Apple iOS inspired frosted glass design system
- * ============================================================================
- * Rules: only apply .glass over colourful backgrounds (blobs/gradients).
- * NEVER nest .glass inside .glass. NEVER use on text containers alone.
+ * LIQUID GLASS — Dramatically visible frosted glass design system
+ * Blobs at 45-55% opacity make glass unmissable. The page body is transparent.
  * ============================================================================ */
 
-/* Base glass — lightweight frosted panel */
+/* Dashboard page — transparent so aurora blobs show through */
+.dashboard-page {
+  background: transparent !important;
+}
+
+/* Card glass — strong blur, clearly translucent */
 .glass {
-  backdrop-filter: blur(20px) saturate(1.6);
-  -webkit-backdrop-filter: blur(20px) saturate(1.6);
-  background-color: rgba(255, 255, 255, 0.60);
-  border: 1px solid rgba(255, 255, 255, 0.40);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(24px) saturate(1.8) brightness(1.05);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8) brightness(1.05);
+  background-color: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.80),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.04);
 }
-
 .dark .glass {
-  background-color: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.10);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  background-color: rgba(15, 23, 42, 0.55);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.40),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.20);
 }
 
-/* Strong glass — modals, banners, sidebars */
+/* Strong glass — sidebar, header, modals */
 .glass-strong {
-  backdrop-filter: blur(40px) saturate(1.8);
-  -webkit-backdrop-filter: blur(40px) saturate(1.8);
-  background-color: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.50);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.70);
+  backdrop-filter: blur(48px) saturate(2.0) brightness(1.06);
+  -webkit-backdrop-filter: blur(48px) saturate(2.0) brightness(1.06);
+  background-color: rgba(255, 255, 255, 0.80);
+  border: 1px solid rgba(255, 255, 255, 0.60);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.90),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.04);
+}
+.dark .glass-strong {
+  background-color: rgba(10, 15, 35, 0.82);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.60),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.30);
 }
 
-.dark .glass-strong {
-  background-color: rgba(15, 23, 42, 0.80);
+/* Stat card glass — each tinted by CSS custom property */
+.glass-card {
+  backdrop-filter: blur(20px) saturate(1.7);
+  -webkit-backdrop-filter: blur(20px) saturate(1.7);
+  background-color: rgba(255, 255, 255, 0.70);
+  border: 1px solid rgba(255, 255, 255, 0.60);
+  box-shadow:
+    0 4px 24px var(--card-glow, rgba(0,0,0,0.08)),
+    0 1px 4px rgba(0,0,0,0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+.glass-card:hover {
+  box-shadow:
+    0 12px 40px var(--card-glow, rgba(0,0,0,0.15)),
+    0 2px 8px rgba(0,0,0,0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.90);
+}
+.dark .glass-card {
+  background-color: rgba(15, 23, 42, 0.60);
   border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  box-shadow:
+    0 4px 24px var(--card-glow, rgba(0,0,0,0.30)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.10);
+}
+
+/* ── Ripple effect ── */
+.ripple-container {
+  position: relative;
+  overflow: hidden;
+}
+@keyframes ripple-expand {
+  from { transform: scale(0); opacity: 0.45; }
+  to   { transform: scale(4); opacity: 0; }
+}
+.ripple-wave {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  width: 80px;
+  height: 80px;
+  margin-top: -40px;
+  margin-left: -40px;
+  pointer-events: none;
+  animation: ripple-expand 0.5s ease-out forwards;
+}
+.dark .ripple-wave {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ── Animated gradient border (hue-shift) — KPI cards on hover ── */
+@keyframes hue-rotate-border {
+  0%   { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+.animated-border {
+  position: relative;
+}
+.animated-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #aff33e, #34d399, #22d3ee, #a78bfa, #f59e0b, #aff33e);
+  background-size: 400% 400%;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  animation: hue-rotate-border 4s linear infinite;
+}
+.animated-border:hover::before {
+  opacity: 1;
+}
+
+/* ── Tilt glare highlight spot ── */
+.tilt-glare {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(ellipse 60px 60px at var(--glare-x, 50%) var(--glare-y, 30%), rgba(255,255,255,0.45) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.animated-border:hover .tilt-glare {
+  opacity: 1;
+}
+
+/* iOS-style banner animations */
+@keyframes banner-in {
+  from { opacity: 0; transform: translateY(-110%) scale(0.92); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+@keyframes banner-out {
+  from { opacity: 1; transform: translateY(0)    scale(1); }
+  to   { opacity: 0; transform: translateY(-110%) scale(0.92); }
+}
+
+/* Reduced-motion overrides */
+@media (prefers-reduced-motion: reduce) {
+  .animated-border::before { animation: none; }
+  @keyframes banner-in  { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes banner-out { from { opacity: 1; } to { opacity: 0; } }
 }
 
 /* Ambient blob drift animations */
