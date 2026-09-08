@@ -110,7 +110,7 @@ function GlassSection({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className={cn('glass rounded-2xl overflow-hidden', className)}
+      className={cn('surface-glass rounded-2xl overflow-hidden shadow-lg shadow-black/5', className)}
     >
       {children}
     </motion.div>
@@ -127,15 +127,15 @@ function SectionHeader({
   action?: { href: string; label: string };
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/30 dark:border-white/10 px-5 py-4">
+    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-black/5 dark:border-white/10 px-5 py-4">
       <div>
-        <h2 className="text-base font-bold text-gray-900 dark:text-white">{title}</h2>
-        {description && <p className="text-sm text-gray-500 dark:text-slate-400">{description}</p>}
+        <h2 className="text-base font-bold text-slate-900 dark:text-white">{title}</h2>
+        {description && <p className="text-sm text-slate-500 dark:text-slate-400">{description}</p>}
       </div>
       {action && (
         <Link
           href={action.href}
-          className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-hover"
+          className="flex items-center gap-1 text-sm font-semibold text-emerald-600 hover:text-emerald-700 dark:text-lime-400 dark:hover:text-lime-300 transition-colors"
           data-sound="nav-click"
         >
           {action.label}
@@ -264,8 +264,8 @@ export function DashboardPageClient({
           formatter={money}
           sub={t(todaySalesCount === 1 ? 'overview.ordersProcessedOne' : 'overview.ordersProcessedOther', { count: todaySalesCount })}
           icon={ShoppingCart}
-          accent="bg-primary-soft text-primary"
-          glowColor="rgba(175,243,62,0.30)"
+          accent="bg-lime-500/20 text-lime-700 dark:text-lime-300"
+          glowColor="rgba(175,243,62,0.40)"
         />
         <TiltCard
           label={t('overview.todayProfit')}
@@ -277,9 +277,9 @@ export function DashboardPageClient({
               : t('overview.realizedNetMargin')
           }
           icon={TrendingUp}
-          accent="bg-success-soft text-success"
-          glowColor="rgba(16,185,129,0.28)"
-          valueClass="text-success"
+          accent="bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+          glowColor="rgba(16,185,129,0.38)"
+          valueClass="text-emerald-600 dark:text-emerald-400"
         />
         <TiltCard
           label={t('overview.outstandingUdhaar')}
@@ -291,9 +291,9 @@ export function DashboardPageClient({
               : t('overview.noPendingReceivables')
           }
           icon={Users}
-          accent="bg-warning-soft text-warning"
-          glowColor="rgba(217,119,6,0.28)"
-          valueClass={totalUdhaar > 0 ? 'text-warning' : undefined}
+          accent="bg-amber-500/20 text-amber-700 dark:text-amber-300"
+          glowColor="rgba(245,158,11,0.38)"
+          valueClass={totalUdhaar > 0 ? 'text-amber-600 dark:text-amber-400' : undefined}
         />
         <TiltCard
           label={t('overview.stockAlerts')}
@@ -304,9 +304,9 @@ export function DashboardPageClient({
               : t('overview.inventoryHealthy')
           }
           icon={Package}
-          accent={attentionCount > 0 ? 'bg-danger-soft text-danger' : 'bg-success-soft text-success'}
-          glowColor={attentionCount > 0 ? 'rgba(220,38,38,0.26)' : 'rgba(16,185,129,0.24)'}
-          valueClass={attentionCount > 0 ? 'text-danger' : undefined}
+          accent={attentionCount > 0 ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300' : 'bg-teal-500/20 text-teal-700 dark:text-teal-300'}
+          glowColor={attentionCount > 0 ? 'rgba(244,63,94,0.38)' : 'rgba(20,184,166,0.38)'}
+          valueClass={attentionCount > 0 ? 'text-rose-600 dark:text-rose-400' : undefined}
         />
       </motion.div>
 
@@ -343,7 +343,7 @@ export function DashboardPageClient({
             <HealthGauge score={healthScore} grade={healthGrade} />
             <p className="text-center text-xs text-gray-500 dark:text-slate-400">{tm(summaryText)}</p>
             {topFindings.length > 0 && (
-              <div className="divide-y divide-white/20 dark:divide-white/10 border-t border-white/30 dark:border-white/10">
+              <div className="divide-y divide-black/5 dark:divide-white/10 border-t border-black/5 dark:border-white/10">
                 {topFindings.map((finding) => (
                   <FindingRow key={finding.id} finding={finding} tm={tm} />
                 ))}
@@ -373,7 +373,7 @@ export function DashboardPageClient({
               }
             />
           ) : (
-            <ul className="divide-y divide-white/20 dark:divide-white/10">
+            <ul className="divide-y divide-black/5 dark:divide-white/10">
               {recentSales.map((sale, i) => {
                 const total = sale.total;
                 const paid = sale.paidAmount;
@@ -389,7 +389,7 @@ export function DashboardPageClient({
                       : t('overview.paymentUdhaar');
                 const paymentTone: BadgeTone = !isCompleted
                   ? 'danger'
-                  : paid >= total
+                    : paid >= total
                     ? 'success'
                     : paid > 0
                       ? 'warning'
@@ -404,7 +404,7 @@ export function DashboardPageClient({
                   >
                     <Link
                       href={`/dashboard/sales/${sale.id}`}
-                      className="flex items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-white/30 dark:hover:bg-white/5"
+                      className="flex items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-white/45 dark:hover:bg-white/5"
                       data-sound="nav-click"
                     >
                       <div className="min-w-0">
@@ -443,7 +443,7 @@ export function DashboardPageClient({
               description={t('overview.noAttentionDescription')}
             />
           ) : (
-            <ul className="divide-y divide-white/20 dark:divide-white/10">
+            <ul className="divide-y divide-black/5 dark:divide-white/10">
               {attentionProducts.map((product, i) => {
                 const isOut = product.currentStock <= 0;
                 return (
@@ -456,8 +456,8 @@ export function DashboardPageClient({
                     className="flex items-center justify-between gap-3 px-5 py-3"
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">{product.name}</p>
-                      <p className="text-xs text-gray-500 dark:text-slate-400">
+                      <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{product.name}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         {isOut
                           ? t('overview.noStockLeft')
                           : t('overview.threshold', { count: product.minStockThreshold ?? 0, unit: product.unit })}
@@ -502,12 +502,12 @@ export function DashboardPageClient({
                   { icon: Users, label: t('overview.newCreditThisMonth'), value: money(udhaarNewCreditThisPeriod) },
                   { icon: Receipt, label: t('overview.outstandingBalance'), value: money(udhaarTotalOutstanding), highlight: totalUdhaar > 0 },
                 ].map(({ icon: Icon, label, value, highlight }) => (
-                  <div key={label} className="rounded-xl border border-white/40 dark:border-white/10 bg-white/40 dark:bg-white/5 p-3 backdrop-blur-sm">
-                    <dt className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-slate-400">
+                  <div key={label} className="surface-glass rounded-xl border border-white/60 dark:border-white/10 p-3 shadow-xs">
+                    <dt className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
                       <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                       {label}
                     </dt>
-                    <dd className={cn('mt-1 text-lg font-bold', highlight ? 'text-warning' : 'text-gray-900 dark:text-white')}>{value}</dd>
+                    <dd className={cn('mt-1 text-lg font-bold', highlight ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-white')}>{value}</dd>
                   </div>
                 ))}
               </dl>
@@ -519,10 +519,10 @@ export function DashboardPageClient({
                 </div>
               ) : (
                 <div>
-                  <h3 className="mb-1 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">
+                  <h3 className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     {t('overview.highestOutstanding')}
                   </h3>
-                  <ul className="divide-y divide-white/20 dark:divide-white/10">
+                  <ul className="divide-y divide-black/5 dark:divide-white/10">
                     {topDebtors.slice(0, 3).map((debtor, i) => (
                       <motion.li
                         key={debtor.customerId}
@@ -539,9 +539,9 @@ export function DashboardPageClient({
                           >
                             {debtor.name.charAt(0).toUpperCase()}
                           </span>
-                          <span className="truncate text-sm font-medium text-gray-900 dark:text-white">{debtor.name}</span>
+                          <span className="truncate text-sm font-medium text-slate-900 dark:text-white">{debtor.name}</span>
                         </div>
-                        <span className="shrink-0 text-sm font-bold text-warning">{money(debtor.outstanding)}</span>
+                        <span className="shrink-0 text-sm font-bold text-amber-600 dark:text-amber-400">{money(debtor.outstanding)}</span>
                       </motion.li>
                     ))}
                   </ul>
@@ -565,12 +565,12 @@ export function DashboardPageClient({
                 >
                   <Link
                     href={action.href}
-                    className="group flex min-h-10 items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-700 dark:text-slate-200 transition-all duration-150 hover:bg-white/50 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white hover:translate-x-1 rtl:hover:-translate-x-1"
+                    className="group flex min-h-10 items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 transition-all duration-150 hover:bg-white/50 dark:hover:bg-white/10 hover:text-slate-950 dark:hover:text-white hover:translate-x-1 rtl:hover:-translate-x-1"
                     data-sound="nav-click"
                   >
                     <action.icon className="h-5 w-5 text-primary transition-transform duration-150 group-hover:scale-110" aria-hidden="true" />
                     {action.label}
-                    <ArrowUpRight className="ms-auto h-3.5 w-3.5 rtl-flip text-gray-400 group-hover:text-primary transition-colors" aria-hidden="true" />
+                    <ArrowUpRight className="ms-auto h-3.5 w-3.5 rtl-flip text-slate-400 group-hover:text-primary transition-colors" aria-hidden="true" />
                   </Link>
                 </motion.li>
               ))}

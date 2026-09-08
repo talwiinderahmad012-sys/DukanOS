@@ -190,11 +190,104 @@
   background: transparent !important;
 }
 
+/* Global premium thin scrollbar — 6px wide, rounded-full, translucent thumb */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 23, 42, 0.15) transparent;
+}
+.dark * {
+  scrollbar-color: rgba(255, 255, 255, 0.20) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(15, 23, 42, 0.15);
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(15, 23, 42, 0.35);
+}
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.20);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.40);
+}
+
+/* Invisible scrollbar utility for sidebars and clean scroll areas */
+.no-scrollbar {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* ============================================================================
+ * SURFACE-GLASS — Solid, visible frosted glass card & panel surfaces
+ * High opacity (75-80%) gives crisp contrast against the aurora blobs.
+ * ============================================================================ */
+.surface-glass {
+  backdrop-filter: blur(28px) saturate(1.8) brightness(1.03);
+  -webkit-backdrop-filter: blur(28px) saturate(1.8) brightness(1.03);
+  background-color: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 1rem;
+  box-shadow:
+    0 10px 30px -5px rgba(0, 0, 0, 0.05),
+    0 4px 12px -2px rgba(0, 0, 0, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.02);
+}
+.dark .surface-glass {
+  background-color: rgba(15, 23, 42, 0.75);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 10px 30px -5px rgba(0, 0, 0, 0.40),
+    0 4px 12px -2px rgba(0, 0, 0, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+/* Automatically upgrade rounded cards across all app routes into surface-glass */
+.bg-white.rounded-2xl,
+.bg-white.rounded-3xl,
+.bg-white.rounded-card,
+.bg-surface.border {
+  backdrop-filter: blur(24px) saturate(1.8) brightness(1.03);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8) brightness(1.03);
+  background-color: rgba(255, 255, 255, 0.78) !important;
+  border-color: rgba(255, 255, 255, 0.65) !important;
+  box-shadow:
+    0 10px 30px -5px rgba(0, 0, 0, 0.05),
+    0 4px 12px -2px rgba(0, 0, 0, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+.dark .bg-white.rounded-2xl,
+.dark .bg-white.rounded-3xl,
+.dark .bg-white.rounded-card,
+.dark .bg-surface.border {
+  background-color: rgba(15, 23, 42, 0.75) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  box-shadow:
+    0 10px 30px -5px rgba(0, 0, 0, 0.40),
+    0 4px 12px -2px rgba(0, 0, 0, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
 /* Card glass — strong blur, clearly translucent */
 .glass {
   backdrop-filter: blur(24px) saturate(1.8) brightness(1.05);
   -webkit-backdrop-filter: blur(24px) saturate(1.8) brightness(1.05);
-  background-color: rgba(255, 255, 255, 0.65);
+  background-color: rgba(255, 255, 255, 0.68);
   border: 1px solid rgba(255, 255, 255, 0.55);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.08),
@@ -202,7 +295,7 @@
     inset 0 -1px 0 rgba(0, 0, 0, 0.04);
 }
 .dark .glass {
-  background-color: rgba(15, 23, 42, 0.55);
+  background-color: rgba(15, 23, 42, 0.60);
   border-color: rgba(255, 255, 255, 0.14);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.40),
@@ -214,15 +307,15 @@
 .glass-strong {
   backdrop-filter: blur(48px) saturate(2.0) brightness(1.06);
   -webkit-backdrop-filter: blur(48px) saturate(2.0) brightness(1.06);
-  background-color: rgba(255, 255, 255, 0.80);
-  border: 1px solid rgba(255, 255, 255, 0.60);
+  background-color: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.65);
   box-shadow:
     0 16px 48px rgba(0, 0, 0, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.90),
     inset 0 -1px 0 rgba(0, 0, 0, 0.04);
 }
 .dark .glass-strong {
-  background-color: rgba(10, 15, 35, 0.82);
+  background-color: rgba(10, 15, 35, 0.84);
   border-color: rgba(255, 255, 255, 0.15);
   box-shadow:
     0 16px 48px rgba(0, 0, 0, 0.60),
@@ -232,28 +325,28 @@
 
 /* Stat card glass — each tinted by CSS custom property */
 .glass-card {
-  backdrop-filter: blur(20px) saturate(1.7);
-  -webkit-backdrop-filter: blur(20px) saturate(1.7);
-  background-color: rgba(255, 255, 255, 0.70);
-  border: 1px solid rgba(255, 255, 255, 0.60);
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  background-color: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.65);
   box-shadow:
-    0 4px 24px var(--card-glow, rgba(0,0,0,0.08)),
-    0 1px 4px rgba(0,0,0,0.06),
+    0 8px 30px var(--card-glow, rgba(0,0,0,0.08)),
+    0 2px 8px rgba(0,0,0,0.04),
     inset 0 1px 0 rgba(255, 255, 255, 0.85);
   transition: box-shadow 0.3s ease, transform 0.2s ease;
 }
 .glass-card:hover {
   box-shadow:
-    0 12px 40px var(--card-glow, rgba(0,0,0,0.15)),
-    0 2px 8px rgba(0,0,0,0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.90);
+    0 16px 40px var(--card-glow, rgba(0,0,0,0.18)),
+    0 4px 12px rgba(0,0,0,0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 .dark .glass-card {
-  background-color: rgba(15, 23, 42, 0.60);
-  border-color: rgba(255, 255, 255, 0.12);
+  background-color: rgba(15, 23, 42, 0.72);
+  border-color: rgba(255, 255, 255, 0.14);
   box-shadow:
-    0 4px 24px var(--card-glow, rgba(0,0,0,0.30)),
-    inset 0 1px 0 rgba(255, 255, 255, 0.10);
+    0 8px 30px var(--card-glow, rgba(0,0,0,0.35)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 /* ── Ripple effect ── */

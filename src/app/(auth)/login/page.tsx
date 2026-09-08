@@ -59,13 +59,12 @@ export default function LoginPage() {
     }`;
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
-      {/* Sticky brand bar — the in-card EN/اردو switcher below is kept as-is,
-          so the header only carries the theme control. */}
+    <div className="flex min-h-screen flex-col bg-transparent relative">
+      {/* Sticky brand bar */}
       <SiteHeader showLanguageToggle={false} />
 
       <div className="flex flex-1 items-center justify-center p-4">
-      <div className="relative max-w-md w-full bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+      <div className="relative max-w-md w-full surface-glass rounded-2xl shadow-xl border border-white/60 dark:border-white/15 p-8">
         <div
           className="absolute top-4 end-4 flex items-center gap-1.5"
           role="group"
@@ -114,14 +113,14 @@ export default function LoginPage() {
               type="text"
               required
               autoComplete="username"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-blue-500 outline-none transition-colors"
+              className="w-full px-4 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors"
               placeholder={t('auth.identifierPlaceholder')}
               disabled={loading}
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="password">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" htmlFor="password">
               {t('auth.passwordLabel')}
             </label>
             <input
@@ -130,7 +129,7 @@ export default function LoginPage() {
               type="password"
               required
               autoComplete="current-password"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-blue-500 outline-none transition-colors"
+              className="w-full px-4 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors"
               placeholder={t('auth.passwordPlaceholder')}
               disabled={loading}
             />

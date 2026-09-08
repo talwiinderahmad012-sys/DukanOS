@@ -157,7 +157,7 @@ export function Select({
         aria-expanded={isOpen}
         aria-label={ariaLabel || placeholder || 'Select option'}
         className={cn(
-          'flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-2 outline-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed',
+          'flex w-full items-center justify-between rounded-xl border border-gray-300/80 dark:border-white/15 bg-white/75 dark:bg-slate-900/75 backdrop-blur-md px-4 py-2 outline-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed',
           !selectedOption && 'text-gray-500',
           isOpen && 'ring-2 ring-primary border-primary'
         )}
@@ -173,7 +173,7 @@ export function Select({
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg py-1">
+        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-white/60 dark:border-white/15 surface-glass shadow-xl py-1">
           <ul
             ref={listboxRef}
             role="listbox"

@@ -113,10 +113,13 @@ export function TiltCard({
     <div
       ref={cardRef}
       className={cn(
-        'animated-border glass-card ripple-container relative rounded-2xl p-5 cursor-default select-none',
-        'flex flex-col gap-3'
+        'animated-border surface-glass ripple-container relative rounded-2xl p-5 cursor-default select-none',
+        'flex flex-col gap-3 transition-shadow duration-300'
       )}
-      style={{ '--card-glow': glowColor } as React.CSSProperties}
+      style={{
+        '--card-glow': glowColor,
+        boxShadow: `0 12px 36px -4px ${glowColor}, 0 4px 12px -2px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.75)`,
+      } as React.CSSProperties}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onMouseEnter={handleMouseEnter}
@@ -130,12 +133,12 @@ export function TiltCard({
 
       {/* Icon + label */}
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-slate-400">
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
           {label}
         </p>
         <span
           className={cn(
-            'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-transform hover:scale-110',
+            'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-transform hover:scale-110 shadow-2xs',
             accent
           )}
           aria-hidden="true"
@@ -146,14 +149,14 @@ export function TiltCard({
 
       {/* Value */}
       <div>
-        <div className={cn('text-2xl font-bold leading-tight text-gray-900 dark:text-slate-100', valueClass)}>
+        <div className={cn('text-2xl font-bold leading-tight text-slate-900 dark:text-white tracking-tight', valueClass)}>
           {numericValue !== undefined ? (
             <AnimatedNumber value={numericValue} formatter={formatter} duration={1.2} />
           ) : (
             value
           )}
         </div>
-        {sub && <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{sub}</p>}
+        {sub && <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 font-medium">{sub}</p>}
       </div>
     </div>
   );

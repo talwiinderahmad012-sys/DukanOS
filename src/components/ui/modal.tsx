@@ -107,18 +107,18 @@ export function Modal({
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
         className={cn(
-          'relative flex max-h-[85vh] w-full flex-col overflow-hidden rounded-dialog bg-white shadow-modal',
+          'relative flex max-h-[85vh] w-full flex-col overflow-hidden rounded-2xl surface-glass border border-white/60 dark:border-white/15 shadow-2xl',
           SIZES[size],
           className,
         )}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
+        <div className="flex items-start justify-between gap-4 border-b border-black/5 dark:border-white/10 px-5 py-4">
           <div className="space-y-0.5">
-            <h2 id={titleId} className="text-base font-bold text-gray-900">
+            <h2 id={titleId} className="text-base font-bold text-slate-900 dark:text-white">
               {title}
             </h2>
             {description && (
-              <p id={descriptionId} className="text-sm text-muted">
+              <p id={descriptionId} className="text-sm text-slate-500 dark:text-slate-400">
                 {description}
               </p>
             )}
@@ -131,7 +131,7 @@ export function Modal({
         {children && <div className="overflow-y-auto px-5 py-4">{children}</div>}
 
         {footer && (
-          <div className="flex justify-end gap-2 border-t border-border px-5 py-4">{footer}</div>
+          <div className="flex justify-end gap-2 border-t border-black/5 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 px-5 py-4">{footer}</div>
         )}
       </div>
     </div>

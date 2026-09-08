@@ -1,6 +1,5 @@
 'use client';
 
-import { Store } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
 
 const ROLE_KEYS: Record<string, string> = {
@@ -21,24 +20,38 @@ export function useRoleLabel() {
 export function SidebarBusinessHeader({
   businessName,
   role,
+  userName,
 }: {
   businessName: string;
   role: string;
+  userName?: string;
 }) {
   const roleLabel = useRoleLabel();
+  const displayName = userName || businessName;
+  const initial = (displayName.charAt(0) || 'U').toUpperCase();
 
   return (
-    <div className="flex items-center gap-3 border-b border-border px-4 py-4">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary" aria-hidden="true">
-        <Store className="h-4 w-4 text-white" />
-      </div>
-      <div className="min-w-0">
-        <h2 className="truncate text-sm font-bold text-gray-900" title={businessName}>
-          {businessName}
-        </h2>
-        <p className="truncate text-xs font-medium capitalize text-muted">
-          {roleLabel(role)}
-        </p>
+    <div className="p-3 border-b border-white/40 dark:border-white/10">
+      <div className="surface-glass flex items-center gap-3 rounded-2xl p-2.5 shadow-xs transition-colors">
+        {/* Avatar wrapped in a gradient ring */}
+        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full p-[2px] bg-gradient-to-tr from-lime-400 via-emerald-400 to-teal-400 shadow-xs">
+          <div className="flex h-full w-full items-center justify-center rounded-full bg-white dark:bg-slate-900 font-bold text-sm text-slate-800 dark:text-slate-100">
+            {initial}
+          </div>
+        </div>
+        <div className="min-w-0 flex-1">
+          <h2 className="truncate text-xs font-bold text-slate-900 dark:text-white" title={displayName}>
+            {displayName}
+          </h2>
+          <p className="truncate text-[11px] font-semibold capitalize text-emerald-600 dark:text-emerald-400">
+            {roleLabel(role)}
+          </p>
+          {userName && (
+            <p className="truncate text-[10px] text-slate-400 dark:text-slate-500 font-medium" title={businessName}>
+              {businessName}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

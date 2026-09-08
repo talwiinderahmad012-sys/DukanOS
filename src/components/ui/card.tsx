@@ -7,8 +7,8 @@ import { cn } from './cn';
 import { useCanHover } from './motion';
 
 export const cardClasses = {
-  base: 'rounded-card border border-border bg-surface shadow-card',
-  hover: 'transition-all duration-200 hover:border-border-strong hover:shadow-elevated hover:-translate-y-1 cursor-pointer',
+  base: 'surface-glass rounded-2xl border border-white/60 dark:border-white/15 shadow-lg shadow-black/5',
+  hover: 'transition-all duration-200 hover:border-white/80 dark:hover:border-white/25 hover:shadow-xl hover:-translate-y-1 cursor-pointer',
 };
 
 export interface CardProps extends ComponentProps<'div'> {
@@ -57,18 +57,18 @@ export function Card({ padded = false, interactive = false, className, children,
 export function CardHeader({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div
-      className={cn('flex flex-col gap-1 border-b border-border px-5 py-4', className)}
+      className={cn('flex flex-col gap-1 border-b border-black/5 dark:border-white/10 px-5 py-4', className)}
       {...props}
     />
   );
 }
 
 export function CardTitle({ className, ...props }: ComponentProps<'h3'>) {
-  return <h3 className={cn('text-base font-bold text-gray-900 dark:text-slate-100', className)} {...props} />;
+  return <h3 className={cn('text-base font-bold text-slate-900 dark:text-white', className)} {...props} />;
 }
 
 export function CardDescription({ className, ...props }: ComponentProps<'p'>) {
-  return <p className={cn('text-sm text-muted', className)} {...props} />;
+  return <p className={cn('text-sm text-slate-500 dark:text-slate-400', className)} {...props} />;
 }
 
 export function CardContent({ className, ...props }: ComponentProps<'div'>) {

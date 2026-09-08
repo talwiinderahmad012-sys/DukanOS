@@ -10,6 +10,7 @@ import { DashboardHeader } from '@/components/layout/dashboard-header';
 import { PageTransition } from '@/components/layout/page-transition';
 import LiveAnalyticsRefresher from '@/components/analytics/live-analytics-refresher';
 import { AuroraBackground } from '@/components/ui/AuroraBackground';
+import { SidebarStatusChip } from '@/components/layout/sidebar-status-chip';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, membership: activeMembership, business: activeBusiness } = await requireActiveBusiness();
@@ -58,11 +59,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
         logoutAction={logoutAction}
       />
 
-      {/* Sidebar — glass-strong, z-40 */}
-      <aside className="hidden md:fixed md:top-0 md:left-0 md:flex md:h-[100dvh] w-64 shrink-0 flex-col glass-strong border-e border-white/30 dark:border-white/10 z-40">
-        <SidebarBusinessHeader businessName={activeBusiness.name} role={activeMembership.role} />
+      {/* Sidebar — translucent glass surface, z-40 */}
+      <aside className="hidden md:fixed md:top-0 md:left-0 md:flex md:h-[100dvh] w-64 shrink-0 flex-col backdrop-blur-xl bg-white/55 dark:bg-slate-950/70 border-r border-white/50 dark:border-white/10 z-40 overflow-hidden no-scrollbar">
+        <SidebarBusinessHeader businessName={activeBusiness.name} role={activeMembership.role} userName={userLabel} />
         <SidebarBackButton />
         <DashboardNavSections role={activeMembership.role} platformAdmin={platformAdmin} />
+        <SidebarStatusChip />
       </aside>
 
       {/* Main content */}

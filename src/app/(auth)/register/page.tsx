@@ -57,13 +57,12 @@ export default function RegisterPage() {
     }`;
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
-      {/* Sticky brand bar — the in-card EN/اردو switcher below is kept as-is,
-          so the header only carries the theme control. */}
+    <div className="flex min-h-screen flex-col bg-transparent relative">
+      {/* Sticky brand bar */}
       <SiteHeader showLanguageToggle={false} />
 
       <div className="flex flex-1 items-center justify-center p-4 py-12">
-      <div className="relative max-w-2xl w-full bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+      <div className="relative max-w-2xl w-full surface-glass rounded-2xl shadow-xl border border-white/60 dark:border-white/15 p-8">
         <div
           className="absolute top-4 end-4 flex items-center gap-1.5"
           role="group"
@@ -112,27 +111,27 @@ export default function RegisterPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">{t('common.firstName')}</label>
-                <input id="firstName" name="firstName" type="text" required autoComplete="given-name" aria-invalid={!!fieldErrors.firstName} aria-describedby={fieldErrors.firstName ? "firstName-error" : undefined} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-blue-500 outline-none transition-colors" disabled={loading} />
+                <input id="firstName" name="firstName" type="text" required autoComplete="given-name" aria-invalid={!!fieldErrors.firstName} aria-describedby={fieldErrors.firstName ? "firstName-error" : undefined} className="w-full px-4 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors" disabled={loading} />
                 {fieldErrors.firstName && <p id="firstName-error" className="text-red-500 text-xs mt-1">{fieldErrors.firstName[0]}</p>}
               </div>
               <div>
                 <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">{t('common.lastName')}</label>
-                <input id="lastName" name="lastName" type="text" autoComplete="family-name" aria-invalid={!!fieldErrors.lastName} aria-describedby={fieldErrors.lastName ? "lastName-error" : undefined} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-blue-500 outline-none transition-colors" disabled={loading} />
+                <input id="lastName" name="lastName" type="text" autoComplete="family-name" aria-invalid={!!fieldErrors.lastName} aria-describedby={fieldErrors.lastName ? "lastName-error" : undefined} className="w-full px-4 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors" disabled={loading} />
                 {fieldErrors.lastName && <p id="lastName-error" className="text-red-500 text-xs mt-1">{fieldErrors.lastName[0]}</p>}
               </div>
               <div>
                 <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">{t('common.username')}</label>
-                <input id="username" name="username" type="text" required autoComplete="username" aria-invalid={!!fieldErrors.username} aria-describedby={fieldErrors.username ? "username-error" : undefined} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-blue-500 outline-none transition-colors" disabled={loading} />
+                <input id="username" name="username" type="text" required autoComplete="username" aria-invalid={!!fieldErrors.username} aria-describedby={fieldErrors.username ? "username-error" : undefined} className="w-full px-4 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors" disabled={loading} />
                 {fieldErrors.username && <p id="username-error" className="text-red-500 text-xs mt-1">{fieldErrors.username[0]}</p>}
               </div>
               <div>
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">{t('common.phone')}</label>
-                <input id="phone" name="phone" type="tel" autoComplete="tel" aria-invalid={!!fieldErrors.phone} aria-describedby={fieldErrors.phone ? "phone-error" : undefined} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-blue-500 outline-none transition-colors" disabled={loading} />
+                <input id="phone" name="phone" type="tel" autoComplete="tel" aria-invalid={!!fieldErrors.phone} aria-describedby={fieldErrors.phone ? "phone-error" : undefined} className="w-full px-4 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors" disabled={loading} />
                 {fieldErrors.phone && <p id="phone-error" className="text-red-500 text-xs mt-1">{fieldErrors.phone[0]}</p>}
               </div>
               <div className="md:col-span-2">
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">{t('auth.emailLabel')}</label>
-                <input id="email" name="email" type="email" required autoComplete="email" aria-invalid={!!fieldErrors.email} aria-describedby={fieldErrors.email ? "email-error" : undefined} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-blue-500 outline-none transition-colors" disabled={loading} />
+                <input id="email" name="email" type="email" required autoComplete="email" aria-invalid={!!fieldErrors.email} aria-describedby={fieldErrors.email ? "email-error" : undefined} className="w-full px-4 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors" disabled={loading} />
                 {fieldErrors.email && <p id="email-error" className="text-red-500 text-xs mt-1">{fieldErrors.email[0]}</p>}
               </div>
             </div>
@@ -147,7 +146,7 @@ export default function RegisterPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-1">{t('onboarding.businessName')}</label>
-                <input id="businessName" name="businessName" type="text" required autoComplete="organization" aria-invalid={!!fieldErrors.businessName} aria-describedby={fieldErrors.businessName ? "businessName-error" : undefined} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-blue-500 outline-none transition-colors" disabled={loading} />
+                <input id="businessName" name="businessName" type="text" required autoComplete="organization" aria-invalid={!!fieldErrors.businessName} aria-describedby={fieldErrors.businessName ? "businessName-error" : undefined} className="w-full px-4 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors" disabled={loading} />
                 {fieldErrors.businessName && <p id="businessName-error" className="text-red-500 text-xs mt-1">{fieldErrors.businessName[0]}</p>}
               </div>
               <div>
@@ -171,12 +170,12 @@ export default function RegisterPage() {
               </div>
               <div>
                 <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">{t('common.city')}</label>
-                <input id="city" name="city" type="text" required autoComplete="address-level2" aria-invalid={!!fieldErrors.city} aria-describedby={fieldErrors.city ? "city-error" : undefined} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-blue-500 outline-none transition-colors" disabled={loading} />
+                <input id="city" name="city" type="text" required autoComplete="address-level2" aria-invalid={!!fieldErrors.city} aria-describedby={fieldErrors.city ? "city-error" : undefined} className="w-full px-4 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors" disabled={loading} />
                 {fieldErrors.city && <p id="city-error" className="text-red-500 text-xs mt-1">{fieldErrors.city[0]}</p>}
               </div>
               <div>
                 <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">{t('common.country')}</label>
-                <input id="country" name="country" type="text" required autoComplete="country-name" aria-invalid={!!fieldErrors.country} aria-describedby={fieldErrors.country ? "country-error" : undefined} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-blue-500 outline-none transition-colors" disabled={loading} />
+                <input id="country" name="country" type="text" required autoComplete="country-name" aria-invalid={!!fieldErrors.country} aria-describedby={fieldErrors.country ? "country-error" : undefined} className="w-full px-4 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors" disabled={loading} />
                 {fieldErrors.country && <p id="country-error" className="text-red-500 text-xs mt-1">{fieldErrors.country[0]}</p>}
               </div>
             </div>
@@ -191,12 +190,12 @@ export default function RegisterPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">{t('auth.passwordLabel')}</label>
-                <input id="password" name="password" type="password" required minLength={8} autoComplete="new-password" aria-invalid={!!fieldErrors.password} aria-describedby={fieldErrors.password ? "password-error" : undefined} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-blue-500 outline-none transition-colors" disabled={loading} />
+                <input id="password" name="password" type="password" required minLength={8} autoComplete="new-password" aria-invalid={!!fieldErrors.password} aria-describedby={fieldErrors.password ? "password-error" : undefined} className="w-full px-4 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors" disabled={loading} />
                 {fieldErrors.password && <p id="password-error" className="text-red-500 text-xs mt-1">{fieldErrors.password[0]}</p>}
               </div>
               <div>
                 <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">{t('auth.confirmPasswordLabel')}</label>
-                <input id="confirmPassword" name="confirmPassword" type="password" required minLength={8} autoComplete="new-password" aria-invalid={!!fieldErrors.confirmPassword} aria-describedby={fieldErrors.confirmPassword ? "confirmPassword-error" : undefined} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-blue-500 outline-none transition-colors" disabled={loading} />
+                <input id="confirmPassword" name="confirmPassword" type="password" required minLength={8} autoComplete="new-password" aria-invalid={!!fieldErrors.confirmPassword} aria-describedby={fieldErrors.confirmPassword ? "confirmPassword-error" : undefined} className="w-full px-4 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors" disabled={loading} />
                 {fieldErrors.confirmPassword && <p id="confirmPassword-error" className="text-red-500 text-xs mt-1">{fieldErrors.confirmPassword[0]}</p>}
               </div>
             </div>

@@ -89,25 +89,29 @@ export function MobileNav({
         aria-label="Navigation Menu"
         tabIndex={-1}
         aria-hidden={!isOpen}
-        className={`md:hidden fixed inset-y-0 start-0 z-[60] flex w-[19rem] max-w-[85vw] flex-col border-e border-border bg-surface transition-[transform,visibility] duration-200 ease-in-out ${
+        className={`md:hidden fixed inset-y-0 start-0 z-[60] flex w-[19rem] max-w-[85vw] flex-col border-e border-white/50 dark:border-white/10 backdrop-blur-2xl bg-white/85 dark:bg-slate-950/85 shadow-2xl transition-[transform,visibility] duration-200 ease-in-out ${
           isOpen ? 'visible translate-x-0' : isRTL ? 'invisible translate-x-full' : 'invisible -translate-x-full'
         }`}
       >
-        <div className="flex items-center gap-3 border-b border-border px-4 py-4 pt-[calc(1rem+env(safe-area-inset-top))]">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary" aria-hidden="true">
-            <Store className="h-4 w-4 text-white" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h2 className="truncate text-sm font-bold text-gray-900" title={businessName}>
-              {businessName}
-            </h2>
-            <p className="truncate text-xs font-medium capitalize text-muted">{roleLabel(role)}</p>
+        <div className="flex items-center gap-3 border-b border-white/40 dark:border-white/10 px-4 py-4 pt-[calc(1rem+env(safe-area-inset-top))]">
+          <div className="surface-glass flex min-w-0 flex-1 items-center gap-3 rounded-xl p-2">
+            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full p-[2px] bg-gradient-to-tr from-lime-400 via-emerald-400 to-teal-400 shadow-xs">
+              <div className="flex h-full w-full items-center justify-center rounded-full bg-white dark:bg-slate-900 font-bold text-xs text-slate-800 dark:text-slate-100">
+                {(displayName.charAt(0) || 'U').toUpperCase()}
+              </div>
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="truncate text-xs font-bold text-slate-900 dark:text-white" title={businessName}>
+                {businessName}
+              </h2>
+              <p className="truncate text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 capitalize">{roleLabel(role)}</p>
+            </div>
           </div>
           <button
             type="button"
             onClick={close}
             aria-label={t('common.close', 'Close')}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-white/40 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white"
           >
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -117,25 +121,22 @@ export function MobileNav({
 
         <DashboardNavSections role={role} platformAdmin={platformAdmin} variant="drawer" onNavigate={close} />
 
-        {/* User account area */}
-        <div className="border-t border-border p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-          <div className="flex items-center gap-3 px-2 py-1.5">
-            <div
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-sm font-bold text-primary"
-              aria-hidden="true"
-            >
-              {displayName.charAt(0).toUpperCase()}
+        {/* User account area & Online status */}
+        <div className="border-t border-white/40 dark:border-white/10 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] space-y-2">
+          <div className="surface-glass flex items-center justify-between rounded-xl px-3 py-2">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+              <span className="font-semibold text-[11px] text-slate-700 dark:text-slate-200">Online</span>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-gray-900" title={displayName}>
-                {displayName}
-              </p>
-              <p className="truncate text-xs font-medium capitalize text-muted">{roleLabel(role)}</p>
-            </div>
+            <span className="font-mono text-[10px] font-semibold text-slate-400 dark:text-slate-500">v1.0.0</span>
           </div>
+
           <SignOutButton
             logoutAction={logoutAction}
-            className="group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-danger-soft hover:text-danger"
+            className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-danger-soft hover:text-danger dark:text-slate-300"
           />
         </div>
       </div>

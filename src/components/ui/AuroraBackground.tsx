@@ -170,6 +170,11 @@ export function AuroraBackground() {
         transition={blobTransition(18, 9)}
       />
 
+      {/* ── Soft radial veil — guarantees high text contrast across the whole page ── */}
+      <div
+        className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.45)_0%,rgba(255,255,255,0.20)_100%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(2,6,23,0.45)_0%,rgba(2,6,23,0.20)_100%)]"
+      />
+
       {/* ── Subtle noise grain overlay for premium depth ── */}
       <div
         className="absolute inset-0 opacity-[0.025]"
