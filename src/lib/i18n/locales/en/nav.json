@@ -45,5 +45,7 @@
   "user": "User",
   "openMenu": "Open navigation menu",
   "closeMenu": "Close navigation menu",
-  "dashboardNavigation": "Dashboard navigation"
+  "dashboardNavigation": "Dashboard navigation",
+  "back": "Back",
+  "backTooltip": "Go back (Alt+←)"
 }

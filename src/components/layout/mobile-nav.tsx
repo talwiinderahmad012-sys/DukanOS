@@ -10,6 +10,7 @@ import { useTranslation } from '@/lib/i18n/language-context';
 import { useModalA11y } from '@/lib/a11y/use-modal-a11y';
 import { SignOutButton } from '@/components/layout/sign-out-button';
 import { ConnectionBanner } from '@/components/pwa/pwa-provider';
+import { SidebarBackButton, MobileHeaderBackButton } from '@/components/layout/sidebar-back-button';
 
 export function MobileNav({
   businessName,
@@ -57,6 +58,7 @@ export function MobileNav({
             >
               <Menu className="h-6 w-6" aria-hidden="true" />
             </button>
+            <MobileHeaderBackButton />
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary" aria-hidden="true">
               <Store className="h-4 w-4 text-white" />
             </div>
@@ -110,6 +112,8 @@ export function MobileNav({
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
+
+        <SidebarBackButton onNavigate={close} />
 
         <DashboardNavSections role={role} platformAdmin={platformAdmin} variant="drawer" onNavigate={close} />
 

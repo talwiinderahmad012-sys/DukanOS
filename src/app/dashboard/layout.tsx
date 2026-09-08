@@ -3,6 +3,7 @@ import { isPlatformAdminEmail } from '@/lib/auth/platform-admin';
 import { signOut } from '@/lib/auth/auth';
 import { recordAuditLog } from '@/services/audit';
 import { SidebarBusinessHeader } from '@/components/layout/sidebar-business-header';
+import { SidebarBackButton } from '@/components/layout/sidebar-back-button';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { DashboardNavSections } from '@/components/layout/nav-sections';
 import { DashboardHeader } from '@/components/layout/dashboard-header';
@@ -69,6 +70,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <aside className="hidden md:fixed md:top-0 md:left-0 md:flex md:h-[100dvh] w-64 shrink-0 flex-col border-e border-border bg-surface">
         {/* Business context */}
         <SidebarBusinessHeader businessName={activeBusiness.name} role={activeMembership.role} />
+
+        {/* Back navigation */}
+        <SidebarBackButton />
 
         {/* Navigation Links */}
         <DashboardNavSections role={activeMembership.role} platformAdmin={platformAdmin} />

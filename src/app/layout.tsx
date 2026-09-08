@@ -6,6 +6,7 @@ import { PWAProvider } from "@/components/pwa/pwa-provider";
 import { LanguageProvider } from "@/lib/i18n/language-context";
 import { LANGUAGE_COOKIE_KEY } from "@/lib/i18n/constants";
 import { ThemeProvider } from "@/components/theme/theme-provider";
+import { NavigationHistoryProvider } from "@/lib/navigation/navigation-history";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -90,7 +91,9 @@ export default async function RootLayout({
         <ThemeProvider>
           <LanguageProvider initialLanguage={isUrdu ? 'UR' : 'EN'}>
             <PWAProvider>
-              {children}
+              <NavigationHistoryProvider>
+                {children}
+              </NavigationHistoryProvider>
             </PWAProvider>
           </LanguageProvider>
         </ThemeProvider>

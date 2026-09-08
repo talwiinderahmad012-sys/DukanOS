@@ -32,6 +32,7 @@
   "confirm": "Confirm",
   "continue": "Continue",
   "back": "Back",
+  "backTooltip": "Go back (Alt+←)",
   "next": "Next",
   "previous": "Previous",
   "close": "Close",

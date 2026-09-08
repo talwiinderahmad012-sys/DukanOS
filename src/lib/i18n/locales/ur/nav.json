@@ -45,5 +45,7 @@
   "user": "صارف",
   "openMenu": "مینیو کھولیں",
   "closeMenu": "مینیو بند کریں",
-  "dashboardNavigation": "ڈیش بورڈ نیویگیشن"
+  "dashboardNavigation": "ڈیش بورڈ نیویگیشن",
+  "back": "واپس",
+  "backTooltip": "واپس جائیں (Alt+←)"
 }

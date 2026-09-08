@@ -32,6 +32,7 @@
   "confirm": "تصدیق کریں",
   "continue": "آگے بڑھیں",
   "back": "واپس",
+  "backTooltip": "واپس جائیں (Alt+←)",
   "next": "اگلا",
   "previous": "پچھلا",
   "close": "بند کریں",
