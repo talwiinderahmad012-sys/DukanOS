@@ -70,4 +70,5 @@ export {
 export { GlassCard } from './GlassCard';
 export { GlassPanel } from './GlassPanel';
 export { AmbientBlobs } from './AmbientBlobs';
+export { SoundsToggle } from './SoundsToggle';
 
