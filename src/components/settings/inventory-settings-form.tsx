@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { Package, ArrowLeft, Save, CheckCircle2, AlertCircle, AlertTriangle, ShieldCheck, Clock } from 'lucide-react';
 import { updateInventorySettingsAction } from '@/app/actions/settings.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { GlowCard } from '@/components/ui';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 export function InventorySettingsForm({
   businessId,
@@ -82,7 +84,7 @@ export function InventorySettingsForm({
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Section 1: Stock Alert Thresholds */}
-        <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-5">
+        <SurfaceCard as="section" className="p-6 space-y-5">
           <div className="flex items-center gap-2.5 pb-3 border-b border-gray-100">
             <div className="w-8 h-8 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
               <AlertTriangle className="w-4 h-4" />
@@ -139,10 +141,10 @@ export function InventorySettingsForm({
               <span className="text-[11px] text-gray-400 block">{t('settings.slowMovingHint', 'Days without sale to flag as slow')}</span>
             </div>
           </div>
-        </div>
+        </SurfaceCard>
 
         {/* Section 2: Operations & Governance */}
-        <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-5">
+        <SurfaceCard as="section" className="p-6 space-y-5">
           <div className="flex items-center gap-2.5 pb-3 border-b border-gray-100">
             <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <ShieldCheck className="w-4 h-4" />
@@ -193,7 +195,7 @@ export function InventorySettingsForm({
               </div>
             </label>
           </div>
-        </div>
+        </SurfaceCard>
 
         {/* Action Button */}
         <div className="flex items-center justify-end gap-3 pt-2">

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { 
   Store, 
   Building2, 
@@ -19,6 +20,7 @@ import {
   Activity,
   ChevronRight
 } from 'lucide-react';
+
 import { useTranslation } from '@/lib/i18n/language-context';
 
 export function SettingsHubView({
@@ -281,15 +283,11 @@ export function SettingsHubView({
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {visibleItems.map((item) => {
+                {visibleItems.map((item, idx) => {
                   const Icon = item.icon;
 
                   return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className="bg-white rounded-3xl border border-gray-200 p-5 shadow-xs hover:shadow-md hover:border-gray-300 transition-all flex flex-col justify-between group"
-                    >
+                    <SurfaceCard as={Link} key={item.href} href={item.href} className="p-5 flex flex-col justify-between group rounded-3xl">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <div
@@ -297,11 +295,11 @@ export function SettingsHubView({
                           >
                             <Icon className="w-5 h-5" />
                           </div>
-                          <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-700 transition-colors rtl-flip" />
+                          <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors rtl-flip" />
                         </div>
 
                         <div>
-                          <h3 className="font-bold text-sm text-gray-900 group-hover:text-gray-900 transition-colors">
+                          <h3 className="font-bold text-sm text-gray-900 transition-colors">
                             {item.title}
                           </h3>
                           <p className="text-xs text-gray-500 mt-1 leading-relaxed">
@@ -309,7 +307,7 @@ export function SettingsHubView({
                           </p>
                         </div>
                       </div>
-                    </Link>
+                    </SurfaceCard>
                   );
                 })}
               </div>

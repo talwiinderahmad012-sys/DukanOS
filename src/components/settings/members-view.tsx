@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -10,7 +11,8 @@ import {
   CheckCircle2, 
   AlertCircle,
   Mail,
-  Phone
+  Phone,
+  X
 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { 
@@ -161,7 +163,7 @@ export function MembersView({
       )}
 
       {/* Members List */}
-      <div className="bg-white rounded-3xl border border-gray-200 shadow-xs overflow-hidden">
+      <SurfaceCard className="overflow-hidden">
         <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
           <span className="text-xs font-bold text-gray-700">
             {t('settingsAdmin.members.teamRoster', { count: members.length })}
@@ -228,28 +230,29 @@ export function MembersView({
                   <button
                     onClick={() => handleRemoveMember(m.userId, m.userName)}
                     title={t('settings.removeMember')}
-                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="btn-3d flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
             );
           })}
         </div>
-      </div>
+      </SurfaceCard>
 
       {/* MODAL: Attach User */}
       {showInviteModal && (
         <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-gray-200 shadow-2xl max-w-md w-full p-6 space-y-5 animate-in fade-in zoom-in-95">
+          <SurfaceCard className="max-w-md w-full p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <h3 className="font-bold text-gray-900 text-base">{t('settingsAdmin.members.addByEmail')}</h3>
               <button
                 onClick={() => setShowInviteModal(false)}
-                className="text-gray-400 hover:text-gray-600 font-bold"
+                className="btn-3d flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                aria-label={t('common.close', 'Close')}
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -300,7 +303,7 @@ export function MembersView({
                 </button>
               </div>
             </form>
-          </div>
+          </SurfaceCard>
         </div>
       )}
     </div>

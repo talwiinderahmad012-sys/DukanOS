@@ -25,6 +25,8 @@ import {
 import { processSyncQueue, isCurrentlySyncing } from '@/lib/offline/sync-manager';
 import { usePWA } from '@/components/pwa/pwa-provider';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { GlowCard } from '@/components/ui';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 export function SyncCenterView({ businessId }: { businessId: string }) {
   const { t, tm, language, formatCurrency } = useTranslation();
@@ -128,7 +130,7 @@ export function SyncCenterView({ businessId }: { businessId: string }) {
       {/* Connection & Metrics Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Device Network Status */}
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-1">
+        <SurfaceCard className="p-5 space-y-1">
           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block">
             {t('sync.deviceConnection')}
           </span>
@@ -155,36 +157,34 @@ export function SyncCenterView({ businessId }: { businessId: string }) {
               ? t('sync.lastSynced', { time: new Date(lastSyncTime).toLocaleTimeString(langLocale, { hour: '2-digit', minute: '2-digit' }) })
               : t('sync.noSyncedSales')}
           </span>
-        </div>
+        </SurfaceCard>
 
         {/* Pending Sync */}
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
+        <GlowCard index={1} className="p-5">
           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('sync.pendingOfflineSales')}</span>
           <h3 className="text-2xl font-bold text-gray-900 mt-1">{pendingCount}</h3>
           <span className="text-[11px] text-gray-900">{t('sync.awaitingAutoSync')}</span>
-        </div>
+        </GlowCard>
 
         {/* Conflicts */}
-        <div className={`p-5 rounded-2xl border shadow-xs ${
-          conflictCount > 0 ? 'bg-amber-50/60 border-amber-200' : 'bg-white border-gray-200'
-        }`}>
+        <GlowCard index={2} className="p-5">
           <span className="text-xs font-semibold text-amber-800 uppercase tracking-wider">{t('sync.inventoryConflicts')}</span>
           <h3 className={`text-2xl font-bold mt-1 ${conflictCount > 0 ? 'text-amber-800' : 'text-gray-900'}`}>
             {conflictCount}
           </h3>
           <span className="text-[11px] text-amber-700">{t('sync.stockChangedBeforeSync')}</span>
-        </div>
+        </GlowCard>
 
         {/* Synced Total */}
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
+        <GlowCard index={3} className="p-5">
           <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">{t('sync.syncedTransactions')}</span>
           <h3 className="text-2xl font-bold text-emerald-700 mt-1">{syncedCount}</h3>
           <span className="text-[11px] text-emerald-600">{t('sync.committedToServer')}</span>
-        </div>
+        </GlowCard>
       </div>
 
       {/* Transaction Queue Table */}
-      <div className="bg-white rounded-3xl border border-gray-200 shadow-xs overflow-hidden">
+      <SurfaceCard className="overflow-hidden">
         <div className="p-4 border-b border-gray-100 flex justify-between items-center">
           <h3 className="font-bold text-gray-900 text-xs uppercase tracking-wider">
             {t('sync.queueTitle', { count: queue.length })}
@@ -281,10 +281,11 @@ export function SyncCenterView({ businessId }: { businessId: string }) {
 
                     <button
                       onClick={() => handleDeleteItem(item.id)}
-                      className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg transition-colors"
+                      className="btn-3d flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
                       title={t('sync.deleteQueueEntry')}
+                      aria-label={t('sync.deleteQueueEntry')}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
@@ -292,7 +293,7 @@ export function SyncCenterView({ businessId }: { businessId: string }) {
             })}
           </div>
         )}
-      </div>
+      </SurfaceCard>
     </div>
   );
 }

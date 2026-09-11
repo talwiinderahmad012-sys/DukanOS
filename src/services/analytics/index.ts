@@ -73,7 +73,8 @@ export async function getSalesTrend(businessId: string, days: number, timezone: 
   const startDate = new Date(); startDate.setDate(startDate.getDate()-(days-1)); startDate.setHours(0,0,0,0);
   const sales = await prisma.sale.findMany({
     where: { businessId, status: SaleStatus.COMPLETED, saleDate: { gte: startDate, lte: endDate }, ...(branchId?{branchId}:{}) },
-    include: { items: { select: { lineProfit: true } } }, orderBy: { saleDate: 'asc' },
+    select: { total: true, saleDate: true, items: { select: { lineProfit: true } } },
+    orderBy: { saleDate: 'asc' },
   });
   const map = new Map<string, { date: string; revenue: number; profit: number; orders: number }>();
   for (let i=0; i<days; i++) {

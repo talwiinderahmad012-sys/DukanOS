@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { generateSalariesAction, finalizePayrollAction, recordSalaryPaymentAction } from '@/app/actions/payroll.actions';
 import { CheckCircle2, Play, FileCheck } from 'lucide-react';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { useTranslation } from '@/lib/i18n/language-context';
 
 export type PayrollSalaryRow = {
@@ -72,7 +73,7 @@ export function PayrollDetailClient({ businessId, payroll }: { businessId: strin
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
+    <SurfaceCard className="overflow-hidden">
 
       <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
         <h3 className="font-bold text-gray-900 text-sm">{t('payroll.employeeSalaries')}</h3>
@@ -138,15 +139,20 @@ export function PayrollDetailClient({ businessId, payroll }: { businessId: strin
                       payModal === salary.id ? (
                         <div className="flex items-center justify-end gap-2">
                           <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} aria-label={t('payroll.paymentMethod')} className="px-2 py-1 text-xs border rounded">
-                            <option value="CASH">{t('payroll.paymentMethodCash')}</option>
-                            <option value="BANK_TRANSFER">{t('payroll.paymentMethodBankTransfer')}</option>
-                            <option value="MOBILE_WALLET">{t('payroll.paymentMethodMobileWallet')}</option>
+                            <option value="CASH">{t('common.cash')}</option>
+                            <option value="BANK">{t('payroll.bankTransfer')}</option>
+                            <option value="EASYPAISA">{t('payroll.easypaisa')}</option>
+                            <option value="JAZZCASH">{t('payroll.jazzcash')}</option>
                           </select>
-                          <button onClick={() => handlePay(salary.id, salary.netSalary)} className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">{t('payroll.confirmPay')}</button>
-                          <button onClick={() => setPayModal(null)} className="px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded hover:bg-gray-300">{t('common.cancel')}</button>
+                          <button onClick={() => handlePay(salary.id, salary.netSalary)} disabled={loading} className="px-2 py-1 bg-green-600 text-white rounded text-xs font-bold">
+                            {t('common.confirm')}
+                          </button>
+                          <button onClick={() => setPayModal(null)} className="px-2 py-1 text-xs text-gray-500">
+                            {t('common.cancel')}
+                          </button>
                         </div>
                       ) : (
-                        <button onClick={() => setPayModal(salary.id)} className="text-xs font-semibold text-gray-900 hover:underline">
+                        <button onClick={() => setPayModal(salary.id)} className="px-3 py-1 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-xs font-bold">
                           {t('payroll.payNow')} <span className="rtl-flip">&rarr;</span>
                         </button>
                       )
@@ -158,6 +164,6 @@ export function PayrollDetailClient({ businessId, payroll }: { businessId: strin
           </tbody>
         </table>
       </div>
-    </div>
+    </SurfaceCard>
   );
 }

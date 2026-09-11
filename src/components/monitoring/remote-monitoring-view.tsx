@@ -24,6 +24,8 @@ import {
 } from 'lucide-react';
 import { toggleBusinessStatusAction } from '@/app/actions/monitoring.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 export function RemoteMonitoringView({
   businessId,
@@ -87,7 +89,7 @@ export function RemoteMonitoringView({
       </div>
 
       {/* Row 1: Store Operating Status & Quick Toggle */}
-      <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <SurfaceCard className="p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="flex items-center gap-4">
           <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-xl ${
             isOpen ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
@@ -126,40 +128,40 @@ export function RemoteMonitoringView({
             <span>{toggling ? t('monitoring.updating') : isOpen ? t('monitoring.setAsClosed') : t('monitoring.openStore')}</span>
           </button>
         )}
-      </div>
+      </SurfaceCard>
 
       {/* Row 2: Live Financial Performance Today */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
+        <GlowCard hue="sky" className="p-5">
           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('monitoring.todayTotalSales')}</span>
           <h3 className="text-2xl font-bold text-gray-900 mt-1">
             {formatCurrency(liveSales.totalSales)}
           </h3>
           <span className="text-[11px] text-gray-400">{t('monitoring.ordersCompletedToday', { count: liveSales.orderCount })}</span>
-        </div>
+        </GlowCard>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
+        <GlowCard hue="emerald" className="p-5">
           <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">{t('monitoring.realizedGrossProfit')}</span>
           <h3 className="text-2xl font-bold text-emerald-700 mt-1">
             {formatCurrency(liveSales.grossProfit)}
           </h3>
           <span className="text-[11px] text-emerald-600">{t('monitoring.netAfterCost')}</span>
-        </div>
+        </GlowCard>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
+        <GlowCard hue="sky" className="p-5">
           <span className="text-xs font-semibold text-gray-950 uppercase tracking-wider">{t('monitoring.avgBasketSize')}</span>
           <h3 className="text-2xl font-bold text-gray-950 mt-1">
             {formatCurrency(liveSales.orderCount > 0 ? Math.round(liveSales.totalSales / liveSales.orderCount) : 0)}
           </h3>
           <span className="text-[11px] text-gray-800">{t('monitoring.perOrderToday')}</span>
-        </div>
+        </GlowCard>
       </div>
 
       {/* Row 3: Staff Attendance Cockpit & Owner Action Center */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Left (5 cols): Staff Attendance Cockpit */}
-        <div className="lg:col-span-5 bg-white rounded-3xl border border-gray-200 shadow-xs p-6 space-y-4">
+        <SurfaceCard className="lg:col-span-5 p-6 space-y-4">
           <div className="flex justify-between items-center border-b pb-3">
             <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
               <UserCheck className="w-4 h-4 text-purple-600" /> {t('monitoring.liveStaffAttendance')}
@@ -207,10 +209,10 @@ export function RemoteMonitoringView({
               <ChevronRight className="w-3.5 h-3.5 rtl-flip" />
             </Link>
           </div>
-        </div>
+        </SurfaceCard>
 
         {/* Right (7 cols): Owner Action Center */}
-        <div className="lg:col-span-7 bg-white rounded-3xl border border-gray-200 shadow-xs p-6 space-y-4">
+        <SurfaceCard className="lg:col-span-7 p-6 space-y-4">
           <div className="flex justify-between items-center border-b pb-3">
             <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
               <ShieldAlert className="w-4 h-4 text-orange-600" /> {t('monitoring.ownerActionCenter')}
@@ -363,13 +365,13 @@ export function RemoteMonitoringView({
               </div>
             )}
           </div>
-        </div>
+        </SurfaceCard>
 
       </div>
 
       {/* Row 4: Security Camera Live Status */}
       {cameras.total > 0 && (
-        <div className="bg-white rounded-3xl border border-gray-200 shadow-xs p-6 space-y-4">
+        <SurfaceCard className="p-6 space-y-4">
           <div className="flex justify-between items-center border-b pb-3">
             <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-sky-600" aria-hidden="true" /> {t('monitoring.cctvSectionTitle')}
@@ -432,7 +434,7 @@ export function RemoteMonitoringView({
               <ChevronRight className="w-3.5 h-3.5 rtl-flip" />
             </Link>
           </div>
-        </div>
+        </SurfaceCard>
       )}
     </div>
   );

@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import { checkCameraHealthAction } from '@/app/actions/cctv.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { GlowCard } from '@/components/ui';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 export type CameraListItem = {
   id: string;
@@ -169,33 +171,33 @@ export function CameraListView({
 
       {/* Metrics Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-xs">
+        <GlowCard index={0} className="p-4">
           <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('cctv.totalDevices')}</div>
           <div className="text-2xl font-black text-gray-900 mt-1">{cameras.length}</div>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-xs">
+        </GlowCard>
+        <GlowCard index={1} className="p-4">
           <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider">{t('cctv.statusOnline')}</div>
           <div className="text-2xl font-black text-emerald-600 mt-1">
             {cameras.filter((c) => c.status === 'ONLINE' && c.isEnabled).length}
           </div>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-xs">
+        </GlowCard>
+        <GlowCard index={2} className="p-4">
           <div className="text-xs font-bold text-red-600 uppercase tracking-wider">{t('cctv.statusOffline')}</div>
           <div className="text-2xl font-black text-red-600 mt-1">
             {cameras.filter((c) => c.status === 'OFFLINE' && c.isEnabled).length}
           </div>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-xs">
+        </GlowCard>
+        <GlowCard index={3} className="p-4">
           <div className="text-xs font-bold text-amber-600 uppercase tracking-wider">{t('cctv.statusDegraded')}</div>
           <div className="text-2xl font-black text-amber-600 mt-1">
             {cameras.filter((c) => c.status === 'DEGRADED' && c.isEnabled).length}
           </div>
-        </div>
+        </GlowCard>
       </div>
 
       {/* Camera Grid */}
       {cameras.length === 0 ? (
-        <div className="bg-white rounded-3xl border border-gray-200 p-12 text-center shadow-xs space-y-3">
+        <SurfaceCard className="p-12 text-center space-y-3">
           <Video className="w-12 h-12 text-gray-300 mx-auto" />
           <h3 className="text-base font-bold text-gray-900">{t('cctv.emptyTitle')}</h3>
           <p className="text-xs text-gray-500 max-w-sm mx-auto">
@@ -210,14 +212,11 @@ export function CameraListView({
               <span>{t('cctv.registerFirstCamera')}</span>
             </Link>
           </div>
-        </div>
+        </SurfaceCard>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {cameras.map((camera) => (
-            <div
-              key={camera.id}
-              className="bg-white rounded-3xl border border-gray-200 p-5 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition-shadow"
-            >
+          {cameras.map((camera, idx) => (
+            <SurfaceCard key={camera.id} className="p-5 flex flex-col justify-between space-y-4">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="w-10 h-10 rounded-2xl bg-gray-50 flex items-center justify-center border border-gray-100">
@@ -288,7 +287,7 @@ export function CameraListView({
                   <span>{t('cctv.viewFeed')}</span>
                 </Link>
               </div>
-            </div>
+            </SurfaceCard>
           ))}
         </div>
       )}

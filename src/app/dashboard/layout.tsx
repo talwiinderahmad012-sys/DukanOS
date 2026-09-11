@@ -11,6 +11,7 @@ import { PageTransition } from '@/components/layout/page-transition';
 import LiveAnalyticsRefresher from '@/components/analytics/live-analytics-refresher';
 import { AuroraBackground } from '@/components/ui/AuroraBackground';
 import { SidebarStatusChip } from '@/components/layout/sidebar-status-chip';
+import { AppFooter } from '@/components/layout/footer';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, membership: activeMembership, business: activeBusiness } = await requireActiveBusiness();
@@ -70,11 +71,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
       {/* Main content */}
       <main className="flex-1 flex flex-col min-h-0 max-w-full overflow-hidden relative z-10">
         <DashboardHeader userName={userLabel} businessId={activeBusiness.id} role={activeMembership.role} logoutAction={logoutAction} />
-        <div className="flex-1 p-4 md:p-8 overflow-y-auto overscroll-contain">
-          <PageTransition>
-            {children}
-          </PageTransition>
-          <LiveAnalyticsRefresher />
+        <div className="flex-1 flex flex-col p-4 md:p-8 overflow-y-auto overscroll-contain">
+          <div className="flex-1">
+            <PageTransition>
+              {children}
+            </PageTransition>
+            <LiveAnalyticsRefresher />
+          </div>
+          <AppFooter dark />
         </div>
       </main>
     </div>

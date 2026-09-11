@@ -11,7 +11,8 @@ import {
   ArrowRight,
   Ban,
 } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { Alert } from '@/components/ui/alert';
 import { Table, TableWrap, TableHead, Th, Tr, Td } from '@/components/ui/table';
@@ -149,9 +150,9 @@ export function PurchaseDetailClient({
         )}
       </div>
 
-      <Card className="overflow-hidden">
-        <div className="grid grid-cols-2 gap-px bg-border lg:grid-cols-4">
-          <div className="bg-surface p-4">
+      <GlowCard variant="stat" hue="violet" className="overflow-hidden">
+        <div className="grid grid-cols-2 divide-y divide-border sm:divide-y-0 sm:divide-x divide-border lg:grid-cols-4">
+          <div className="p-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('common.grandTotal')}</p>
             <p className="mt-1 text-xl font-bold text-gray-900">{formatCurrency(total)}</p>
             {discount > 0 && (
@@ -160,17 +161,17 @@ export function PurchaseDetailClient({
               </p>
             )}
           </div>
-          <div className="bg-surface p-4">
+          <div className="p-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('common.paid')}</p>
             <p className={cn('mt-1 text-xl font-bold', paid > 0 ? 'text-success' : 'text-gray-900')}>{formatCurrency(paid)}</p>
             <p className="mt-0.5 text-xs text-muted">{t('purchases.paidToSupplier')}</p>
           </div>
-          <div className="bg-surface p-4">
+          <div className="p-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('purchases.remainingBalance')}</p>
             <p className={cn('mt-1 text-xl font-bold', remaining > 0 ? 'text-warning' : 'text-gray-900')}>{formatCurrency(remaining)}</p>
             <p className="mt-0.5 text-xs text-muted">{remaining > 0 ? t('purchases.dueToSupplier') : t('purchases.nothingDue')}</p>
           </div>
-          <div className="bg-surface p-4">
+          <div className="p-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('purchases.paymentStatus')}</p>
             <div className="mt-1.5">
               <Badge tone={payment.tone}>{t(payment.labelKey)}</Badge>
@@ -178,9 +179,9 @@ export function PurchaseDetailClient({
             <p className="mt-1.5 text-xs text-muted">{t(purchaseStatus.labelKey)}</p>
           </div>
         </div>
-      </Card>
+      </GlowCard>
 
-      <Card padded>
+      <SurfaceCard className="p-6">
         <div className="grid grid-cols-1 gap-6 text-sm sm:grid-cols-2">
           <div>
             <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted">{t('purchases.supplierVendor')}</p>
@@ -221,9 +222,9 @@ export function PurchaseDetailClient({
             <span className="whitespace-pre-wrap">{purchase.notes}</span>
           </div>
         )}
-      </Card>
+      </SurfaceCard>
 
-      <Card className="overflow-hidden">
+      <SurfaceCard className="overflow-hidden">
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <h2 className="flex items-center gap-2 text-base font-bold text-gray-900">
             <Receipt className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -297,9 +298,9 @@ export function PurchaseDetailClient({
             </tfoot>
           </Table>
         </TableWrap>
-      </Card>
+      </SurfaceCard>
 
-      <Card padded>
+      <SurfaceCard className="p-6">
         <div className="mb-4 flex items-center gap-2 border-b border-border pb-3">
           <Package className="h-5 w-5 text-primary" aria-hidden="true" />
           <h2 className="text-base font-bold text-gray-900">{t('purchases.inventoryStockImpact')}</h2>
@@ -348,7 +349,7 @@ export function PurchaseDetailClient({
             </div>
           ))}
         </div>
-      </Card>
+      </SurfaceCard>
     </div>
   );
 }

@@ -20,6 +20,8 @@ import { RequestLeaveModal, ReviewLeaveModal } from './leave-request-modal';
 import { CreateSalaryModal, RecordPaymentModal } from './salary-record-modal';
 import { SubmitComplaintModal, ResolveComplaintModal } from './complaint-modal';
 import { EmployeeForm } from './employee-form';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { useTranslation } from '@/lib/i18n/language-context';
 
 const EMPLOYEE_STATUS_KEY: Record<string, string> = {
@@ -128,7 +130,7 @@ export function EmployeeProfileView({
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <SurfaceCard className="p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-start gap-4">
           <div className="w-14 h-14 rounded-2xl bg-blue-100 text-gray-950 font-bold text-xl flex items-center justify-center shrink-0">
             {employee.name.slice(0, 2).toUpperCase()}
@@ -181,7 +183,7 @@ export function EmployeeProfileView({
             </button>
           )}
         </div>
-      </div>
+      </SurfaceCard>
 
       {isEditing && (
         <div className="space-y-2">
@@ -214,38 +216,38 @@ export function EmployeeProfileView({
       {activeTab === 'overview' && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
+            <GlowCard hue="sky" className="p-4 space-y-1">
               <span className="text-xs font-semibold text-gray-500 uppercase">{t('employees.attendanceRate')}</span>
               <h3 className="text-2xl font-bold text-gray-900 mt-1">{stats.attendanceRate}%</h3>
               <span className="text-[11px] text-gray-400">{t('employees.past30Days')}</span>
-            </div>
+            </GlowCard>
 
-            <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
+            <GlowCard hue="emerald" className="p-4 space-y-1">
               <span className="text-xs font-semibold text-green-700 uppercase">{t('employees.daysPresent')}</span>
               <h3 className="text-2xl font-bold text-green-700 mt-1">{stats.presentCount}</h3>
               <span className="text-[11px] text-green-600">{t('employees.onTimeDuty')}</span>
-            </div>
+            </GlowCard>
 
-            <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
+            <GlowCard hue="amber" className="p-4 space-y-1">
               <span className="text-xs font-semibold text-amber-700 uppercase">{t('employees.lateArrivals')}</span>
               <h3 className="text-2xl font-bold text-amber-700 mt-1">{stats.lateCount}</h3>
               <span className="text-[11px] text-amber-600">{t('employees.loggedTardy')}</span>
-            </div>
+            </GlowCard>
 
-            <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
+            <GlowCard hue="rose" className="p-4 space-y-1">
               <span className="text-xs font-semibold text-red-700 uppercase">{t('employees.unexcusedAbsences')}</span>
               <h3 className="text-2xl font-bold text-red-700 mt-1">{stats.absentCount}</h3>
               <span className="text-[11px] text-red-500">{t('employees.recordedAbsent')}</span>
-            </div>
+            </GlowCard>
 
-            <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
+            <GlowCard hue="violet" className="p-4 space-y-1">
               <span className="text-xs font-semibold text-purple-700 uppercase">{t('employees.approvedLeaves')}</span>
               <h3 className="text-2xl font-bold text-purple-700 mt-1">{stats.approvedLeavesCount}</h3>
               <span className="text-[11px] text-purple-600">{t('employees.totalRequests')}</span>
-            </div>
+            </GlowCard>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4">
+          <SurfaceCard className="p-6 space-y-4">
             <h3 className="font-bold text-gray-900 text-sm border-b pb-3">{t('employees.staffProfileInformation')}</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
@@ -300,12 +302,12 @@ export function EmployeeProfileView({
                 {employee.notes}
               </div>
             )}
-          </div>
+          </SurfaceCard>
         </div>
       )}
 
       {activeTab === 'attendance' && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4">
+        <SurfaceCard className="p-6 space-y-4">
           <div className="flex justify-between items-center border-b pb-3">
             <h3 className="font-bold text-gray-900 text-sm">{t('employees.attendanceLogLast30Days')}</h3>
             <button
@@ -364,11 +366,11 @@ export function EmployeeProfileView({
               </table>
             </div>
           )}
-        </div>
+        </SurfaceCard>
       )}
 
       {activeTab === 'leave' && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4">
+        <SurfaceCard className="p-6 space-y-4">
           <div className="flex justify-between items-center border-b pb-3">
             <h3 className="font-bold text-gray-900 text-sm">{t('employees.leaveHistoryApplications')}</h3>
             <button
@@ -443,11 +445,11 @@ export function EmployeeProfileView({
               </table>
             </div>
           )}
-        </div>
+        </SurfaceCard>
       )}
 
       {activeTab === 'salary' && isOwnerOrManager && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4">
+        <SurfaceCard className="p-6 space-y-4">
           <div className="flex justify-between items-center border-b pb-3">
             <div>
               <h3 className="font-bold text-gray-900 text-sm">{t('employees.payrollHeader')}</h3>
@@ -520,11 +522,11 @@ export function EmployeeProfileView({
               </table>
             </div>
           )}
-        </div>
+        </SurfaceCard>
       )}
 
       {activeTab === 'complaints' && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4">
+        <SurfaceCard className="p-6 space-y-4">
           <div className="flex justify-between items-center border-b pb-3">
             <div>
               <h3 className="font-bold text-gray-900 text-sm">{t('employees.workplaceFeedback')}</h3>
@@ -599,11 +601,11 @@ export function EmployeeProfileView({
               ))}
             </div>
           )}
-        </div>
+        </SurfaceCard>
       )}
 
       {activeTab === 'activity' && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4">
+        <SurfaceCard className="p-6 space-y-4">
           <h3 className="font-bold text-gray-900 text-sm border-b pb-3">{t('employees.auditLogHistory')}</h3>
 
           {auditLogs.length === 0 ? (
@@ -625,7 +627,7 @@ export function EmployeeProfileView({
               ))}
             </div>
           )}
-        </div>
+        </SurfaceCard>
       )}
 
       <QuickAttendanceModal

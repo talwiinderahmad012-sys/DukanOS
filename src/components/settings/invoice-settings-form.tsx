@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { FileText, ArrowLeft, Save, CheckCircle2, AlertCircle, Eye, Layout } from 'lucide-react';
 import { updateInvoiceDisplaySettingsAction } from '@/app/actions/settings.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 export function InvoiceSettingsForm({
   businessId,
@@ -86,7 +87,7 @@ export function InvoiceSettingsForm({
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Section 1: Visibility & Layout Options */}
-        <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-5">
+        <SurfaceCard as="section" className="p-6 space-y-5">
           <div className="flex items-center gap-2.5 pb-3 border-b border-gray-100">
             <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
               <Eye className="w-4 h-4" />
@@ -116,10 +117,10 @@ export function InvoiceSettingsForm({
               </label>
             ))}
           </div>
-        </div>
+        </SurfaceCard>
 
         {/* Section 2: Footer & Note */}
-        <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-5">
+        <SurfaceCard as="section" className="p-6 space-y-5">
           <div className="flex items-center gap-2.5 pb-3 border-b border-gray-100">
             <div className="w-8 h-8 rounded-xl bg-primary-soft text-primary flex items-center justify-center">
               <Layout className="w-4 h-4" />
@@ -143,7 +144,7 @@ export function InvoiceSettingsForm({
               placeholder={t('settings.invoiceFooterPlaceholder', 'Thank you for your business! Goods once sold cannot be returned without receipt.')}
             />
           </div>
-        </div>
+        </SurfaceCard>
 
         {/* Action Button */}
         <div className="flex items-center justify-end gap-3 pt-2">

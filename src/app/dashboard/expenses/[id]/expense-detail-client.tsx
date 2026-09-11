@@ -5,6 +5,8 @@ import { ChevronRight } from 'lucide-react';
 import { updateExpenseServerAction } from '@/app/actions/expenses.actions';
 import { PageHeader } from '@/components/ui/page-header';
 import { Card } from '@/components/ui/card';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { Badge } from '@/components/ui/badge';
 import { Alert } from '@/components/ui/alert';
 import { buttonClasses } from '@/components/ui/button';
@@ -97,7 +99,7 @@ export function ExpenseDetailClient({
         </Alert>
       )}
 
-      <Card className="overflow-hidden">
+      <SurfaceCard className="overflow-hidden">
         <form action={updateExpenseServerAction.bind(null, expense.id)}>
           <input type="hidden" name="id" value={expense.id} />
 
@@ -211,7 +213,7 @@ export function ExpenseDetailClient({
             </div>
           </div>
         </form>
-      </Card>
+      </SurfaceCard>
     </div>
   );
 }

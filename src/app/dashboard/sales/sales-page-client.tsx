@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
 import { Card } from '@/components/ui/card';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { buttonClasses } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -160,9 +162,8 @@ export function SalesPageClient({
       />
 
       {canViewFinancials && (
-      <Card className="overflow-hidden">
-        <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Card index={0} className="flex flex-col gap-2 p-4 sm:p-5">
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('sales.statTotalSales')}</p>
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary" aria-hidden="true">
@@ -177,9 +178,9 @@ export function SalesPageClient({
                   : t('sales.invoicesMany', { count: formatNumber(summary.invoiceCount), scope: scopeLabel })}
               </p>
             </div>
-          </div>
+          </Card>
 
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
+          <Card index={1} className="flex flex-col gap-2 p-4 sm:p-5">
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('sales.statCollected')}</p>
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success-soft text-success" aria-hidden="true">
@@ -192,9 +193,9 @@ export function SalesPageClient({
                 {t('sales.collectedSub', { scope: hasFilters ? t('sales.scopeInFilters') : t('sales.scopeToDate') })}
               </p>
             </div>
-          </div>
+          </Card>
 
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
+          <Card index={2} className="flex flex-col gap-2 p-4 sm:p-5">
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('sales.statOutstandingUdhaar')}</p>
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-warning-soft text-warning" aria-hidden="true">
@@ -207,9 +208,9 @@ export function SalesPageClient({
               </p>
               <p className="mt-1 text-xs text-muted">{t('sales.outstandingSub', { scope: scopeLabel })}</p>
             </div>
-          </div>
+          </Card>
 
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
+          <Card index={3} className="flex flex-col gap-2 p-4 sm:p-5">
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('sales.statRealizedProfit')}</p>
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success-soft text-success" aria-hidden="true">
@@ -220,12 +221,11 @@ export function SalesPageClient({
               <p className="text-2xl font-bold leading-tight text-gray-900">{formatCurrency(summary.totalProfit)}</p>
               <p className="mt-1 text-xs text-muted">{t('sales.profitSub')}</p>
             </div>
-          </div>
+          </Card>
         </div>
-      </Card>
       )}
 
-      <Card className="overflow-hidden">
+      <SurfaceCard className="overflow-hidden">
         <div className="space-y-3 border-b border-border p-4">
           <form method="GET" aria-label={t('sales.searchFormAria')} className="flex flex-col gap-2">
             <div className="relative">
@@ -532,7 +532,7 @@ export function SalesPageClient({
             )}
           </>
         )}
-      </Card>
+      </SurfaceCard>
     </div>
   );
 }

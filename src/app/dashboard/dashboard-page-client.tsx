@@ -1,6 +1,8 @@
 'use client';
 
+import React, { useMemo, memo } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import {
   ShoppingCart,
   TrendingUp,
@@ -20,16 +22,32 @@ import {
   Wallet,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { SimpleBarChart } from '@/components/charts/bar-chart';
-import { HealthGauge } from '@/components/charts/health-gauge';
 import { PageHeader } from '@/components/ui/page-header';
 import { Badge, badgeClasses, type BadgeTone } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
 import { buttonClasses } from '@/components/ui/button';
 import { TiltCard } from '@/components/ui/TiltCard';
+import { GlowCard, type GlowHue } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/components/ui/cn';
 import { useTranslation } from '@/lib/i18n/language-context';
+
+const SimpleBarChart = dynamic(
+  () => import('@/components/charts/bar-chart').then((mod) => mod.SimpleBarChart),
+  {
+    ssr: false,
+    loading: () => <div className="h-[200px] w-full animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800/40" />,
+  }
+);
+
+const HealthGauge = dynamic(
+  () => import('@/components/charts/health-gauge').then((mod) => mod.HealthGauge),
+  {
+    ssr: false,
+    loading: () => <div className="h-[120px] w-full animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800/40" />,
+  }
+);
 
 export type OverviewFinding = {
   id: string;
@@ -98,24 +116,30 @@ export type DashboardOverviewProps = {
 };
 
 // ── Glass panel wrapper for content sections ──────────────────────────────────
-function GlassSection({
+const GlassSection = memo(function GlassSection({
   children,
   className,
+  hue,
+  index,
 }: {
   children: React.ReactNode;
   className?: string;
+  hue?: GlowHue;
+  index?: number;
 }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className={cn('surface-glass rounded-2xl overflow-hidden shadow-lg shadow-black/5', className)}
+      className={cn('h-full', className)}
     >
-      {children}
+      <SurfaceCard className="h-full overflow-hidden shadow-lg shadow-black/5">
+        {children}
+      </SurfaceCard>
     </motion.div>
   );
-}
+});
 
 function SectionHeader({
   title,
@@ -135,6 +159,7 @@ function SectionHeader({
       {action && (
         <Link
           href={action.href}
+          prefetch={false}
           className="flex items-center gap-1 text-sm font-semibold text-emerald-600 hover:text-emerald-700 dark:text-lime-400 dark:hover:text-lime-300 transition-colors"
           data-sound="nav-click"
         >
@@ -146,7 +171,7 @@ function SectionHeader({
   );
 }
 
-function FindingRow({ finding, tm }: { finding: OverviewFinding; tm: (m: string | null | undefined) => string }) {
+const FindingRow = memo(function FindingRow({ finding, tm }: { finding: OverviewFinding; tm: (m: string | null | undefined) => string }) {
   const tone: BadgeTone =
     finding.severity === 'CRITICAL' ? 'danger' : finding.severity === 'WARNING' ? 'warning' : 'info';
   const ToneIcon =
@@ -171,7 +196,7 @@ function FindingRow({ finding, tm }: { finding: OverviewFinding; tm: (m: string 
       </div>
     </div>
   );
-}
+});
 
 // Stagger animation for lists
 const listItemVariants = {
@@ -218,19 +243,26 @@ export function DashboardPageClient({
     EMPLOYEE: t('overview.roleEmployee'),
   };
 
-  const quickActions: { href: string; label: string; icon: LucideIcon }[] = [
-    { href: '/dashboard/pos', label: t('overview.actionNewSale'), icon: ShoppingCart },
-    { href: '/dashboard/products/new', label: t('overview.actionAddProduct'), icon: PackagePlus },
-    { href: '/dashboard/purchases/new', label: t('overview.actionNewPurchase'), icon: Truck },
-    { href: '/dashboard/customers', label: t('overview.actionAddCustomer'), icon: UserPlus },
-    ...(isOwnerOrManager ? [{ href: '/dashboard/expenses/new', label: t('overview.actionRecordExpense'), icon: Banknote }] : []),
-  ];
+  const quickActions = useMemo(
+    (): { href: string; label: string; icon: LucideIcon }[] => [
+      { href: '/dashboard/pos', label: t('overview.actionNewSale'), icon: ShoppingCart },
+      { href: '/dashboard/products/new', label: t('overview.actionAddProduct'), icon: PackagePlus },
+      { href: '/dashboard/purchases/new', label: t('overview.actionNewPurchase'), icon: Truck },
+      { href: '/dashboard/customers', label: t('overview.actionAddCustomer'), icon: UserPlus },
+      ...(isOwnerOrManager ? [{ href: '/dashboard/expenses/new', label: t('overview.actionRecordExpense'), icon: Banknote }] : []),
+    ],
+    [t, isOwnerOrManager]
+  );
 
-  const trendChartData = trendData.map((d) => ({
-    label: new Date(`${d.date}T00:00:00`).toLocaleDateString(locale, { weekday: 'short' }),
-    value1: Math.round(d.revenue),
-    value2: Math.round(d.profit),
-  }));
+  const trendChartData = useMemo(
+    () =>
+      trendData.map((d) => ({
+        label: new Date(`${d.date}T00:00:00`).toLocaleDateString(locale, { weekday: 'short' }),
+        value1: Math.round(d.revenue),
+        value2: Math.round(d.profit),
+      })),
+    [trendData, locale]
+  );
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -239,11 +271,11 @@ export function DashboardPageClient({
         description={t('overview.headerDescription', { name: businessName })}
         actions={
           <>
-            <Link href="/dashboard/reports" className={buttonClasses('outline', 'sm')} data-sound="nav-click">
+            <Link href="/dashboard/reports" prefetch={false} className={buttonClasses('outline', 'sm')} data-sound="nav-click">
               <BarChart3 className="h-3.5 w-3.5" aria-hidden="true" />
               {t('overview.reports')}
             </Link>
-            <Link href="/dashboard/pos" className={buttonClasses('primary', 'sm')} data-sound="primary">
+            <Link href="/dashboard/pos" prefetch={false} className={buttonClasses('primary', 'sm')} data-sound="primary">
               <ShoppingCart className="h-3.5 w-3.5" aria-hidden="true" />
               {t('overview.posTerminal')}
             </Link>
@@ -311,8 +343,8 @@ export function DashboardPageClient({
       </motion.div>
 
       {/* ── Sales Trend + Business Health ── */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <GlassSection className="lg:col-span-2">
+      <div className="content-auto grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <GlassSection hue="sky" className="lg:col-span-2">
           <SectionHeader
             title={t('overview.salesTrend')}
             description={t('overview.salesTrendDescription')}
@@ -334,7 +366,7 @@ export function DashboardPageClient({
           </div>
         </GlassSection>
 
-        <GlassSection>
+        <GlassSection hue="emerald">
           <SectionHeader
             title={t('overview.businessHealth')}
             action={{ href: '/dashboard/advisor', label: t('overview.openAdvisor') }}
@@ -354,8 +386,8 @@ export function DashboardPageClient({
       </div>
 
       {/* ── Recent Sales + Attention Required ── */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <GlassSection className="overflow-hidden lg:col-span-2">
+      <div className="content-auto grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <GlassSection hue="violet" className="overflow-hidden lg:col-span-2">
           <SectionHeader
             title={t('overview.recentSales')}
             description={t('overview.recentSalesDescription')}
@@ -395,15 +427,10 @@ export function DashboardPageClient({
                       ? 'warning'
                       : 'info';
                 return (
-                  <motion.li
-                    key={sale.id}
-                    custom={i}
-                    variants={listItemVariants}
-                    initial="hidden"
-                    animate="visible"
-                  >
+                  <li key={sale.id}>
                     <Link
                       href={`/dashboard/sales/${sale.id}`}
+                      prefetch={false}
                       className="flex items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-white/45 dark:hover:bg-white/5"
                       data-sound="nav-click"
                     >
@@ -422,14 +449,14 @@ export function DashboardPageClient({
                         <Badge tone={paymentTone}>{paymentLabel}</Badge>
                       </div>
                     </Link>
-                  </motion.li>
+                  </li>
                 );
               })}
             </ul>
           )}
         </GlassSection>
 
-        <GlassSection className="overflow-hidden">
+        <GlassSection hue="rose" className="overflow-hidden">
           <SectionHeader
             title={t('overview.attentionRequired')}
             description={t('overview.attentionDescription')}
@@ -447,12 +474,8 @@ export function DashboardPageClient({
               {attentionProducts.map((product, i) => {
                 const isOut = product.currentStock <= 0;
                 return (
-                  <motion.li
+                  <li
                     key={product.id}
-                    custom={i}
-                    variants={listItemVariants}
-                    initial="hidden"
-                    animate="visible"
                     className="flex items-center justify-between gap-3 px-5 py-3"
                   >
                     <div className="min-w-0">
@@ -466,7 +489,7 @@ export function DashboardPageClient({
                     <span className={badgeClasses(isOut ? 'danger' : 'warning', 'shrink-0')}>
                       {isOut ? t('overview.outOfStock') : t('overview.stockLeft', { count: product.currentStock })}
                     </span>
-                  </motion.li>
+                  </li>
                 );
               })}
             </ul>
@@ -475,8 +498,8 @@ export function DashboardPageClient({
       </div>
 
       {/* ── Customer Udhaar + Quick Actions ── */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <GlassSection className="lg:col-span-2">
+      <div className="content-auto grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <GlassSection hue="amber" className="lg:col-span-2">
           <SectionHeader
             title={t('overview.customerUdhaar')}
             description={t('overview.creditActivity', { period: t('common.thisMonth') })}
@@ -498,22 +521,22 @@ export function DashboardPageClient({
             <div className="space-y-4 p-5">
               <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 {[
-                  { icon: Wallet, label: t('overview.collectedThisMonth'), value: money(udhaarCollectedThisPeriod) },
-                  { icon: Users, label: t('overview.newCreditThisMonth'), value: money(udhaarNewCreditThisPeriod) },
-                  { icon: Receipt, label: t('overview.outstandingBalance'), value: money(udhaarTotalOutstanding), highlight: totalUdhaar > 0 },
-                ].map(({ icon: Icon, label, value, highlight }) => (
-                  <div key={label} className="surface-glass rounded-xl border border-white/60 dark:border-white/10 p-3 shadow-xs">
+                  { icon: Wallet, label: t('overview.collectedThisMonth'), value: money(udhaarCollectedThisPeriod), hue: 'emerald' as GlowHue },
+                  { icon: Users, label: t('overview.newCreditThisMonth'), value: money(udhaarNewCreditThisPeriod), hue: 'sky' as GlowHue },
+                  { icon: Receipt, label: t('overview.outstandingBalance'), value: money(udhaarTotalOutstanding), highlight: totalUdhaar > 0, hue: 'amber' as GlowHue },
+                ].map(({ icon: Icon, label, value, highlight, hue }) => (
+                  <GlowCard key={label} hue={hue} padded={false} className="rounded-xl p-3 shadow-xs">
                     <dt className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
                       <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                       {label}
                     </dt>
                     <dd className={cn('mt-1 text-lg font-bold', highlight ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-white')}>{value}</dd>
-                  </div>
+                  </GlowCard>
                 ))}
               </dl>
 
               {topDebtors.length === 0 ? (
-                <div className="flex items-center gap-2 rounded-xl border border-success/25 bg-success-soft/50 px-4 py-3 text-sm font-medium text-success backdrop-blur-sm">
+                <div className="flex items-center gap-2 rounded-xl border border-success/25 bg-success-soft/80 px-4 py-3 text-sm font-medium text-success">
                   <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
                   {t('overview.noOutstandingBalances')}
                 </div>
@@ -524,12 +547,8 @@ export function DashboardPageClient({
                   </h3>
                   <ul className="divide-y divide-black/5 dark:divide-white/10">
                     {topDebtors.slice(0, 3).map((debtor, i) => (
-                      <motion.li
+                      <li
                         key={debtor.customerId}
-                        custom={i}
-                        variants={listItemVariants}
-                        initial="hidden"
-                        animate="visible"
                         className="flex items-center justify-between gap-3 py-2.5"
                       >
                         <div className="flex min-w-0 items-center gap-2.5">
@@ -542,7 +561,7 @@ export function DashboardPageClient({
                           <span className="truncate text-sm font-medium text-slate-900 dark:text-white">{debtor.name}</span>
                         </div>
                         <span className="shrink-0 text-sm font-bold text-amber-600 dark:text-amber-400">{money(debtor.outstanding)}</span>
-                      </motion.li>
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -551,20 +570,15 @@ export function DashboardPageClient({
           )}
         </GlassSection>
 
-        <GlassSection>
+        <GlassSection hue="teal">
           <SectionHeader title={t('dashboard.quickActions')} description={t('overview.quickActionsDescription')} />
           <div className="p-3">
             <ul className="space-y-1">
-              {quickActions.map((action, i) => (
-                <motion.li
-                  key={action.href}
-                  custom={i}
-                  variants={listItemVariants}
-                  initial="hidden"
-                  animate="visible"
-                >
+              {quickActions.map((action) => (
+                <li key={action.href}>
                   <Link
                     href={action.href}
+                    prefetch={false}
                     className="group flex min-h-10 items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 transition-all duration-150 hover:bg-white/50 dark:hover:bg-white/10 hover:text-slate-950 dark:hover:text-white hover:translate-x-1 rtl:hover:-translate-x-1"
                     data-sound="nav-click"
                   >
@@ -572,7 +586,7 @@ export function DashboardPageClient({
                     {action.label}
                     <ArrowUpRight className="ms-auto h-3.5 w-3.5 rtl-flip text-slate-400 group-hover:text-primary transition-colors" aria-hidden="true" />
                   </Link>
-                </motion.li>
+                </li>
               ))}
             </ul>
           </div>

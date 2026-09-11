@@ -2,9 +2,8 @@
 
 import React from 'react';
 import type { ComponentProps } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from './cn';
-import { useCanHover } from './motion';
+import { GlowCard, type GlowHue } from './GlowCard';
 
 export const cardClasses = {
   base: 'surface-glass rounded-2xl border border-white/60 dark:border-white/15 shadow-lg shadow-black/5',
@@ -14,43 +13,37 @@ export const cardClasses = {
 export interface CardProps extends ComponentProps<'div'> {
   padded?: boolean;
   interactive?: boolean;
+  hue?: GlowHue;
+  index?: number;
+  variant?: 'card' | 'panel';
+  as?: React.ElementType;
+  [key: string]: any;
 }
 
-export function Card({ padded = false, interactive = false, className, children, ...props }: CardProps) {
-  const shouldReduceMotion = useReducedMotion();
-  const canHover = useCanHover();
-
-  if (interactive && !shouldReduceMotion) {
-    return (
-      <motion.div
-        whileHover={canHover ? { y: -4, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' } : undefined}
-        whileTap={{ scale: 0.99 }}
-        transition={{ duration: 0.2, ease: 'easeOut' }}
-        className={cn(
-          cardClasses.base,
-          'cursor-pointer transition-colors',
-          padded && 'p-5',
-          className
-        )}
-        {...(props as any)}
-      >
-        {children}
-      </motion.div>
-    );
-  }
-
+export function Card({
+  padded = false,
+  interactive = true,
+  hue,
+  index,
+  variant = 'card',
+  as,
+  className,
+  children,
+  ...props
+}: CardProps) {
   return (
-    <div
-      className={cn(
-        cardClasses.base,
-        interactive && cardClasses.hover,
-        padded && 'p-5',
-        className
-      )}
+    <GlowCard
+      as={as}
+      padded={padded}
+      interactive={interactive}
+      hue={hue}
+      index={index}
+      variant={variant}
+      className={className}
       {...props}
     >
       {children}
-    </div>
+    </GlowCard>
   );
 }
 

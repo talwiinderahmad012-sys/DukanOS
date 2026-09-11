@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import {
   ArrowLeft,
   BookOpen,
@@ -132,7 +133,7 @@ export default function DocsPage() {
           {sections.map((sec, idx) => {
             const Icon = sec.icon;
             return (
-              <div key={idx} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
+              <SurfaceCard key={idx} className="p-6 space-y-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-primary-soft text-gray-900 flex items-center justify-center shrink-0">
                     <Icon className="w-5 h-5" />
@@ -151,12 +152,12 @@ export default function DocsPage() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </SurfaceCard>
             );
           })}
         </div>
 
-        <div className="bg-primary text-on-primary rounded-2xl p-8 text-center space-y-4 shadow-sm">
+        <SurfaceCard className="bg-primary text-on-primary p-8 text-center space-y-4">
           <h2 className="text-2xl font-bold">{t('staticPages.docsCtaTitle')}</h2>
           <p className="text-blue-100 text-sm max-w-lg mx-auto">
             {t('staticPages.docsCtaText')}
@@ -169,7 +170,7 @@ export default function DocsPage() {
               {t('staticPages.docsCtaButton')}
             </Link>
           </div>
-        </div>
+        </SurfaceCard>
       </main>
     </div>
   );

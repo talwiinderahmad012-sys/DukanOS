@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { 
   MessageSquare, 
   Megaphone, 
@@ -27,6 +28,7 @@ import {
 } from '@/app/actions/communication.actions';
 import { NewConversationModal } from './new-conversation-modal';
 import { NewAnnouncementModal } from './new-announcement-modal';
+
 import { useTranslation } from '@/lib/i18n/language-context';
 
 export type ConversationData = {
@@ -301,7 +303,7 @@ export function CommunicationsView({
 
       {/* 1. Direct Messages Tab */}
       {activeTab === 'messages' && (
-        <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden grid grid-cols-1 md:grid-cols-12 min-h-[580px] max-h-[700px]">
+        <SurfaceCard className="rounded-3xl shadow-sm overflow-hidden grid grid-cols-1 md:grid-cols-12 min-h-[580px] max-h-[700px]">
           {/* Left: Conversations Sidebar */}
           <div className={`md:col-span-4 border-e border-gray-200 flex flex-col h-full ${activeConversationId && 'hidden md:flex'}`}>
             <div className="p-4 border-b border-gray-100 space-y-3">
@@ -392,7 +394,7 @@ export function CommunicationsView({
             {activeConversation ? (
               <>
                 {/* Chat Top Bar */}
-                <div className="p-4 border-b border-gray-200 bg-white flex items-center justify-between">
+                <div className="p-4 border-b border-gray-200 bg-white/80 dark:bg-slate-900/80 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => setActiveConversationId(null)}
@@ -465,7 +467,7 @@ export function CommunicationsView({
                 {/* Composer */}
                 <form
                   onSubmit={handleSendMessage}
-                  className="p-3 bg-white border-t border-gray-200 flex items-center gap-2"
+                  className="p-3 bg-white/80 dark:bg-slate-900/80 border-t border-gray-200 flex items-center gap-2"
                 >
                   <input
                     type="text"
@@ -491,7 +493,7 @@ export function CommunicationsView({
               </div>
             )}
           </div>
-        </div>
+        </SurfaceCard>
       )}
 
       {/* 2. Announcements Tab */}
@@ -510,15 +512,15 @@ export function CommunicationsView({
           </div>
 
           {announcements.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center space-y-3">
-              <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto">
+            <SurfaceCard className="rounded-2xl p-12 text-center space-y-3">
+              <div className="w-12 h-12 bg-amber-50 dark:bg-amber-950/40 text-amber-600 rounded-full flex items-center justify-center mx-auto">
                 <Megaphone className="w-6 h-6" />
               </div>
               <h3 className="text-base font-bold text-gray-900">{t('communications.noAnnouncementsTitle')}</h3>
               <p className="text-xs text-gray-500 max-w-sm mx-auto">
                 {t('communications.noAnnouncementsDescription')}
               </p>
-            </div>
+            </SurfaceCard>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {announcements.map((a) => {
@@ -526,16 +528,13 @@ export function CommunicationsView({
                 const isImportant = a.priority === 'IMPORTANT';
 
                 return (
-                  <div
-                    key={a.id}
-                    className={`bg-white rounded-3xl p-6 border shadow-xs flex flex-col justify-between space-y-4 ${
+                  <SurfaceCard key={a.id} className={`rounded-3xl p-6 shadow-xs flex flex-col justify-between space-y-4 ${
                       isUrgent
                         ? 'border-red-200 ring-2 ring-red-500/20'
                         : isImportant
                         ? 'border-amber-200 ring-2 ring-amber-500/20'
-                        : 'border-gray-200'
-                    }`}
-                  >
+                        : ''
+                    }`}>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span
@@ -553,7 +552,7 @@ export function CommunicationsView({
                         <div className="flex items-center gap-2">
                           <span className="text-[11px] text-gray-400">
                             {t('communications.audienceLabel')}{' '}
-                            <strong className="text-gray-700">{roleLabel(a.targetRole)}</strong>
+                            <strong className="text-gray-700 dark:text-gray-300">{roleLabel(a.targetRole)}</strong>
                           </span>
                           {isOwnerOrManager && (
                             <button
@@ -568,12 +567,12 @@ export function CommunicationsView({
                       </div>
 
                       <h3 className="font-bold text-gray-900 text-base">{a.title}</h3>
-                      <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                         {a.message}
                       </p>
                     </div>
 
-                    <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
+                    <div className="pt-3 border-t border-gray-100 dark:border-white/10 flex items-center justify-between text-xs">
                       <div className="text-[11px] text-gray-400">
                         <span>
                           {t('communications.byAuthor', { name: a.authorName })} •{' '}
@@ -594,7 +593,7 @@ export function CommunicationsView({
                         </button>
                       )}
                     </div>
-                  </div>
+                  </SurfaceCard>
                 );
               })}
             </div>
@@ -604,7 +603,7 @@ export function CommunicationsView({
 
       {/* Customer Communications (Step 28) */}
       {activeTab === 'customers' && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 overflow-y-auto max-h-[calc(100vh-220px)]">
+        <SurfaceCard className="rounded-2xl shadow-sm p-6 overflow-y-auto max-h-[calc(100vh-220px)]">
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-bold text-lg">Customer Messages Log</h2>
             <div className="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded-full font-semibold">
@@ -633,11 +632,11 @@ export function CommunicationsView({
               ))}
             </div>
           )}
-        </div>
+        </SurfaceCard>
       )}
 
       {activeTab === 'templates' && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 overflow-y-auto max-h-[calc(100vh-220px)]">
+        <SurfaceCard className="rounded-2xl shadow-sm p-6 overflow-y-auto max-h-[calc(100vh-220px)]">
           <h2 className="font-bold text-lg mb-6">Message Templates</h2>
           {templates && templates.length === 0 ? (
             <div className="text-center py-12 text-gray-500 text-sm">No templates configured.</div>
@@ -652,11 +651,11 @@ export function CommunicationsView({
               ))}
             </div>
           )}
-        </div>
+        </SurfaceCard>
       )}
 
       {activeTab === 'automations' && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 overflow-y-auto max-h-[calc(100vh-220px)]">
+        <SurfaceCard className="rounded-2xl shadow-sm p-6 overflow-y-auto max-h-[calc(100vh-220px)]">
           <h2 className="font-bold text-lg mb-6">Communication Automations</h2>
           {automations && automations.length === 0 ? (
             <div className="text-center py-12 text-gray-500 text-sm">No automations active.</div>
@@ -677,7 +676,7 @@ export function CommunicationsView({
               ))}
             </div>
           )}
-        </div>
+        </SurfaceCard>
       )}
 
       {/* Modals */}

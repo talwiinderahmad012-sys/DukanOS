@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { useRouter } from 'next/navigation';
 import {
   Search,
@@ -472,7 +473,7 @@ export function POSTerminal({
         >
           <AlertCircle className="h-4 w-4 shrink-0 text-danger" aria-hidden="true" />
           <p className="flex-1">{error}</p>
-          <IconButton aria-label={t('pos.dismissError')} size="sm" onClick={() => setError(null)} className="-my-1 shrink-0">
+          <IconButton variant="3d" aria-label={t('pos.dismissError')} size="sm" onClick={() => setError(null)} className="-my-1 shrink-0">
             <X className="h-4 w-4" />
           </IconButton>
         </div>
@@ -513,7 +514,7 @@ export function POSTerminal({
           className={cn('space-y-4 lg:col-span-7', mobileTab === 'cart' ? 'hidden lg:block' : 'block')}
         >
           {/* Barcode & Search Bar */}
-          <div className="space-y-3 rounded-card border border-border bg-surface p-4 shadow-card">
+          <SurfaceCard className="space-y-3 p-4 shadow-card">
             <div className="relative">
               <Barcode
                 className="pointer-events-none absolute start-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
@@ -532,6 +533,7 @@ export function POSTerminal({
               />
               {searchQuery && (
                 <IconButton
+                  variant="3d"
                   aria-label={t('pos.clearSearchAria')}
                   size="sm"
                   onClick={() => setSearchQuery('')}
@@ -574,43 +576,36 @@ export function POSTerminal({
                 </button>
               ))}
             </div>
-          </div>
+          </SurfaceCard>
 
           {/* Product Cards Grid */}
           <div className="grid grid-cols-2 gap-3 pe-1 sm:grid-cols-3 lg:max-h-[calc(100vh-260px)] lg:overflow-y-auto">
             {filteredProducts.length === 0 ? (
-              <div className="col-span-full rounded-card border border-border bg-surface py-16 text-center shadow-card">
+              <SurfaceCard className="col-span-full py-16 text-center shadow-card">
                 <Search className="mx-auto mb-2 h-8 w-8 text-gray-300" aria-hidden="true" />
                 <p className="text-sm font-medium text-muted">
                   {products.length === 0
                     ? t('pos.noActiveProducts')
                     : t('pos.noMatchingProducts')}
                 </p>
-              </div>
+              </SurfaceCard>
             ) : (
-              filteredProducts.map((product) => {
+              filteredProducts.map((product, idx) => {
                 const isOutOfStock = product.currentStock <= 0;
                 const inCartItem = cart.find((i) => i.product.id === product.id);
                 const stockTone = isOutOfStock ? 'danger' : product.currentStock <= 5 ? 'warning' : 'success';
 
                 return (
-                  <button
-                    key={product.id}
-                    type="button"
-                    disabled={isOutOfStock}
-                    onClick={() => handleAddToCart(product)}
-                    aria-label={
+                  <SurfaceCard as="button" key={product.id} type="button" disabled={isOutOfStock} onClick={() => handleAddToCart(product)} aria-label={
                       isOutOfStock
                         ? t('pos.outOfStockAria', { name: product.name })
                         : t('pos.addToCartAria', { name: product.name, price: fmt(product.sellingPrice) })
-                    }
-                    className={cn(
-                      'group relative flex min-h-[112px] flex-col justify-between rounded-card border p-3.5 text-start transition-all',
+                    } className={cn(
+                      'group relative flex min-h-[112px] flex-col justify-between p-3.5 text-start transition-all',
                       isOutOfStock
-                        ? 'cursor-not-allowed border-border bg-gray-50 opacity-60'
-                        : 'border-border bg-surface shadow-card hover:border-primary hover:shadow-elevated active:scale-[0.98]'
-                    )}
-                  >
+                        ? 'cursor-not-allowed opacity-60'
+                        : 'active:scale-[0.98]'
+                    )}>
                     {inCartItem && (
                       <span className="absolute end-2 top-2 rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-on-primary shadow-card">
                         {inCartItem.quantity} {t('pos.inCart')}
@@ -632,7 +627,7 @@ export function POSTerminal({
                         {isOutOfStock ? t('pos.outOfStock') : `${product.currentStock} ${product.unit}`}
                       </Badge>
                     </span>
-                  </button>
+                  </SurfaceCard>
                 );
               })
             )}
@@ -640,13 +635,10 @@ export function POSTerminal({
         </section>
 
         {/* Right Column: Cart & Checkout */}
-        <section
-          aria-label={t('pos.cartAndCheckoutAria')}
-          className={cn(
-            'flex flex-col rounded-card border border-border bg-surface shadow-card lg:col-span-5',
+        <SurfaceCard as="section" aria-label={t('pos.cartAndCheckoutAria')} className={cn(
+            'flex flex-col shadow-card lg:col-span-5',
             mobileTab === 'products' ? 'hidden lg:flex' : 'flex'
-          )}
-        >
+          )}>
           {/* Cart Header */}
           <div className="flex items-center justify-between border-b border-border p-4">
             <div className="flex items-center gap-2">
@@ -666,7 +658,7 @@ export function POSTerminal({
           </div>
 
           {/* Customer Selection Bar */}
-          <div className="space-y-2 border-b border-border bg-page p-4">
+          <div className="space-y-2 border-b border-border bg-black/5 dark:bg-white/5 p-4">
             <div className="flex items-center justify-between">
               <label htmlFor={customerId} className="flex items-center gap-1.5 text-xs font-semibold text-gray-600">
                 <User className="h-3.5 w-3.5 text-gray-500" aria-hidden="true" />
@@ -726,10 +718,11 @@ export function POSTerminal({
                       <div className="flex items-center gap-1.5">
                         <span className="text-sm font-bold text-gray-900">{fmt(lineTotal)}</span>
                         <IconButton
+                          variant="3d"
                           aria-label={t('pos.removeFromCartAria', { name: item.product.name })}
                           size="lg"
                           onClick={() => handleRemoveFromCart(item.product.id)}
-                          className="text-gray-400 hover:bg-danger-soft hover:text-danger"
+                          className="text-gray-400 hover:text-danger"
                         >
                           <Trash2 className="h-4 w-4" />
                         </IconButton>
@@ -738,12 +731,13 @@ export function POSTerminal({
 
                     {/* Quantity & Discount Controls */}
                     <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
-                      <div className="flex items-center gap-1 rounded-input border border-border bg-white p-0.5">
+                      <div className="flex items-center gap-1.5 p-0.5">
                         <IconButton
+                          variant="3d"
                           aria-label={t('pos.decreaseQtyAria', { name: item.product.name })}
                           size="lg"
                           onClick={() => handleUpdateQuantity(item.product.id, item.quantity - 1)}
-                          className="h-10 w-10 lg:h-8 lg:w-8"
+                          className="h-9 w-9 lg:h-8 lg:w-8"
                         >
                           <Minus className="h-3.5 w-3.5" />
                         </IconButton>
@@ -762,10 +756,11 @@ export function POSTerminal({
                           className="w-12 text-center text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                         <IconButton
+                          variant="3d"
                           aria-label={t('pos.increaseQtyAria', { name: item.product.name })}
                           size="lg"
                           onClick={() => handleUpdateQuantity(item.product.id, item.quantity + 1)}
-                          className="h-10 w-10 lg:h-8 lg:w-8"
+                          className="h-9 w-9 lg:h-8 lg:w-8"
                         >
                           <Plus className="h-3.5 w-3.5" />
                         </IconButton>
@@ -795,7 +790,7 @@ export function POSTerminal({
           </div>
 
           {/* Totals & Checkout Form */}
-          <form onSubmit={handleCheckout} className="space-y-3 border-t border-border bg-page p-4" aria-label={t('pos.checkoutTitle')}>
+          <form onSubmit={handleCheckout} className="space-y-3 border-t border-border bg-black/5 dark:bg-white/5 p-4" aria-label={t('pos.checkoutTitle')}>
             {/* Discount & Total */}
             <div className="space-y-2 text-sm">
               <div className="flex justify-between text-gray-600">
@@ -927,7 +922,7 @@ export function POSTerminal({
               )}
             </Button>
           </form>
-        </section>
+        </SurfaceCard>
       </div>
 
       {/* Quick Customer Creation Modal */}

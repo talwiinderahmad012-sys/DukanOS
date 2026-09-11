@@ -8,6 +8,8 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import { SimpleBarChart } from '@/components/charts/bar-chart';
+import { GlowCard, type GlowHue } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { useTranslation } from '@/lib/i18n/language-context';
 
 export type GrowthBadgeData = {
@@ -151,9 +153,27 @@ function GrowthBadge({ growth }: { growth: GrowthBadgeData }) {
   return <span className="text-[10px] font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full flex items-center gap-0.5"><Minus className="w-3 h-3" aria-hidden="true"/>{formatted}</span>;
 }
 
-function KPICard({ label, value, growth, sub, icon: Icon, accent }: { label: string; value: string; growth?: GrowthBadgeData; sub?: string; icon: any; accent?: string }) {
+function KPICard({
+  label,
+  value,
+  growth,
+  sub,
+  icon: Icon,
+  accent,
+  hue,
+  index,
+}: {
+  label: string;
+  value: string;
+  growth?: GrowthBadgeData;
+  sub?: string;
+  icon: any;
+  accent?: string;
+  hue?: GlowHue;
+  index?: number;
+}) {
   return (
-    <div className="bg-white rounded-3xl border border-gray-200 shadow-xs p-5 flex flex-col gap-3">
+    <GlowCard hue={hue} index={index} padded={false} className="rounded-3xl p-5 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${accent || 'bg-primary-soft text-gray-900'}`}>
           <Icon className="w-4 h-4" aria-hidden="true" />
@@ -165,7 +185,7 @@ function KPICard({ label, value, growth, sub, icon: Icon, accent }: { label: str
         <p className="text-xl font-bold text-gray-900 mt-0.5 leading-tight">{value}</p>
         {sub && <p className="text-[10px] text-gray-400 mt-0.5">{sub}</p>}
       </div>
-    </div>
+    </GlowCard>
   );
 }
 
@@ -210,9 +230,9 @@ export function AnalyticsPageClient({
     health.status === 'Needs Attention' ? 'text-amber-600' : 'text-red-600';
 
   const healthBg =
-    health.status === 'Excellent' ? 'bg-emerald-50 border-emerald-200' :
-    health.status === 'Healthy'   ? 'bg-primary-soft border-blue-200' :
-    health.status === 'Needs Attention' ? 'bg-amber-50 border-amber-200' : 'bg-red-50 border-red-200';
+    health.status === 'Excellent' ? 'bg-emerald-500/10 border-emerald-500/20' :
+    health.status === 'Healthy'   ? 'bg-primary/10 border-primary/20' :
+    health.status === 'Needs Attention' ? 'bg-amber-500/10 border-amber-500/20' : 'bg-red-500/10 border-red-500/20';
 
   const insightPriorityColor = (p: string) =>
     p === 'HIGH' ? 'bg-red-100 text-red-700' :
@@ -238,29 +258,29 @@ export function AnalyticsPageClient({
       <section>
         <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">{t('analytics.main.kpiHeading', { period: periodLabel })}</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <KPICard label={t('analytics.shared.totalSales')}        value={formatCurrency(kpis.totalSales.current)}        growth={kpis.totalSales.growth}        sub={t('analytics.shared.prevValue', { value: formatCurrency(kpis.totalSales.previous) })}        icon={DollarSign}   accent="bg-primary-soft text-gray-900" />
-          <KPICard label={t('analytics.shared.grossProfit')}       value={formatCurrency(kpis.grossProfit.current)}       growth={kpis.grossProfit.growth}       sub={t('analytics.shared.prevValue', { value: formatCurrency(kpis.grossProfit.previous) })}       icon={TrendingUp}   accent="bg-emerald-50 text-emerald-600" />
-          <KPICard label={t('analytics.shared.expenses')}          value={formatCurrency(kpis.expenses.current)}          growth={kpis.expenses.growth}          sub={t('analytics.shared.prevValue', { value: formatCurrency(kpis.expenses.previous) })}          icon={Receipt}      accent="bg-orange-50 text-orange-600" />
-          <KPICard label={t('analytics.shared.netProfit')}         value={formatCurrency(kpis.netProfit.current)}         growth={kpis.netProfit.growth}         sub={t('analytics.shared.prevValue', { value: formatCurrency(kpis.netProfit.previous) })}         icon={BarChart3}    accent="bg-violet-50 text-violet-600" />
-          <KPICard label={t('analytics.main.totalPurchases')}      value={formatCurrency(kpis.totalPurchases.current)}    growth={kpis.totalPurchases.growth}    sub={t('analytics.shared.prevValue', { value: formatCurrency(kpis.totalPurchases.previous) })}    icon={Package}      accent="bg-cyan-50 text-cyan-600" />
-          <KPICard label={t('analytics.main.outstandingUdhaar')}   value={formatCurrency(kpis.outstandingUdhaar.current)}                        sub={t('analytics.main.outstandingUdhaarSub')}                                       icon={AlertCircle}  accent="bg-rose-50 text-rose-600" />
-          <KPICard label={t('analytics.main.productsSold')}        value={t('analytics.shared.unitsCount', { count: formatNumber(kpis.productsSold.current) })} growth={kpis.productsSold.growth} sub={t('analytics.shared.prevValue', { value: t('analytics.shared.unitsCount', { count: formatNumber(kpis.productsSold.previous) }) })} icon={Layers} accent="bg-indigo-50 text-indigo-600" />
-          <KPICard label={t('analytics.shared.avgOrderValue')}     value={formatCurrency(kpis.avgOrderValue.current)}     growth={kpis.avgOrderValue.growth}     sub={t('analytics.main.ordersThisMonth', { count: formatNumber(kpis.orderCount.current) })}       icon={ShoppingCart} accent="bg-teal-50 text-teal-600" />
+          <KPICard index={0} label={t('analytics.shared.totalSales')}        value={formatCurrency(kpis.totalSales.current)}        growth={kpis.totalSales.growth}        sub={t('analytics.shared.prevValue', { value: formatCurrency(kpis.totalSales.previous) })}        icon={DollarSign}   accent="bg-primary-soft text-gray-900" />
+          <KPICard index={1} label={t('analytics.shared.grossProfit')}       value={formatCurrency(kpis.grossProfit.current)}       growth={kpis.grossProfit.growth}       sub={t('analytics.shared.prevValue', { value: formatCurrency(kpis.grossProfit.previous) })}       icon={TrendingUp}   accent="bg-emerald-50 text-emerald-600" />
+          <KPICard index={2} label={t('analytics.shared.expenses')}          value={formatCurrency(kpis.expenses.current)}          growth={kpis.expenses.growth}          sub={t('analytics.shared.prevValue', { value: formatCurrency(kpis.expenses.previous) })}          icon={Receipt}      accent="bg-orange-50 text-orange-600" />
+          <KPICard index={3} label={t('analytics.shared.netProfit')}         value={formatCurrency(kpis.netProfit.current)}         growth={kpis.netProfit.growth}         sub={t('analytics.shared.prevValue', { value: formatCurrency(kpis.netProfit.previous) })}         icon={BarChart3}    accent="bg-violet-50 text-violet-600" />
+          <KPICard index={4} label={t('analytics.main.totalPurchases')}      value={formatCurrency(kpis.totalPurchases.current)}    growth={kpis.totalPurchases.growth}    sub={t('analytics.shared.prevValue', { value: formatCurrency(kpis.totalPurchases.previous) })}    icon={Package}      accent="bg-cyan-50 text-cyan-600" />
+          <KPICard index={5} label={t('analytics.main.outstandingUdhaar')}   value={formatCurrency(kpis.outstandingUdhaar.current)}                        sub={t('analytics.main.outstandingUdhaarSub')}                                       icon={AlertCircle}  accent="bg-rose-50 text-rose-600" />
+          <KPICard index={6} label={t('analytics.main.productsSold')}        value={t('analytics.shared.unitsCount', { count: formatNumber(kpis.productsSold.current) })} growth={kpis.productsSold.growth} sub={t('analytics.shared.prevValue', { value: t('analytics.shared.unitsCount', { count: formatNumber(kpis.productsSold.previous) }) })} icon={Layers} accent="bg-indigo-50 text-indigo-600" />
+          <KPICard index={7} label={t('analytics.shared.avgOrderValue')}     value={formatCurrency(kpis.avgOrderValue.current)}     growth={kpis.avgOrderValue.growth}     sub={t('analytics.main.ordersThisMonth', { count: formatNumber(kpis.orderCount.current) })}       icon={ShoppingCart} accent="bg-teal-50 text-teal-600" />
         </div>
       </section>
 
-      <section className="bg-white rounded-3xl border border-gray-200 shadow-xs p-6 space-y-4">
-        <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+      <SurfaceCard as="section" className="rounded-3xl p-6 space-y-4">
+        <div className="flex justify-between items-center border-b border-gray-100 dark:border-white/10 pb-3">
           <div>
             <h2 className="font-bold text-gray-900">{t('analytics.main.trendTitle')}</h2>
             <p className="text-xs text-gray-500 mt-0.5">{t('analytics.main.trendSub')}</p>
           </div>
         </div>
         <SimpleBarChart data={trendChart} label1={t('analytics.shared.revenue')} label2={t('analytics.shared.grossProfit')} height={220} color1="#aff33e" color2="#16a34a" />
-      </section>
+      </SurfaceCard>
 
-      <section className="bg-white rounded-3xl border border-gray-200 shadow-xs p-6 space-y-4">
-        <div className="border-b border-gray-100 pb-3">
+      <SurfaceCard as="section" className="rounded-3xl p-6 space-y-4">
+        <div className="border-b border-gray-100 dark:border-white/10 pb-3">
           <h2 className="font-bold text-gray-900">{t('analytics.main.monthlyGrowthTitle', { year })}</h2>
           <p className="text-xs text-gray-500 mt-0.5">{t('analytics.main.monthlyGrowthSub')}</p>
         </div>
@@ -304,9 +324,9 @@ export function AnalyticsPageClient({
           <p className="text-xs font-semibold text-gray-500 mb-3">{t('analytics.main.monthlyChartTitle')}</p>
           <SimpleBarChart data={monthlyChartData} label1={t('analytics.shared.revenue')} label2={t('analytics.shared.grossProfit')} label3={t('analytics.shared.expenses')} height={180} color1="#aff33e" color2="#16a34a" color3="#ef4444" />
         </div>
-      </section>
+      </SurfaceCard>
 
-      <section className="bg-white rounded-3xl border border-gray-200 shadow-xs p-6 space-y-4">
+      <SurfaceCard as="section" className="rounded-3xl p-6 space-y-4">
         <div className="border-b border-gray-100 pb-3">
           <h2 className="font-bold text-gray-900">{t('analytics.main.yearlyTitle')}</h2>
           <p className="text-xs text-gray-500 mt-0.5">{t('analytics.main.yearVs', { current: yearly.current.year, previous: yearly.previous.year })}</p>
@@ -321,7 +341,7 @@ export function AnalyticsPageClient({
             { key: 'productsSold', label: t('analytics.main.productsSold'),     cur: yearly.current.productsSold, prev: yearly.previous.productsSold, g: yearly.growth.productsSold, isNum: true },
             { key: 'newCustomers', label: t('analytics.main.newCustomers'),     cur: yearly.current.newCustomers, prev: yearly.previous.newCustomers, g: yearly.growth.newCustomers, isNum: true },
           ] as { key: string; label: string; cur: number; prev: number; g: GrowthBadgeData; isNum?: boolean }[]).map(({ key, label, cur, prev, g, isNum }) => (
-            <div key={key} className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+            <div key={key} className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10">
               <p className="text-[10px] font-bold text-gray-500 uppercase">{label}</p>
               <p className="text-lg font-bold text-gray-900 mt-1">{isNum ? formatNumber(cur) : formatCurrency(cur)}</p>
               <p className="text-[10px] text-gray-400">{t('analytics.shared.prevValue', { value: isNum ? formatNumber(prev) : formatCurrency(prev) })}</p>
@@ -329,9 +349,9 @@ export function AnalyticsPageClient({
             </div>
           ))}
         </div>
-      </section>
+      </SurfaceCard>
 
-      <section className="bg-white rounded-3xl border border-gray-200 shadow-xs p-6 space-y-4">
+      <SurfaceCard as="section" className="rounded-3xl p-6 space-y-4">
         <div className="flex justify-between items-center border-b border-gray-100 pb-3">
           <div>
             <h2 className="font-bold text-gray-900">{t('analytics.main.topProductsTitle')}</h2>
@@ -382,10 +402,10 @@ export function AnalyticsPageClient({
             </table>
           </div>
         )}
-      </section>
+      </SurfaceCard>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <section className="bg-white rounded-3xl border border-gray-200 shadow-xs p-6 space-y-4">
+        <SurfaceCard as="section" className="rounded-3xl p-6 space-y-4">
           <div className="border-b border-gray-100 pb-3">
             <h2 className="font-bold text-gray-900">{t('analytics.shared.slowMovingTitle')}</h2>
             <p className="text-xs text-gray-500 mt-0.5">{t('analytics.main.slowMovingSub')}</p>
@@ -405,9 +425,9 @@ export function AnalyticsPageClient({
               ))}
             </div>
           )}
-        </section>
+        </SurfaceCard>
 
-        <section className="bg-white rounded-3xl border border-gray-200 shadow-xs p-6 space-y-4">
+        <SurfaceCard as="section" className="rounded-3xl p-6 space-y-4">
           <div className="border-b border-gray-100 pb-3">
             <h2 className="font-bold text-gray-900">{t('analytics.shared.deadStockTitle')}</h2>
             <p className="text-xs text-gray-500 mt-0.5">{t('analytics.main.deadStockSub')}</p>
@@ -427,10 +447,10 @@ export function AnalyticsPageClient({
               ))}
             </div>
           )}
-        </section>
+        </SurfaceCard>
       </div>
 
-      <section className="bg-white rounded-3xl border border-gray-200 shadow-xs p-6">
+      <SurfaceCard as="section" className="rounded-3xl p-6">
         <div className="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
           <div>
             <h2 className="font-bold text-gray-900">{t('analytics.main.stockStatusTitle')}</h2>
@@ -451,9 +471,9 @@ export function AnalyticsPageClient({
             </div>
           ))}
         </div>
-      </section>
+      </SurfaceCard>
 
-      <section className="bg-white rounded-3xl border border-gray-200 shadow-xs p-6 space-y-4">
+      <SurfaceCard as="section" className="rounded-3xl p-6 space-y-4">
         <div className="flex justify-between items-center border-b border-gray-100 pb-3">
           <div>
             <h2 className="font-bold text-gray-900">{t('analytics.main.topCustomersTitle')}</h2>
@@ -497,9 +517,9 @@ export function AnalyticsPageClient({
             </table>
           </div>
         )}
-      </section>
+      </SurfaceCard>
 
-      <section className="bg-white rounded-3xl border border-gray-200 shadow-xs p-6 space-y-4">
+      <SurfaceCard as="section" className="rounded-3xl p-6 space-y-4">
         <div className="border-b border-gray-100 pb-3">
           <h2 className="font-bold text-gray-900">{t('analytics.main.udhaarAnalyticsTitle')}</h2>
           <p className="text-xs text-gray-500 mt-0.5">{t('analytics.main.creditActivitySub', { period: periodLabel })}</p>
@@ -511,7 +531,7 @@ export function AnalyticsPageClient({
             { key: 'paymentsReceived', label: t('analytics.main.paymentsReceived'), value: formatCurrency(udhaar.paymentsReceivedThisPeriod),   color: 'text-emerald-600' },
             { key: 'netChange',        label: t('analytics.main.netChange'),        value: formatCurrency(udhaar.netChange),                    color: udhaar.netChange > 0 ? 'text-rose-600' : 'text-emerald-600' },
           ].map(({ key, label, value, color }) => (
-            <div key={key} className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+            <div key={key} className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10">
               <p className="text-[10px] font-bold text-gray-500 uppercase">{label}</p>
               <p className={`text-lg font-bold mt-1 ${color}`}>{value}</p>
             </div>
@@ -530,20 +550,20 @@ export function AnalyticsPageClient({
             </div>
           </div>
         )}
-      </section>
+      </SurfaceCard>
 
-      <section className="bg-white rounded-3xl border border-gray-200 shadow-xs p-6 space-y-4">
+      <SurfaceCard as="section" className="rounded-3xl p-6 space-y-4">
         <div className="border-b border-gray-100 pb-3">
           <h2 className="font-bold text-gray-900">{t('analytics.main.purchaseAnalyticsTitle')}</h2>
           <p className="text-xs text-gray-500 mt-0.5">{t('analytics.main.periodVsSub', { period: periodLabel, comparison: comparisonLabel })}</p>
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+          <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10">
             <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.main.totalSpend')}</p>
             <p className="text-xl font-bold text-gray-900 mt-1">{formatCurrency(purchaseAnalytics.totalSpend.current)}</p>
             <div className="mt-1"><GrowthBadge growth={purchaseAnalytics.totalSpend.growth} /></div>
           </div>
-          <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+          <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10">
             <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.main.purchaseOrders')}</p>
             <p className="text-xl font-bold text-gray-900 mt-1">{formatNumber(purchaseAnalytics.orderCount.current)}</p>
             <div className="mt-1"><GrowthBadge growth={purchaseAnalytics.orderCount.growth} /></div>
@@ -565,10 +585,10 @@ export function AnalyticsPageClient({
             </div>
           </div>
         )}
-      </section>
+      </SurfaceCard>
 
       {branches.length > 1 && (
-        <section className="bg-white rounded-3xl border border-gray-200 shadow-xs p-6 space-y-4">
+        <SurfaceCard as="section" className="rounded-3xl p-6 space-y-4">
           <div className="border-b border-gray-100 pb-3">
             <h2 className="font-bold text-gray-900">{t('analytics.main.branchPerformanceTitle')}</h2>
             <p className="text-xs text-gray-500 mt-0.5">{t('analytics.main.branchPerformanceSub', { count: formatNumber(branches.length) })}</p>
@@ -602,10 +622,10 @@ export function AnalyticsPageClient({
               </tbody>
             </table>
           </div>
-        </section>
+        </SurfaceCard>
       )}
 
-      <section className="bg-white rounded-3xl border border-gray-200 shadow-xs p-6 space-y-4">
+      <SurfaceCard as="section" className="rounded-3xl p-6 space-y-4">
         <div className="border-b border-gray-100 pb-3">
           <h2 className="font-bold text-gray-900">{t('analytics.main.inventoryValuationTitle')}</h2>
           <p className="text-xs text-gray-500 mt-0.5">{tm(inventoryValuation.note)}</p>
@@ -617,15 +637,15 @@ export function AnalyticsPageClient({
             { key: 'lowStockValue',   label: t('analytics.shared.lowStockValue'),   value: formatCurrency(inventoryValuation.lowStockValue),  color: 'text-amber-600' },
             { key: 'deadStockValue',  label: t('analytics.shared.deadStockValue'),  value: formatCurrency(inventoryValuation.deadStockValue), color: 'text-red-600' },
           ].map(({ key, label, value, color }) => (
-            <div key={key} className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+            <div key={key} className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10">
               <p className="text-[10px] font-bold text-gray-500 uppercase">{label}</p>
               <p className={`text-lg font-bold mt-1 ${color || 'text-gray-900'}`}>{value}</p>
             </div>
           ))}
         </div>
-      </section>
+      </SurfaceCard>
 
-      <section className={`rounded-3xl border p-6 space-y-5 ${healthBg}`}>
+      <SurfaceCard as="section" className={`rounded-3xl p-6 space-y-5 ${healthBg}`}>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
             <h2 className="font-bold text-gray-900">{t('analytics.main.healthScoreTitle')}</h2>
@@ -639,29 +659,29 @@ export function AnalyticsPageClient({
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {health.dimensions.map(d => (
-            <div key={d.name} className="bg-white/70 rounded-2xl p-4 border border-white/50 space-y-2">
+            <div key={d.name} className="bg-black/5 dark:bg-white/5 rounded-2xl p-4 border border-black/5 dark:border-white/10 space-y-2">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-bold text-gray-800">{HEALTH_DIM_KEYS[d.name] ? t(HEALTH_DIM_KEYS[d.name]) : tm(d.name)}</p>
-                <span className={`text-xs font-bold ${d.status === 'excellent' ? 'text-emerald-600' : d.status === 'healthy' ? 'text-gray-900' : d.status === 'needs_attention' ? 'text-amber-600' : 'text-red-600'}`}>{formatNumber(d.score)}/100</span>
+                <p className="text-xs font-bold text-gray-800 dark:text-gray-100">{HEALTH_DIM_KEYS[d.name] ? t(HEALTH_DIM_KEYS[d.name]) : tm(d.name)}</p>
+                <span className={`text-xs font-bold ${d.status === 'excellent' ? 'text-emerald-600' : d.status === 'healthy' ? 'text-gray-900 dark:text-gray-100' : d.status === 'needs_attention' ? 'text-amber-600' : 'text-red-600'}`}>{formatNumber(d.score)}/100</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-1.5">
                 <div className={`h-1.5 rounded-full ${d.status === 'excellent' ? 'bg-emerald-500' : d.status === 'healthy' ? 'bg-primary-soft0' : d.status === 'needs_attention' ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${d.score}%` }} />
               </div>
-              <p className="text-[10px] text-gray-500">{tm(d.reason)}</p>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400">{tm(d.reason)}</p>
             </div>
           ))}
         </div>
-      </section>
+      </SurfaceCard>
 
       {insights.length > 0 && (
-        <section className="bg-white rounded-3xl border border-gray-200 shadow-xs p-6 space-y-4">
+        <SurfaceCard as="section" className="rounded-3xl p-6 space-y-4">
           <div className="border-b border-gray-100 pb-3">
             <h2 className="font-bold text-gray-900">{t('analytics.main.insightsTitle')}</h2>
             <p className="text-xs text-gray-500 mt-0.5">{t('analytics.main.insightsSub')}</p>
           </div>
           <div className="space-y-3">
             {insights.map(ins => (
-              <div key={ins.id} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-2">
+              <div key={ins.id} className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 space-y-2">
                 <div className="flex items-center gap-2">
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${insightPriorityColor(ins.priority)}`}>{INSIGHT_PRIORITY_KEYS[ins.priority] ? t(INSIGHT_PRIORITY_KEYS[ins.priority]) : tm(ins.priority)}</span>
                   <span className="text-[10px] font-semibold text-gray-500 uppercase">{INSIGHT_CATEGORY_KEYS[ins.category] ? t(INSIGHT_CATEGORY_KEYS[ins.category]) : tm(ins.category)}</span>
@@ -677,20 +697,20 @@ export function AnalyticsPageClient({
               </div>
             ))}
           </div>
-        </section>
+        </SurfaceCard>
       )}
 
-      <section className="bg-white rounded-3xl border border-gray-200 shadow-xs p-6 space-y-4">
+      <SurfaceCard as="section" className="rounded-3xl p-6 space-y-4">
         <div className="border-b border-gray-100 pb-3">
           <h2 className="font-bold text-gray-900">{t('analytics.main.payrollTitle')}</h2>
           <p className="text-xs text-gray-500 mt-0.5">{t('analytics.main.payrollSub', { period: periodLabel })}</p>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-          <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+          <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10">
             <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.main.employees')}</p>
             <p className="text-lg font-bold text-gray-900 mt-1">{formatNumber(payroll.employeeCount)}</p>
           </div>
-          <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+          <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10">
             <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.main.totalPayroll')}</p>
             <p className="text-lg font-bold text-gray-900 mt-1">{formatCurrency(payroll.totalPayroll)}</p>
           </div>
@@ -702,12 +722,12 @@ export function AnalyticsPageClient({
             <p className="text-[10px] font-bold text-amber-700 uppercase">{t('analytics.main.pendingPayroll')}</p>
             <p className="text-lg font-bold text-amber-700 mt-1">{formatCurrency(payroll.pendingPayroll)}</p>
           </div>
-          <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+          <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10">
             <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.main.leaves')}</p>
             <p className="text-lg font-bold text-gray-900 mt-1">{formatNumber(payroll.leaveUsage)}</p>
           </div>
         </div>
-      </section>
+      </SurfaceCard>
     </div>
   );
 }

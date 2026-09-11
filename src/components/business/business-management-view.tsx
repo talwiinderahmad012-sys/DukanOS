@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { useRouter } from 'next/navigation';
 import {
   Building2,
@@ -146,7 +147,7 @@ export function BusinessManagementView({
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xs">
+      <SurfaceCard className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 shadow-xs">
         <div>
           <div className="flex items-center gap-2 text-xs font-bold text-gray-900 uppercase tracking-wider mb-1">
             <Building2 className="w-4 h-4" /> {t('business.cockpitLabel')}
@@ -165,7 +166,7 @@ export function BusinessManagementView({
         >
           <Plus className="w-4 h-4" /> {t('business.createBusiness')}
         </button>
-      </div>
+      </SurfaceCard>
 
       {errorMsg && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3 text-red-800 text-xs font-medium">
@@ -188,14 +189,9 @@ export function BusinessManagementView({
           const isArchived = biz.status === 'ARCHIVED';
 
           return (
-            <div
-              key={biz.id}
-              className={`bg-white rounded-3xl border transition-all p-6 flex flex-col justify-between relative overflow-hidden ${
-                isActive
-                  ? 'border-blue-500 ring-2 ring-primary/20 shadow-md'
-                  : 'border-gray-200/80 hover:border-gray-300 shadow-xs'
-              }`}
-            >
+            <SurfaceCard key={biz.id} className={`p-6 flex flex-col justify-between relative overflow-hidden ${
+                isActive ? 'ring-2 ring-primary/30 shadow-md' : ''
+              }`}>
               {isActive && (
                 <div className="absolute top-0 end-0 bg-primary text-on-primary text-[10px] font-black uppercase px-3 py-1 rounded-es-xl tracking-wider">
                   {t('business.activeContext')}
@@ -281,7 +277,7 @@ export function BusinessManagementView({
                   </button>
                 )}
               </div>
-            </div>
+            </SurfaceCard>
           );
         })}
       </div>

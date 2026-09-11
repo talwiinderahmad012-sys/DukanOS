@@ -5,6 +5,7 @@ import { Store } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { LanguageToggle } from '@/components/layout/language-toggle';
 import { ConnectionBanner } from '@/components/pwa/pwa-provider';
+import { PoweredByHexframe } from '@/components/brand/PoweredByHexframe';
 
 /**
  * Shared public-facing top bar (home, auth, onboarding, feedback, errors).
@@ -46,7 +47,10 @@ export function SiteHeader({
           >
             <Store className="h-4 w-4 text-white" />
           </span>
-          <span className="truncate text-sm font-bold tracking-tight">DukaanOS</span>
+          <span className="flex flex-col gap-0 justify-center">
+            <span className="truncate text-sm font-bold tracking-tight leading-tight">DukaanOS</span>
+            <PoweredByHexframe className="leading-none" />
+          </span>
         </Link>
 
         <div className="flex shrink-0 items-center gap-2">

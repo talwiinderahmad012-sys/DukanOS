@@ -34,7 +34,7 @@ export function LanguageToggle() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex h-9 items-center justify-center gap-1.5 px-3 rounded-full text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary font-bold text-xs shadow-sm"
+        className="btn-3d flex h-9 w-9 items-center justify-center rounded-full font-bold text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         title={t('nav.switchLanguage')}
         aria-label={t('nav.selectLanguage')}
         aria-expanded={isOpen}

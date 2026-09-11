@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { ArrowLeft, Receipt, Tag } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 export type ExpensesAnalyticsProps = {
   periodKey: string;
@@ -49,31 +51,31 @@ export function ExpensesAnalyticsClient({ periodKey, data }: ExpensesAnalyticsPr
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-5 space-y-2">
+        <GlowCard hue="rose" className="p-5 space-y-2">
           <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.expenses.totalExpenses')}</p>
           <p className="text-xl font-bold text-red-700">{formatCurrency(data.totalCurrent)}</p>
           <p className="text-[10px] text-gray-400">{t('analytics.shared.previousValue', { value: formatCurrency(data.totalPrevious) })}</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-5 space-y-2">
+        </GlowCard>
+        <GlowCard hue="amber" className="p-5 space-y-2">
           <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.shared.growth')}</p>
           <p className="text-xl font-bold text-gray-900">
             {data.totalGrowth.status === 'UP' ? '+' : ''}
             {data.totalGrowth.percentage?.toFixed(1) || '0.0'}%
           </p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-5 space-y-2">
+        </GlowCard>
+        <GlowCard hue="violet" className="p-5 space-y-2">
           <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.expenses.categoriesCard')}</p>
           <p className="text-xl font-bold text-gray-900">{formatNumber(data.categories.length)}</p>
           <p className="text-[10px] text-gray-400">{t('analytics.expenses.activeCategories')}</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-5 space-y-2">
+        </GlowCard>
+        <GlowCard hue="sky" className="p-5 space-y-2">
           <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.expenses.transactionsCard')}</p>
           <p className="text-xl font-bold text-gray-900">{formatNumber(data.expenseCount)}</p>
           <p className="text-[10px] text-gray-400">{t('analytics.expenses.expenseRecords')}</p>
-        </div>
+        </GlowCard>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4">
+      <SurfaceCard className="p-6 space-y-4">
         <div className="flex items-center gap-2">
           <Tag className="w-4 h-4 text-orange-600" aria-hidden="true" />
           <h2 className="font-bold text-gray-900">{t('analytics.expenses.byCategoryTitle')}</h2>
@@ -96,7 +98,7 @@ export function ExpensesAnalyticsClient({ periodKey, data }: ExpensesAnalyticsPr
             ))}
           </div>
         )}
-      </div>
+      </SurfaceCard>
     </div>
   );
 }

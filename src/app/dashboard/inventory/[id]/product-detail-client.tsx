@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { ChevronRight, Package, Lock, History } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
-import { Card } from '@/components/ui/card';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { Alert } from '@/components/ui/alert';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -167,7 +167,7 @@ export function ProductDetailClient({
         </Alert>
       )}
 
-      <Card padded>
+      <SurfaceCard className="p-6">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
           <div className="flex items-center gap-4">
             <div
@@ -206,7 +206,7 @@ export function ProductDetailClient({
             ))}
           </dl>
         </div>
-      </Card>
+      </SurfaceCard>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-1">
@@ -218,7 +218,7 @@ export function ProductDetailClient({
               unit={product.unit}
             />
           ) : (
-            <Card padded>
+            <SurfaceCard className="p-6">
               <div className="flex items-start gap-3">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500" aria-hidden="true">
                   <Lock className="h-4 w-4" />
@@ -230,11 +230,11 @@ export function ProductDetailClient({
                   </p>
                 </div>
               </div>
-            </Card>
+            </SurfaceCard>
           )}
         </div>
 
-        <Card className="overflow-hidden lg:col-span-2">
+        <SurfaceCard className="overflow-hidden lg:col-span-2">
           <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
             <h2 className="flex items-center gap-2 text-base font-bold text-gray-900">
               <History className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -371,7 +371,7 @@ export function ProductDetailClient({
               </ul>
             </>
           )}
-        </Card>
+        </SurfaceCard>
       </div>
     </div>
   );

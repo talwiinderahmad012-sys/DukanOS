@@ -118,7 +118,7 @@ export function SupplierActions({
         aria-label={t('suppliers.viewHistoryAria', { name: supplier.name })}
         title={t('suppliers.viewHistory')}
         className={cn(
-          buttonClasses('ghost', size),
+          'btn-3d flex items-center justify-center rounded-full text-gray-700 dark:text-gray-200',
           size === 'lg' ? 'h-10 w-10 p-0' : 'h-8 w-8 p-0',
         )}
       >
@@ -128,6 +128,7 @@ export function SupplierActions({
       {canManage && (
         <>
           <IconButton
+            variant="3d"
             size={size}
             aria-label={t('suppliers.editAria', { name: supplier.name })}
             title={t('suppliers.editSupplierTooltip')}
@@ -137,6 +138,7 @@ export function SupplierActions({
           </IconButton>
           {supplier.isActive && (
             <IconButton
+              variant="3d"
               size={size}
               aria-label={t('suppliers.archiveAria', { name: supplier.name })}
               title={t('suppliers.archiveSupplierTooltip')}

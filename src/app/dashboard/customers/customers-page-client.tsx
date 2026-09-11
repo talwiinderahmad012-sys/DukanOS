@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
 import { Card } from '@/components/ui/card';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { buttonClasses } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -126,71 +128,71 @@ export function CustomersPageClient({
         actions={canCreate ? <AddCustomerButton businessId={businessId} /> : undefined}
       />
 
-      <Card className="overflow-hidden">
-        <div className="grid grid-cols-2 gap-px bg-border lg:grid-cols-4">
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.totalCustomers')}</p>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary" aria-hidden="true">
-                <Users className="h-4 w-4" />
-              </span>
-            </div>
-            <div>
-              <p className="text-2xl font-bold leading-tight text-gray-900">{totalCustomers}</p>
-              <p className="mt-1 text-xs text-muted">{t('customers.activeAccounts')}</p>
-            </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card index={0} className="flex flex-col gap-2 p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.totalCustomers')}</p>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary" aria-hidden="true">
+              <Users className="h-4 w-4" />
+            </span>
           </div>
-
-          <Link
-            href={buildCustomersHref({ ...filterParams, udhaar: '1' })}
-            aria-label={t('customers.viewUdhaarCustomers', { count: activeUdhaarCustomers })}
-            className="group flex flex-col gap-2 bg-surface p-4 transition-colors hover:bg-gray-50 sm:p-5"
-          >
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.customersWithUdhaar')}</p>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-warning-soft text-warning" aria-hidden="true">
-                <UserCheck className="h-4 w-4" />
-              </span>
-            </div>
-            <div>
-              <p className={cn('text-2xl font-bold leading-tight', activeUdhaarCustomers > 0 ? 'text-warning' : 'text-gray-900')}>
-                {activeUdhaarCustomers}
-              </p>
-              <p className="mt-1 text-xs text-muted group-hover:text-gray-600">{t('customers.havePendingBalance')}</p>
-            </div>
-          </Link>
-
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.totalOutstanding')}</p>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-danger-soft text-danger" aria-hidden="true">
-                <Wallet className="h-4 w-4" />
-              </span>
-            </div>
-            <div>
-              <p className={cn('text-2xl font-bold leading-tight', totalOutstanding > 0 ? 'text-danger' : 'text-gray-900')}>
-                {formatCurrency(totalOutstanding)}
-              </p>
-              <p className="mt-1 text-xs text-muted">{t('customers.udhaarReceivable')}</p>
-            </div>
+          <div>
+            <p className="text-2xl font-bold leading-tight text-gray-900">{totalCustomers}</p>
+            <p className="mt-1 text-xs text-muted">{t('customers.activeAccounts')}</p>
           </div>
+        </Card>
 
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.paymentsCollected')}</p>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success-soft text-success" aria-hidden="true">
-                <Banknote className="h-4 w-4" />
-              </span>
-            </div>
-            <div>
-              <p className="text-2xl font-bold leading-tight text-gray-900">{formatCurrency(totalCollected)}</p>
-              <p className="mt-1 text-xs text-muted">{t('customers.allTimeRecoveries')}</p>
-            </div>
+        <Card
+          as={Link}
+          index={1}
+          href={buildCustomersHref({ ...filterParams, udhaar: '1' })}
+          aria-label={t('customers.viewUdhaarCustomers', { count: activeUdhaarCustomers })}
+          className="group flex flex-col gap-2 p-4 sm:p-5"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.customersWithUdhaar')}</p>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-warning-soft text-warning" aria-hidden="true">
+              <UserCheck className="h-4 w-4" />
+            </span>
           </div>
-        </div>
-      </Card>
+          <div>
+            <p className={cn('text-2xl font-bold leading-tight', activeUdhaarCustomers > 0 ? 'text-warning' : 'text-gray-900')}>
+              {activeUdhaarCustomers}
+            </p>
+            <p className="mt-1 text-xs text-muted group-hover:text-gray-600">{t('customers.havePendingBalance')}</p>
+          </div>
+        </Card>
 
-      <Card className="overflow-hidden">
+        <Card index={2} className="flex flex-col gap-2 p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.totalOutstanding')}</p>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-danger-soft text-danger" aria-hidden="true">
+              <Wallet className="h-4 w-4" />
+            </span>
+          </div>
+          <div>
+            <p className={cn('text-2xl font-bold leading-tight', totalOutstanding > 0 ? 'text-danger' : 'text-gray-900')}>
+              {formatCurrency(totalOutstanding)}
+            </p>
+            <p className="mt-1 text-xs text-muted">{t('customers.udhaarReceivable')}</p>
+          </div>
+        </Card>
+
+        <Card index={3} className="flex flex-col gap-2 p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.paymentsCollected')}</p>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success-soft text-success" aria-hidden="true">
+              <Banknote className="h-4 w-4" />
+            </span>
+          </div>
+          <div>
+            <p className="text-2xl font-bold leading-tight text-gray-900">{formatCurrency(totalCollected)}</p>
+            <p className="mt-1 text-xs text-muted">{t('customers.allTimeRecoveries')}</p>
+          </div>
+        </Card>
+      </div>
+
+      <SurfaceCard className="overflow-hidden">
         <div className="space-y-3 border-b border-border p-4">
           <form method="GET" aria-label={t('customers.searchAndFilter')} className="flex flex-col gap-2">
             <div className="relative">
@@ -456,7 +458,7 @@ export function CustomersPageClient({
             )}
           </>
         )}
-      </Card>
+      </SurfaceCard>
     </div>
   );
 }

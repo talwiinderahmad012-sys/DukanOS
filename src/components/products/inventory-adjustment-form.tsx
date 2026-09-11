@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { useRouter } from 'next/navigation';
 import { adjustStockAction } from '@/app/actions/inventory.actions';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Alert } from '@/components/ui/alert';
 import { Field, Select, Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -70,7 +71,7 @@ export function InventoryAdjustmentForm({
   }
 
   return (
-    <Card>
+    <SurfaceCard>
       <CardHeader>
         <CardTitle>{t('inventory.adjustStock')}</CardTitle>
         <CardDescription>{t('inventory.adjustStockDescription')}</CardDescription>
@@ -147,6 +148,6 @@ export function InventoryAdjustmentForm({
           </Button>
         </form>
       </CardContent>
-    </Card>
+    </SurfaceCard>
   );
 }

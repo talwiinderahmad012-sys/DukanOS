@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import Link from 'next/link';
 import { 
   CheckCircle2, 
@@ -15,6 +16,8 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
+
+import { cn } from '@/components/ui/cn';
 import { useTranslation } from '@/lib/i18n/language-context';
 
 interface OnboardingChecklistProps {
@@ -85,7 +88,7 @@ export function OnboardingChecklist({
   if (isDismissed) return null;
 
   return (
-    <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-blue-50/90 border border-blue-200/80 rounded-2xl p-5 shadow-xs transition-all space-y-4">
+    <SurfaceCard className="rounded-2xl p-5 shadow-xs transition-all space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center font-bold text-sm shadow-xs">
@@ -118,10 +121,11 @@ export function OnboardingChecklist({
           {isAllDone && (
             <button
               onClick={() => setIsDismissed(true)}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-blue-100/50 transition-colors"
+              className="btn-3d flex h-7 w-7 items-center justify-center rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"
               title={t('onboarding.dismiss')}
+              aria-label={t('onboarding.dismiss')}
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
@@ -141,11 +145,10 @@ export function OnboardingChecklist({
           {steps.map((step) => (
             <div
               key={step.id}
-              className={`p-3 rounded-xl border text-xs flex flex-col justify-between space-y-2 transition-all ${
-                step.done
-                  ? 'bg-white/80 border-emerald-200 text-gray-700'
-                  : 'bg-white border-blue-200 shadow-xs'
-              }`}
+              className={cn(
+                'surface-glass p-3 rounded-xl text-xs flex flex-col justify-between space-y-2 border border-white/60 dark:border-white/10 transition-all',
+                step.done && 'opacity-80'
+              )}
             >
               <div className="flex items-start gap-2">
                 {step.done ? (
@@ -171,6 +174,6 @@ export function OnboardingChecklist({
           ))}
         </div>
       )}
-    </div>
+    </SurfaceCard>
   );
 }

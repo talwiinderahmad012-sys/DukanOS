@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -87,10 +88,7 @@ export function ReceiptsSettingsForm({
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <form
-          onSubmit={handleSubmit}
-          className="lg:col-span-7 bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-5"
-        >
+        <SurfaceCard as="form" onSubmit={handleSubmit} className="lg:col-span-7 p-6 space-y-5">
           <div className="space-y-4">
             <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
               {t('settings.receiptHeaderSection')}
@@ -153,14 +151,14 @@ export function ReceiptsSettingsForm({
               <span>{saving ? t('common.saving') : t('settings.saveTemplate')}</span>
             </button>
           </div>
-        </form>
+        </SurfaceCard>
 
         <div className="lg:col-span-5 space-y-2">
           <div className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
             <Eye className="w-3.5 h-3.5" /> {t('settings.thermalPreviewTitle')}
           </div>
 
-          <div className="bg-white border border-gray-300 rounded-2xl p-5 shadow-xs font-mono text-[11px] space-y-3 max-w-xs mx-auto text-gray-800">
+          <SurfaceCard className="border border-gray-300 rounded-2xl p-5 shadow-xs font-mono text-[11px] space-y-3 max-w-xs mx-auto text-gray-800">
             <div className="text-center space-y-0.5 border-b border-dashed pb-2">
               <div className="font-bold text-sm text-black">{businessName}</div>
               <div className="text-[10px] text-gray-500">{t('settings.previewBranch')}</div>
@@ -176,33 +174,29 @@ export function ReceiptsSettingsForm({
               </div>
               <div className="flex justify-between">
                 <span>{t('settings.previewCashier')}</span>
-                <span>{t('settings.previewWalkIn')}</span>
+                <span>{t('settings.previewCashierDefault')}</span>
               </div>
             </div>
 
-            <div className="space-y-1 border-b border-dashed pb-2">
-              <div className="flex justify-between font-bold text-[10px]">
-                <span>{t('settings.previewItemHeader')}</span>
-                <span>{t('settings.previewColumnsHeader')}</span>
+            <div className="space-y-1 border-b border-dashed pb-2 text-[10px]">
+              <div className="flex justify-between">
+                <span>1x {t('settings.sampleBasmatiRice')}</span>
+                <span>{formatCurrency(380)}</span>
               </div>
-              <div className="flex justify-between text-[10px]">
-                <span>{t('settings.previewItemMilk')}</span>
-                <span>2 x 280 = 560</span>
-              </div>
-              <div className="flex justify-between text-[10px]">
-                <span>{t('settings.previewItemRice')}</span>
-                <span>1 x 1200 = 1200</span>
+              <div className="flex justify-between">
+                <span>2x {t('settings.sampleMilkOneLtr')}</span>
+                <span>{formatCurrency(380)}</span>
               </div>
             </div>
 
-            <div className="space-y-1 font-bold text-xs border-b border-dashed pb-2 text-end">
+            <div className="space-y-1 text-[11px] font-bold border-b border-dashed pb-2">
               <div className="flex justify-between">
                 <span>{t('settings.previewTotalLabel')}</span>
-                <span>{formatCurrency(1760)}</span>
+                <span>{formatCurrency(760)}</span>
               </div>
               <div className="flex justify-between text-[10px] font-normal text-gray-600">
-                <span>{t('settings.previewPaidCashLabel')}</span>
-                <span>{formatCurrency(2000)}</span>
+                <span>{t('settings.previewPaidCash')}</span>
+                <span>{formatCurrency(1000)}</span>
               </div>
               <div className="flex justify-between text-[10px] font-normal text-gray-600">
                 <span>{t('settings.previewChangeLabel')}</span>
@@ -222,7 +216,7 @@ export function ReceiptsSettingsForm({
             <div className="text-center text-[10px] text-gray-600 whitespace-pre-wrap pt-1">
               {form.receiptFooter}
             </div>
-          </div>
+          </SurfaceCard>
         </div>
       </div>
     </div>

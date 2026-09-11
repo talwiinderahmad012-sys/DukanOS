@@ -4,6 +4,7 @@ import { AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { PublicFeedbackForm } from '@/components/feedback/public-feedback-form';
 import { SiteHeader } from '@/components/layout/site-header';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 interface Verification {
   valid: boolean;
@@ -34,25 +35,25 @@ export function FeedbackTokenPageClient({ verification }: FeedbackTokenPageClien
       <div className="flex min-h-screen flex-col bg-gray-50">
         <SiteHeader />
         <div className="flex flex-1 items-center justify-center p-4">
-        <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center space-y-4 border border-gray-200 shadow-xl">
-          <div className="w-14 h-14 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
-            {verification.reason === 'ALREADY_USED' ? (
-              <CheckCircle2 className="w-7 h-7" />
-            ) : verification.reason === 'EXPIRED' ? (
-              <Clock className="w-7 h-7" />
-            ) : (
-              <AlertCircle className="w-7 h-7" />
-            )}
-          </div>
+          <SurfaceCard className="p-8 max-w-md w-full text-center space-y-4">
+            <div className="w-14 h-14 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
+              {verification.reason === 'ALREADY_USED' ? (
+                <CheckCircle2 className="w-7 h-7" />
+              ) : verification.reason === 'EXPIRED' ? (
+                <Clock className="w-7 h-7" />
+              ) : (
+                <AlertCircle className="w-7 h-7" />
+              )}
+            </div>
 
-          <h2 className="text-xl font-bold text-gray-900">{t(titleKey)}</h2>
+            <h2 className="text-xl font-bold text-gray-900">{t(titleKey)}</h2>
 
-          <p className="text-xs text-gray-500 leading-relaxed">
-            {tm(verification.message) || t('tokenPage.invalidMessageFallback')}
-          </p>
+            <p className="text-xs text-gray-500 leading-relaxed">
+              {tm(verification.message) || t('tokenPage.invalidMessageFallback')}
+            </p>
 
-          <p className="text-[11px] text-gray-400 pt-2">{t('tokenPage.assistance')}</p>
-        </div>
+            <p className="text-[11px] text-gray-400 pt-2">{t('tokenPage.assistance')}</p>
+          </SurfaceCard>
         </div>
       </div>
     );

@@ -14,7 +14,8 @@ import {
   FileText,
 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
-import { Card } from '@/components/ui/card';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { buttonClasses } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -103,7 +104,7 @@ export function SupplierDetailClient({
       value: summary.lastPurchaseDate ? formatDate(summary.lastPurchaseDate) : t('suppliers.noPurchasesYet'),
       sub: ' ',
       Icon: Calendar,
-      iconWrap: 'bg-gray-50 text-gray-500',
+      iconWrap: 'bg-black/5 dark:bg-white/5 text-gray-500',
       valueClass: 'text-gray-900',
     },
   ];
@@ -161,7 +162,7 @@ export function SupplierDetailClient({
         }
       />
 
-      <Card padded>
+      <SurfaceCard className="p-6">
         <div className="flex items-start gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary-soft text-primary" aria-hidden="true">
             <Truck className="h-7 w-7" />
@@ -194,12 +195,12 @@ export function SupplierDetailClient({
         </div>
 
         {supplier.notes && (
-          <div className="mt-5 rounded-xl border border-gray-100 bg-gray-50 p-4 text-sm text-gray-700">
-            <span className="font-semibold text-gray-900">{t('suppliers.notesLabel')} </span>
+          <div className="mt-5 rounded-xl border border-black/5 bg-black/5 p-4 text-sm text-gray-700 dark:border-white/10 dark:bg-white/5 dark:text-gray-300">
+            <span className="font-semibold text-gray-900 dark:text-white">{t('suppliers.notesLabel')} </span>
             {supplier.notes}
           </div>
         )}
-      </Card>
+      </SurfaceCard>
 
       {summary.remainingDue > 0 && (
         <Alert tone="warning" title="Direct Payments Deferred">
@@ -208,8 +209,8 @@ export function SupplierDetailClient({
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {kpis.map((kpi) => (
-          <Card key={kpi.label} className="flex items-center justify-between p-5">
+        {kpis.map((kpi, idx) => (
+          <GlowCard key={kpi.label} index={idx} className="flex items-center justify-between p-5">
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted">{kpi.label}</p>
               <h3 className={cn('mt-1 truncate text-2xl font-bold', kpi.valueClass)}>{kpi.value}</h3>
@@ -218,11 +219,11 @@ export function SupplierDetailClient({
             <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-lg', kpi.iconWrap)} aria-hidden="true">
               <kpi.Icon className="h-5 w-5" />
             </div>
-          </Card>
+          </GlowCard>
         ))}
       </div>
 
-      <Card className="overflow-hidden">
+      <SurfaceCard className="overflow-hidden">
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <h2 className="flex items-center gap-2 text-base font-bold text-gray-900">
             <Receipt className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -327,7 +328,7 @@ export function SupplierDetailClient({
             </Table>
           </TableWrap>
         )}
-      </Card>
+      </SurfaceCard>
     </div>
   );
 }

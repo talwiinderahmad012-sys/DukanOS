@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
 import { Card } from '@/components/ui/card';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { buttonClasses } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -178,75 +180,77 @@ export function ProductsPageClient({
         }
       />
 
-      <Card className="overflow-hidden">
-        <div className="grid grid-cols-2 gap-px bg-border lg:grid-cols-4">
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('inventory.totalProducts')}</p>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary" aria-hidden="true">
-                <Package className="h-4 w-4" />
-              </span>
-            </div>
-            <div>
-              <p className="text-2xl font-bold leading-tight text-gray-900">{totalProducts}</p>
-              <p className="mt-1 text-xs text-muted">{t('products.inYourCatalog')}</p>
-            </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card index={0} className="flex flex-col gap-2 p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('inventory.totalProducts')}</p>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary" aria-hidden="true">
+              <Package className="h-4 w-4" />
+            </span>
           </div>
-
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('products.activeProducts')}</p>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success-soft text-success" aria-hidden="true">
-                <CheckCircle2 className="h-4 w-4" />
-              </span>
-            </div>
-            <div>
-              <p className="text-2xl font-bold leading-tight text-gray-900">{activeProducts}</p>
-              <p className="mt-1 text-xs text-muted">{t('products.availableForSale')}</p>
-            </div>
+          <div>
+            <p className="text-2xl font-bold leading-tight text-gray-900">{totalProducts}</p>
+            <p className="mt-1 text-xs text-muted">{t('products.inYourCatalog')}</p>
           </div>
+        </Card>
 
-          <Link
-            href={buildProductsHref({ stock: 'LOW' })}
-            aria-label={t('products.viewLowStockProducts', { count: catalogLow })}
-            className="group flex flex-col gap-2 bg-surface p-4 transition-colors hover:bg-gray-50 sm:p-5"
-          >
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('inventory.lowStock')}</p>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-warning-soft text-warning" aria-hidden="true">
-                <AlertTriangle className="h-4 w-4" />
-              </span>
-            </div>
-            <div>
-              <p className={cn('text-2xl font-bold leading-tight', catalogLow > 0 ? 'text-warning' : 'text-gray-900')}>
-                {catalogLow}
-              </p>
-              <p className="mt-1 text-xs text-muted group-hover:text-gray-600">{t('products.needRestockingSoon')}</p>
-            </div>
-          </Link>
+        <Card index={1} className="flex flex-col gap-2 p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('products.activeProducts')}</p>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success-soft text-success" aria-hidden="true">
+              <CheckCircle2 className="h-4 w-4" />
+            </span>
+          </div>
+          <div>
+            <p className="text-2xl font-bold leading-tight text-gray-900">{activeProducts}</p>
+            <p className="mt-1 text-xs text-muted">{t('products.availableForSale')}</p>
+          </div>
+        </Card>
 
-          <Link
-            href={buildProductsHref({ stock: 'OUT' })}
-            aria-label={t('products.viewOutOfStockProducts', { count: catalogOut })}
-            className="group flex flex-col gap-2 bg-surface p-4 transition-colors hover:bg-gray-50 sm:p-5"
-          >
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('inventory.outOfStock')}</p>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-danger-soft text-danger" aria-hidden="true">
-                <PackageX className="h-4 w-4" />
-              </span>
-            </div>
-            <div>
-              <p className={cn('text-2xl font-bold leading-tight', catalogOut > 0 ? 'text-danger' : 'text-gray-900')}>
-                {catalogOut}
-              </p>
-              <p className="mt-1 text-xs text-muted group-hover:text-gray-600">{t('products.cannotBeSoldNow')}</p>
-            </div>
-          </Link>
-        </div>
-      </Card>
+        <Card
+          as={Link}
+          index={2}
+          href={buildProductsHref({ stock: 'LOW' })}
+          aria-label={t('products.viewLowStockProducts', { count: catalogLow })}
+          className="group flex flex-col gap-2 p-4 sm:p-5"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('inventory.lowStock')}</p>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-warning-soft text-warning" aria-hidden="true">
+              <AlertTriangle className="h-4 w-4" />
+            </span>
+          </div>
+          <div>
+            <p className={cn('text-2xl font-bold leading-tight', catalogLow > 0 ? 'text-warning' : 'text-gray-900')}>
+              {catalogLow}
+            </p>
+            <p className="mt-1 text-xs text-muted group-hover:text-gray-600">{t('products.needRestockingSoon')}</p>
+          </div>
+        </Card>
 
-      <Card className="overflow-hidden">
+        <Card
+          as={Link}
+          index={3}
+          href={buildProductsHref({ stock: 'OUT' })}
+          aria-label={t('products.viewOutOfStockProducts', { count: catalogOut })}
+          className="group flex flex-col gap-2 p-4 sm:p-5"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('inventory.outOfStock')}</p>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-danger-soft text-danger" aria-hidden="true">
+              <PackageX className="h-4 w-4" />
+            </span>
+          </div>
+          <div>
+            <p className={cn('text-2xl font-bold leading-tight', catalogOut > 0 ? 'text-danger' : 'text-gray-900')}>
+              {catalogOut}
+            </p>
+            <p className="mt-1 text-xs text-muted group-hover:text-gray-600">{t('products.cannotBeSoldNow')}</p>
+          </div>
+        </Card>
+      </div>
+
+      <SurfaceCard className="overflow-hidden">
         <div className="space-y-3 border-b border-border p-4">
           <form method="GET" aria-label={t('products.searchAndFilter')} className="flex flex-col gap-2">
             <div className="relative">
@@ -298,7 +302,7 @@ export function ProductsPageClient({
           </form>
 
           <nav aria-label={t('inventory.filterByStock')} className="overflow-x-auto">
-            <ul className="inline-flex min-w-full items-center gap-1 rounded-input border border-border bg-gray-50 p-1 sm:min-w-0">
+            <ul className="inline-flex min-w-full items-center gap-1 rounded-input border border-border bg-slate-100 dark:bg-slate-800/60 p-1 sm:min-w-0">
               {stockTabs.map((tab) => {
                 const active = stock === tab.key;
                 return (
@@ -311,7 +315,7 @@ export function ProductsPageClient({
                       aria-current={active ? 'true' : undefined}
                       className={cn(
                         'flex h-8 w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 text-xs font-semibold transition-colors',
-                        active ? 'bg-white text-gray-900 shadow-card' : 'text-gray-500 hover:text-gray-900',
+                        active ? 'bg-white text-gray-900 shadow-card dark:bg-slate-800 dark:text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white',
                       )}
                     >
                       {tab.label}
@@ -519,7 +523,7 @@ export function ProductsPageClient({
             )}
           </>
         )}
-      </Card>
+      </SurfaceCard>
     </div>
   );
 }

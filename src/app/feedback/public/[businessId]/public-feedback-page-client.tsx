@@ -3,6 +3,7 @@
 import { PublicFeedbackSubmitForm } from '@/components/feedback/public-feedback-submit-form';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { SiteHeader } from '@/components/layout/site-header';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 interface PublicFeedbackPageClientProps {
   available: boolean;
@@ -21,10 +22,10 @@ export function PublicFeedbackPageClient({ available, businessId, businessName }
         <SiteHeader />
         <div className="flex flex-1 flex-col justify-center py-10 px-4">
         <div className="max-w-lg mx-auto w-full space-y-6">
-          <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-10 text-center space-y-3">
+          <SurfaceCard className="p-10 text-center space-y-3">
             <h1 className="font-bold text-gray-900 text-lg">{t('feedback.publicPage.unavailableTitle')}</h1>
             <p className="text-xs text-gray-500">{t('feedback.publicPage.unavailableMessage')}</p>
-          </div>
+          </SurfaceCard>
         </div>
         </div>
       </div>

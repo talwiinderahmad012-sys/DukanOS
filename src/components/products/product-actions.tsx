@@ -63,7 +63,7 @@ export function ProductActions({
         aria-label={t('products.viewStockActivityFor', { name: displayName })}
         title={t('products.viewStockActivity')}
         className={cn(
-          buttonClasses('ghost', size),
+          'btn-3d flex items-center justify-center rounded-full text-gray-700 dark:text-gray-200',
           size === 'lg' ? 'h-10 w-10 p-0' : 'h-8 w-8 p-0',
         )}
       >
@@ -73,6 +73,7 @@ export function ProductActions({
       {canManage && (
         <>
           <IconButton
+            variant="3d"
             size={size}
             aria-label={t('products.editProductAria', { name: displayName })}
             title={t('products.editProductTitle')}
@@ -81,6 +82,7 @@ export function ProductActions({
             <Pencil className={iconSize} aria-hidden="true" />
           </IconButton>
           <IconButton
+            variant="3d"
             size={size}
             aria-label={t('products.archiveProductAria', { name: displayName })}
             title={t('products.archiveProductTitle')}

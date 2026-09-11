@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
 import { Card } from '@/components/ui/card';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { Badge } from '@/components/ui/badge';
 import { buttonClasses } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -138,71 +140,69 @@ export function ExpensesPageClient({
         }
       />
 
-      <Card className="overflow-hidden">
-        <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('expenses.activeExpenses')}</p>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-danger-soft text-danger" aria-hidden="true">
-                <Banknote className="h-4 w-4" />
-              </span>
-            </div>
-            <div>
-              <p className="text-2xl font-bold leading-tight text-gray-900">{formatCurrency(summary.totalAmount)}</p>
-              <p className="mt-1 text-xs text-muted">
-                {summary.totalCount === 1
-                  ? t('expenses.entriesOne', { count: formatNumber(summary.totalCount), scope: scopeLabel })
-                  : t('expenses.entriesMany', { count: formatNumber(summary.totalCount), scope: scopeLabel })}
-              </p>
-            </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card index={0} className="flex flex-col gap-2 p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('expenses.activeExpenses')}</p>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-danger-soft text-danger" aria-hidden="true">
+              <Banknote className="h-4 w-4" />
+            </span>
           </div>
-
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('expenses.thisFilter')}</p>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary" aria-hidden="true">
-                <FileText className="h-4 w-4" />
-              </span>
-            </div>
-            <div>
-              <p className="text-2xl font-bold leading-tight text-gray-900">{formatNumber(expenses.length)}</p>
-              <p className="mt-1 text-xs text-muted">
-                {expenses.length === 1
-                  ? t('expenses.entriesOnPageOne', { count: formatNumber(expenses.length) })
-                  : t('expenses.entriesOnPageMany', { count: formatNumber(expenses.length) })}
-              </p>
-            </div>
+          <div>
+            <p className="text-2xl font-bold leading-tight text-gray-900">{formatCurrency(summary.totalAmount)}</p>
+            <p className="mt-1 text-xs text-muted">
+              {summary.totalCount === 1
+                ? t('expenses.entriesOne', { count: formatNumber(summary.totalCount), scope: scopeLabel })
+                : t('expenses.entriesMany', { count: formatNumber(summary.totalCount), scope: scopeLabel })}
+            </p>
           </div>
+        </Card>
 
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('common.cancelled')}</p>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500" aria-hidden="true">
-                <XCircle className="h-4 w-4" />
-              </span>
-            </div>
-            <div>
-              <p className="text-2xl font-bold leading-tight text-gray-900">{formatNumber(summary.cancelledCount)}</p>
-              <p className="mt-1 text-xs text-muted">{t('expenses.reversedEntriesSub')}</p>
-            </div>
+        <Card index={1} className="flex flex-col gap-2 p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('expenses.thisFilter')}</p>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary" aria-hidden="true">
+              <FileText className="h-4 w-4" />
+            </span>
           </div>
-
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('common.categories')}</p>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success-soft text-success" aria-hidden="true">
-                <Layers className="h-4 w-4" />
-              </span>
-            </div>
-            <div>
-              <p className="text-2xl font-bold leading-tight text-gray-900">{formatNumber(uniqueCategoryCount)}</p>
-              <p className="mt-1 text-xs text-muted">{t('expenses.uniqueTypesSub')}</p>
-            </div>
+          <div>
+            <p className="text-2xl font-bold leading-tight text-gray-900">{formatNumber(expenses.length)}</p>
+            <p className="mt-1 text-xs text-muted">
+              {expenses.length === 1
+                ? t('expenses.entriesOnPageOne', { count: formatNumber(expenses.length) })
+                : t('expenses.entriesOnPageMany', { count: formatNumber(expenses.length) })}
+            </p>
           </div>
-        </div>
-      </Card>
+        </Card>
 
-      <Card className="overflow-hidden">
+        <Card index={2} className="flex flex-col gap-2 p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('common.cancelled')}</p>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500" aria-hidden="true">
+              <XCircle className="h-4 w-4" />
+            </span>
+          </div>
+          <div>
+            <p className="text-2xl font-bold leading-tight text-gray-900">{formatNumber(summary.cancelledCount)}</p>
+            <p className="mt-1 text-xs text-muted">{t('expenses.reversedEntriesSub')}</p>
+          </div>
+        </Card>
+
+        <Card index={3} className="flex flex-col gap-2 p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('common.categories')}</p>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success-soft text-success" aria-hidden="true">
+              <Layers className="h-4 w-4" />
+            </span>
+          </div>
+          <div>
+            <p className="text-2xl font-bold leading-tight text-gray-900">{formatNumber(uniqueCategoryCount)}</p>
+            <p className="mt-1 text-xs text-muted">{t('expenses.uniqueTypesSub')}</p>
+          </div>
+        </Card>
+      </div>
+
+      <SurfaceCard className="overflow-hidden">
         <div className="space-y-3 border-b border-border p-4">
           <form method="GET" aria-label={t('expenses.filterFormAria')} className="flex flex-col gap-2">
             <div className="relative">
@@ -486,7 +486,7 @@ export function ExpensesPageClient({
             )}
           </>
         )}
-      </Card>
+      </SurfaceCard>
     </div>
   );
 }

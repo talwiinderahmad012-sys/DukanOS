@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { SalesAnalyticsFilter } from '@/components/analytics/sales-analytics-filter';
 import { ExportButton } from '@/components/analytics/export-button';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import type { DateRangePreset } from '@/components/analytics/date-range-filter';
 import { useTranslation } from '@/lib/i18n/language-context';
 
@@ -115,30 +117,30 @@ export function SalesAnalyticsClient({
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-5 space-y-2">
+        <GlowCard hue="sky" className="p-5 space-y-2">
           <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.shared.totalSales')}</p>
           <p className="text-xl font-bold text-gray-900">{formatCurrency(kpis.totalSales.current)}</p>
           <GrowthBadge growth={kpis.totalSales.growth} />
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-5 space-y-2">
+        </GlowCard>
+        <GlowCard hue="emerald" className="p-5 space-y-2">
           <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.shared.grossProfit')}</p>
           <p className="text-xl font-bold text-emerald-700">{formatCurrency(kpis.grossProfit.current)}</p>
           <GrowthBadge growth={kpis.grossProfit.growth} />
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-5 space-y-2">
+        </GlowCard>
+        <GlowCard hue="amber" className="p-5 space-y-2">
           <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.shared.avgOrderValue')}</p>
           <p className="text-xl font-bold text-gray-900">{formatCurrency(kpis.avgOrderValue.current)}</p>
           <p className="text-[10px] text-gray-400">{t('analytics.shared.ordersCount', { count: formatNumber(kpis.orderCount.current) })}</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-5 space-y-2">
+        </GlowCard>
+        <GlowCard hue="violet" className="p-5 space-y-2">
           <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.shared.netProfit')}</p>
           <p className="text-xl font-bold text-violet-700">{formatCurrency(kpis.netProfit.current)}</p>
           <GrowthBadge growth={kpis.netProfit.growth} />
-        </div>
+        </GlowCard>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4">
+        <SurfaceCard className="p-6 space-y-4">
           <h2 className="font-bold text-gray-900">{t('analytics.sales.salesByPaymentMethod')}</h2>
           {paymentMethods.length === 0 ? (
             <p className="text-xs text-gray-400 py-4 text-center">{t('analytics.sales.noSalesDataPeriod')}</p>
@@ -158,8 +160,8 @@ export function SalesAnalyticsClient({
               ))}
             </div>
           )}
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4">
+        </SurfaceCard>
+        <SurfaceCard className="p-6 space-y-4">
           <h2 className="font-bold text-gray-900">{t('analytics.sales.salesByCategory')}</h2>
           {categories.length === 0 ? (
             <p className="text-xs text-gray-400 py-4 text-center">{t('analytics.sales.noSalesDataPeriod')}</p>
@@ -179,10 +181,10 @@ export function SalesAnalyticsClient({
               ))}
             </div>
           )}
-        </div>
+        </SurfaceCard>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4">
+      <SurfaceCard className="p-6 space-y-4">
         <h2 className="font-bold text-gray-900">{t('analytics.sales.topProductsByRevenue')}</h2>
         {topProducts.length === 0 ? (
           <p className="text-xs text-gray-400 py-4 text-center">{t('analytics.shared.noSalesPeriod')}</p>
@@ -221,7 +223,7 @@ export function SalesAnalyticsClient({
             </table>
           </div>
         )}
-      </div>
+      </SurfaceCard>
     </div>
   );
 }

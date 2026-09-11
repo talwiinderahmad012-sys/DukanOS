@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import {
   BarChart3,
   TrendingUp,
@@ -16,6 +17,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { SimpleBarChart } from '@/components/charts/bar-chart';
+
 import { useTranslation } from '@/lib/i18n/language-context';
 import ReportFilters from './report-filters';
 
@@ -170,34 +172,30 @@ export function ReportsPageClient({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {REPORT_CATEGORIES.map((item) => {
+        {REPORT_CATEGORIES.map((item, idx) => {
           const Icon = item.icon;
           return (
-            <Link
-              key={item.type}
-              href={item.href}
-              className="p-5 bg-white rounded-2xl border border-gray-200 shadow-xs hover:border-blue-500 hover:shadow-md transition-all group flex flex-col justify-between"
-            >
+            <SurfaceCard as={Link} key={item.type} href={item.href} className="p-5 flex flex-col justify-between group">
               <div>
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center border mb-3 ${item.color}`}>
                   <Icon className="w-5 h-5" />
                 </div>
-                <h3 className="font-bold text-gray-900 text-base group-hover:text-gray-900 transition-colors">
+                <h3 className="font-bold text-gray-900 text-base transition-colors">
                   {t(item.titleKey)}
                 </h3>
                 <p className="text-xs text-gray-500 mt-1 leading-relaxed">{t(item.descKey)}</p>
               </div>
-              <div className="pt-4 mt-4 border-t border-gray-100 flex items-center justify-between text-xs font-semibold text-gray-900">
+              <div className="pt-4 mt-4 border-t border-gray-100 dark:border-white/10 flex items-center justify-between text-xs font-semibold text-gray-900 dark:text-white">
                 <span>{t('reports.generateReport')}</span>
                 <ChevronRight className="w-4 h-4 rtl-flip group-hover:translate-x-0.5 transition-transform" />
               </div>
-            </Link>
+            </SurfaceCard>
           );
         })}
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b pb-4">
+      <SurfaceCard className="p-6 space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-black/5 dark:border-white/10 pb-4">
           <div>
             <h2 className="text-lg font-bold text-gray-900">
               {t('reports.monthSnapshot', { month: monthName, year: snapshot.year })}
@@ -213,7 +211,7 @@ export function ReportsPageClient({
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+          <div className="bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/10 p-4">
             <span className="text-xs text-gray-500 font-medium">{t('reports.grossRevenue')}</span>
             <h4 className="text-xl font-bold text-gray-900 mt-1">
               {formatCurrency(snapshot.grossRevenue)}
@@ -221,30 +219,30 @@ export function ReportsPageClient({
             <span className="text-[11px] text-gray-400">{t('reports.ordersCaption', { count: formatNumber(snapshot.ordersCount) })}</span>
           </div>
 
-          <div className="p-4 bg-emerald-50/70 rounded-xl border border-emerald-100">
-            <span className="text-xs text-emerald-800 font-medium">{t('reports.grossProfit')}</span>
-            <h4 className="text-xl font-bold text-emerald-700 mt-1">
+          <div className="bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/10 p-4">
+            <span className="text-xs text-emerald-800 dark:text-emerald-300 font-medium">{t('reports.grossProfit')}</span>
+            <h4 className="text-xl font-bold text-emerald-700 dark:text-emerald-400 mt-1">
               {formatCurrency(snapshot.grossProfit)}
             </h4>
-            <span className="text-[11px] text-emerald-600">
+            <span className="text-[11px] text-emerald-600 dark:text-emerald-400">
               {t('reports.marginValue', { value: marginPercent })}
             </span>
           </div>
 
-          <div className="p-4 bg-red-50/70 rounded-xl border border-red-100">
-            <span className="text-xs text-red-800 font-medium">{t('reports.expenses')}</span>
-            <h4 className="text-xl font-bold text-red-700 mt-1">
+          <div className="bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/10 p-4">
+            <span className="text-xs text-red-800 dark:text-rose-300 font-medium">{t('reports.expenses')}</span>
+            <h4 className="text-xl font-bold text-red-700 dark:text-rose-400 mt-1">
               {formatCurrency(snapshot.expenses)}
             </h4>
-            <span className="text-[11px] text-red-600">{t('reports.storeOverheads')}</span>
+            <span className="text-[11px] text-red-600 dark:text-rose-400">{t('reports.storeOverheads')}</span>
           </div>
 
-          <div className="p-4 bg-primary-soft/70 rounded-xl border border-blue-100">
-            <span className="text-xs text-gray-900 font-medium">{t('reports.netProfitLabel')}</span>
-            <h4 className="text-xl font-bold text-gray-950 mt-1">
+          <div className="bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/10 p-4">
+            <span className="text-xs text-gray-900 dark:text-white font-medium">{t('reports.netProfitLabel')}</span>
+            <h4 className="text-xl font-bold text-gray-950 dark:text-white mt-1">
               {formatCurrency(snapshot.netProfit)}
             </h4>
-            <span className="text-[11px] text-gray-900">{t('reports.profitAfterExpenses')}</span>
+            <span className="text-[11px] text-gray-900 dark:text-slate-300">{t('reports.profitAfterExpenses')}</span>
           </div>
         </div>
 
@@ -258,11 +256,11 @@ export function ReportsPageClient({
             label3={t('reports.expenses')}
           />
         </div>
-      </div>
+      </SurfaceCard>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
-          <div className="flex justify-between items-center border-b pb-3">
+        <SurfaceCard className="p-6 space-y-4">
+          <div className="flex justify-between items-center border-b border-black/5 dark:border-white/10 pb-3">
             <h3 className="font-bold text-gray-900 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-gray-900" /> {t('reports.topSellingItems')}
             </h3>
@@ -272,7 +270,7 @@ export function ReportsPageClient({
           {topProducts.length === 0 ? (
             <div className="py-8 text-center text-gray-400 text-xs">{t('reports.noSalesDataYet')}</div>
           ) : (
-            <div className="divide-y divide-gray-100 text-sm">
+            <div className="divide-y divide-gray-100 dark:divide-white/10 text-sm">
               {topProducts.map((p, idx) => (
                 <div key={p.productId} className="py-3 flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -292,10 +290,10 @@ export function ReportsPageClient({
               ))}
             </div>
           )}
-        </div>
+        </SurfaceCard>
 
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
-          <div className="flex justify-between items-center border-b pb-3">
+        <SurfaceCard className="p-6 space-y-4">
+          <div className="flex justify-between items-center border-b border-black/5 dark:border-white/10 pb-3">
             <h3 className="font-bold text-gray-900 flex items-center gap-2 text-amber-700">
               <AlertTriangle className="w-4 h-4 text-amber-600" /> {t('reports.slowMovingInventory')}
             </h3>
@@ -307,7 +305,7 @@ export function ReportsPageClient({
               {t('reports.noSlowMovingItems')}
             </div>
           ) : (
-            <div className="divide-y divide-gray-100 text-sm">
+            <div className="divide-y divide-gray-100 dark:divide-white/10 text-sm">
               {slowProducts.map((p) => (
                 <div key={p.productId} className="py-3 flex items-center justify-between">
                   <div>
@@ -322,7 +320,7 @@ export function ReportsPageClient({
               ))}
             </div>
           )}
-        </div>
+        </SurfaceCard>
       </div>
     </div>
   );

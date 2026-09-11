@@ -54,9 +54,9 @@ export function MobileNav({
               aria-controls="mobile-drawer"
               aria-haspopup="dialog"
               aria-label={isOpen ? t('nav.closeMenu') : t('nav.openMenu')}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+              className="btn-3d flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-gray-700 dark:text-gray-200"
             >
-              <Menu className="h-6 w-6" aria-hidden="true" />
+              <Menu className="h-4 w-4" aria-hidden="true" />
             </button>
             <MobileHeaderBackButton />
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary" aria-hidden="true">
@@ -111,9 +111,9 @@ export function MobileNav({
             type="button"
             onClick={close}
             aria-label={t('common.close', 'Close')}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-white/40 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white"
+            className="btn-3d flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-gray-700 dark:text-gray-200"
           >
-            <X className="h-5 w-5" aria-hidden="true" />
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 

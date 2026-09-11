@@ -31,9 +31,7 @@ export function SoundsToggle({ className }: { className?: string }) {
       title={enabled ? 'Mute UI sounds' : 'Enable UI sounds'}
       aria-label={enabled ? 'Mute UI sounds' : 'Enable UI sounds'}
       className={cn(
-        'flex h-9 w-9 items-center justify-center rounded-full transition-colors',
-        'text-gray-500 hover:bg-white/50 hover:text-gray-700',
-        'dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-200',
+        'btn-3d flex h-9 w-9 items-center justify-center rounded-full text-gray-700 dark:text-gray-200',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
         className
       )}

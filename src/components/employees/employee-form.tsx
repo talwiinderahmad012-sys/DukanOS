@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { AlertCircle, Save } from 'lucide-react';
 import { createEmployeeAction, updateEmployeeAction } from '@/app/actions/employee.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 type SalaryTypeOption = 'MONTHLY' | 'DAILY' | 'HOURLY';
 type EmployeeStatusOption = 'ACTIVE' | 'ON_LEAVE' | 'SUSPENDED' | 'INACTIVE';
@@ -81,7 +82,7 @@ export function EmployeeForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 space-y-6">
+    <SurfaceCard as="form" onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6">
       {error && (
         <div role="alert" aria-live="assertive" className="p-4 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
@@ -299,6 +300,6 @@ export function EmployeeForm({
           {loading ? t('common.saving') : isEditing ? t('employees.updateEmployeeButton') : t('employees.createEmployeeProfile')}
         </button>
       </div>
-    </form>
+    </SurfaceCard>
   );
 }

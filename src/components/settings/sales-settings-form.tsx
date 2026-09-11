@@ -14,6 +14,7 @@ import {
   FileText
 } from 'lucide-react';
 import { updateSalesSettingsAction } from '@/app/actions/settings.actions';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { useTranslation } from '@/lib/i18n/language-context';
 
 export function SalesSettingsForm({
@@ -95,7 +96,7 @@ export function SalesSettingsForm({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-6">
+      <SurfaceCard as="form" onSubmit={handleSubmit} className="rounded-3xl p-6 shadow-xs space-y-6">
         
         <div className="space-y-4">
           <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
@@ -277,7 +278,7 @@ export function SalesSettingsForm({
             <span>{saving ? t('settings.savingRules') : t('settings.saveRules')}</span>
           </button>
         </div>
-      </form>
+      </SurfaceCard>
     </div>
   );
 }

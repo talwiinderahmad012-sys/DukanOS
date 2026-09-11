@@ -6,6 +6,7 @@ import { Check, X, Calendar, Clock, AlertCircle } from 'lucide-react';
 import { reviewLeaveAction } from '@/app/actions/employee.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { toast } from 'sonner';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 const LEAVE_TYPE_KEY: Record<string, string> = {
   CASUAL: 'employees.casualLeave',
@@ -77,7 +78,7 @@ export function LeavesBoard({
         ))}
       </div>
 
-      <div className="bg-white rounded-3xl border border-gray-200 shadow-xs overflow-hidden">
+      <SurfaceCard className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-start text-sm border-collapse">
             <thead>
@@ -166,7 +167,7 @@ export function LeavesBoard({
             </tbody>
           </table>
         </div>
-      </div>
+      </SurfaceCard>
 
       {initialData.pagination.totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">

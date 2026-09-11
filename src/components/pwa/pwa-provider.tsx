@@ -170,9 +170,9 @@ export function PWAProvider({
             <button
               onClick={dismissInstallBanner}
               aria-label={t('common.close')}
-              className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg"
+              className="btn-3d flex h-7 w-7 items-center justify-center rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-white"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -194,9 +194,9 @@ export function PWAProvider({
           <button
             onClick={dismissIosHint}
             aria-label={t('common.close')}
-            className="text-gray-400 hover:text-white p-1"
+            className="btn-3d flex h-7 w-7 items-center justify-center rounded-full text-gray-400 hover:text-white"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}

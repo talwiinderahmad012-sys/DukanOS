@@ -8,7 +8,7 @@ import { cn } from './cn';
 import { SpringCheckmark } from './motion';
 
 const INPUT_BASE =
-  'w-full rounded-xl border border-gray-300/80 dark:border-white/15 bg-white/75 dark:bg-slate-900/75 backdrop-blur-md px-3.5 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all duration-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 focus:bg-white/95 dark:focus:bg-slate-900/95 focus:shadow-xs disabled:cursor-not-allowed disabled:bg-gray-100/50 dark:disabled:bg-slate-800/50 disabled:text-gray-500';
+  'w-full rounded-xl border border-gray-300/80 dark:border-white/15 bg-white/90 dark:bg-slate-900/90 px-3.5 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all duration-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 focus:bg-white dark:focus:bg-slate-900 focus:shadow-xs disabled:cursor-not-allowed disabled:bg-gray-100/50 dark:disabled:bg-slate-800/50 disabled:text-gray-500';
 
 const INVALID = 'border-red-500 dark:border-red-500 focus:border-red-500 focus:ring-red-500/50';
 

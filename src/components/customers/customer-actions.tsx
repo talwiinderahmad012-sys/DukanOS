@@ -38,7 +38,7 @@ export function CustomerActions({
         aria-label={t('customers.viewLedgerAria', { name: customer.name })}
         title={t('customers.viewProfileLedger')}
         className={cn(
-          buttonClasses('ghost', size),
+          'btn-3d flex items-center justify-center rounded-full text-gray-700 dark:text-gray-200',
           size === 'lg' ? 'h-10 w-10 p-0' : 'h-8 w-8 p-0',
         )}
       >
@@ -60,6 +60,7 @@ export function CustomerActions({
       {canManage && (
         <>
           <IconButton
+            variant="3d"
             size={size}
             aria-label={t('customers.editAria', { name: customer.name })}
             title={t('common.edit')}

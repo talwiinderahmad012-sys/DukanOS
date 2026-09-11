@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { PayrollDetailClient, type PayrollDetailData } from './payroll-detail-client';
+import { GlowCard } from '@/components/ui/GlowCard';
 
 export function PayrollDetailView({ businessId, payroll }: { businessId: string; payroll: PayrollDetailData }) {
   const { t, formatCurrency, formatNumber, language } = useTranslation();
@@ -32,16 +33,16 @@ export function PayrollDetailView({ businessId, payroll }: { businessId: string;
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
+        <GlowCard hue="violet" className="p-4">
           <span className="text-xs font-semibold text-gray-500 uppercase">{t('payroll.totalNetSalary')}</span>
           <h3 className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(totalNet)}</h3>
           <span className="text-[11px] text-gray-400">{t('payroll.gross')}: {formatCurrency(totalBase)}</span>
-        </div>
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
+        </GlowCard>
+        <GlowCard hue="emerald" className="p-4">
           <span className="text-xs font-semibold text-green-700 uppercase">{t('payroll.salariesPaid')}</span>
           <h3 className="text-2xl font-bold text-green-700 mt-1">{formatNumber(paidCount)} / {formatNumber(payroll.salaries.length)}</h3>
           <span className="text-[11px] text-green-600">{t('common.employees')}</span>
-        </div>
+        </GlowCard>
       </div>
 
       <PayrollDetailClient businessId={businessId} payroll={payroll} />

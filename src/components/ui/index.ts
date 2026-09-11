@@ -72,6 +72,9 @@ export { GlassPanel } from './GlassPanel';
 export { AmbientBlobs } from './AmbientBlobs';
 export { AuroraBackground } from './AuroraBackground';
 export { TiltCard } from './TiltCard';
+export { GlowCard, type GlowHue, type GlowCardProps } from './GlowCard';
+export { SurfaceCard, type SurfaceCardProps } from './SurfaceCard';
+
 export { SoundsToggle } from './SoundsToggle';
 export { GlobalSoundHandler } from './GlobalSoundHandler';
 

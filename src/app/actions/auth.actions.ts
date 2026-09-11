@@ -17,7 +17,10 @@ const registerSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().optional(),
   username: z.string().min(3, "Username must be at least 3 characters"),
-  email: z.string().email("Invalid email address"),
+  email: z.preprocess(
+    (value) => (typeof value === 'string' ? value.trim() : value),
+    z.string().email("Invalid email address")
+  ),
   phone: z.string().optional(),
   businessName: z.string().min(2, "Business name is required"),
   businessType: z.nativeEnum(BusinessType),
@@ -49,10 +52,13 @@ export async function registerUserAction(formData: Record<string, unknown>) {
     }
 
     const { firstName, lastName, username, phone, businessName, businessType, city, country, password } = validatedData.data;
+    // normalizeEmail: trim + lowercase — applied to raw input so stale
+    // browser-autofilled values with whitespace or wrong case never slip through.
     const email = normalizeEmail(validatedData.data.email);
     const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
 
-    // Check for existing email
+    // Check for existing email — trimmed+lowercased, case-insensitive DB match
+    // so "User@Example.com " and "user@example.com" are correctly detected as dupes.
     const existingEmail = await prisma.user.findFirst({
       where: { email: { equals: email, mode: 'insensitive' } },
       select: { id: true },

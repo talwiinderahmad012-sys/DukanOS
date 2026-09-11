@@ -6,6 +6,8 @@ import { Plus } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { PayrollList, type PayrollListItem } from './payroll-list';
 import { CreateSalaryModal } from '@/components/employees/salary-record-modal';
+import { GlowCard } from '@/components/ui';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 export function PayrollView({ businessId, payrolls, employees }: { businessId: string, payrolls: PayrollListItem[], employees: { id: string; name: string; basicSalary: number; employeeCode?: string | null; position?: string | null }[] }) {
   const { t, formatNumber } = useTranslation();
@@ -38,16 +40,16 @@ export function PayrollView({ businessId, payrolls, employees }: { businessId: s
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
+        <GlowCard index={0} className="p-4">
           <span className="text-xs font-semibold text-gray-500 uppercase">{t('payroll.periods')}</span>
           <h3 className="text-2xl font-bold text-gray-900 mt-1">{formatNumber(payrolls.length)}</h3>
           <span className="text-[11px] text-gray-400">{t('payroll.totalPayrolls')}</span>
-        </div>
+        </GlowCard>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
+      <SurfaceCard className="overflow-hidden">
         <PayrollList payrolls={payrolls} />
-      </div>
+      </SurfaceCard>
 
       <CreateSalaryModal
         businessId={businessId}

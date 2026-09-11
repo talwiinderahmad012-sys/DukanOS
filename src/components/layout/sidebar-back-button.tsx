@@ -39,7 +39,7 @@ export function SidebarBackButton({ className, onNavigate }: SidebarBackButtonPr
         title={tooltip}
         aria-label={tooltip}
         data-sound="back"
-        className="group flex w-full items-center gap-2.5 rounded-xl border border-white/40 bg-white/30 dark:border-white/10 dark:bg-white/5 px-3 py-2 text-xs font-semibold text-gray-700 shadow-xs backdrop-blur-sm transition-all hover:bg-white/50 dark:hover:bg-white/10 hover:text-gray-900 active:scale-[0.98] dark:text-gray-300 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer"
+        className="group flex w-full items-center gap-2.5 rounded-xl border border-white/40 bg-white/60 dark:border-white/10 dark:bg-white/10 px-3 py-2 text-xs font-semibold text-gray-700 shadow-xs transition-all hover:bg-white/80 dark:hover:bg-white/15 hover:text-gray-900 active:scale-[0.98] dark:text-gray-300 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer"
       >
         <Icon
           className="h-4 w-4 shrink-0 text-gray-500 transition-transform group-hover:-translate-x-0.5 rtl:group-hover:translate-x-0.5 dark:text-gray-400 dark:group-hover:text-white"
@@ -74,12 +74,11 @@ export function MobileHeaderBackButton({ className }: { className?: string }) {
       title={tooltip}
       aria-label={tooltip}
       className={cn(
-        'flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border/80 bg-surface px-2.5 text-xs font-semibold text-gray-700 shadow-xs transition-colors hover:bg-gray-100 hover:text-gray-900 active:scale-[0.97] dark:border-gray-800 dark:bg-gray-900/60 dark:text-gray-200 dark:hover:bg-gray-800 cursor-pointer',
+        'btn-3d flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-gray-700 dark:text-gray-200 cursor-pointer',
         className
       )}
     >
-      <Icon className="h-4 w-4 shrink-0 text-gray-600 dark:text-gray-300" aria-hidden="true" />
-      <span className="font-medium">{backLabel}</span>
+      <Icon className="h-4 w-4 shrink-0 text-gray-700 dark:text-gray-200" aria-hidden="true" />
     </button>
   );
 }

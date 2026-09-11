@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { ArrowLeft, Truck } from 'lucide-react';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { useTranslation } from '@/lib/i18n/language-context';
 
 export type PurchaseGrowth = {
@@ -65,32 +67,32 @@ export function PurchasesAnalyticsClient({ periodKey, data }: PurchasesAnalytics
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-5 space-y-2">
+        <GlowCard hue="violet" className="p-5 space-y-2">
           <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.purchases.totalSpend')}</p>
           <p className="text-xl font-bold text-gray-900">{formatCurrency(data.totalSpend.current)}</p>
           <p className="text-[10px] text-gray-400">{t('analytics.shared.previousValue', { value: formatCurrency(data.totalSpend.previous) })}</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-5 space-y-2">
+        </GlowCard>
+        <GlowCard hue="sky" className="p-5 space-y-2">
           <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.purchases.purchaseOrders')}</p>
           <p className="text-xl font-bold text-gray-900">{formatNumber(data.orderCount.current)}</p>
           <p className="text-[10px] text-gray-400">{t('analytics.shared.previousValue', { value: formatNumber(data.orderCount.previous) })}</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-5 space-y-2">
+        </GlowCard>
+        <GlowCard hue="amber" className="p-5 space-y-2">
           <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.shared.avgOrderValue')}</p>
           <p className="text-xl font-bold text-gray-900">
             {data.orderCount.current > 0 ? formatCurrency(data.totalSpend.current / data.orderCount.current) : formatCurrency(0)}
           </p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-5 space-y-2">
+        </GlowCard>
+        <GlowCard hue="emerald" className="p-5 space-y-2">
           <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.shared.growth')}</p>
           <p className="text-xl font-bold text-gray-900">
             {data.totalSpend.growth.status === 'UP' ? '+' : ''}
             {data.totalSpend.growth.percentage?.toFixed(1) || '0.0'}%
           </p>
-        </div>
+        </GlowCard>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4">
+      <SurfaceCard className="p-6 space-y-4">
         <div className="flex items-center gap-2">
           <Truck className="w-4 h-4 text-gray-900" aria-hidden="true" />
           <h2 className="font-bold text-gray-900">{t('analytics.purchases.topSuppliersTitle')}</h2>
@@ -112,7 +114,7 @@ export function PurchasesAnalyticsClient({ periodKey, data }: PurchasesAnalytics
             ))}
           </div>
         )}
-      </div>
+      </SurfaceCard>
     </div>
   );
 }

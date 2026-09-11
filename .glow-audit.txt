@@ -1,0 +1,232 @@
+=== D:\DukanOS\src\app\(auth)\login\page.tsx:68
+<GlowCard hue="lime" className="relative max-w-md w-full rounded-2xl shadow-xl p-8"> | <div | className="absolute top-4 end-4 flex items-center gap-1.5" | role="group"
+=== D:\DukanOS\src\app\(auth)\register\page.tsx:66
+<GlowCard hue="lime" className="relative max-w-2xl w-full rounded-2xl shadow-xl p-8"> | <div | className="absolute top-4 end-4 flex items-center gap-1.5" | role="group"
+=== D:\DukanOS\src\app\dashboard\dashboard-page-client.tsx:528
+<GlowCard key={label} hue={hue} padded={false} className="rounded-xl p-3 shadow-xs"> | <dt className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400"> | <Icon className="h-3.5 w-3.5" aria-hidden="true" /> | {label}
+=== D:\DukanOS\src\app\dashboard\analytics\analytics-page-client.tsx:176
+<GlowCard hue={hue} index={index} padded={false} className="rounded-3xl p-5 flex flex-col gap-3"> | <div className="flex items-center justify-between"> | <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${accent || 'bg-primary-soft text-gray-900'}`}> | <Icon className="w-4 h-4" aria-hidden="true" />
+=== D:\DukanOS\src\app\dashboard\analytics\branches\branches-analytics-client.tsx:57
+<GlowCard key={b.branchId} hue="sky" className="p-6 space-y-4"> | <div className="flex items-center gap-2"> | <Store className="w-4 h-4 text-gray-900" aria-hidden="true" /> | <div>
+=== D:\DukanOS\src\app\dashboard\analytics\customers\customers-analytics-client.tsx:202
+<GlowCard hue="teal" className="flex flex-col gap-2 p-4 sm:p-5"> | <div className="flex items-center justify-between gap-2"> | <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('analytics.customers.totalCustomers')}</p> | <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary" aria-hidden="true">
+=== D:\DukanOS\src\app\dashboard\analytics\customers\customers-analytics-client.tsx:215
+<GlowCard hue="emerald" className="flex flex-col gap-2 p-4 sm:p-5"> | <div className="flex items-center justify-between gap-2"> | <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('analytics.customers.newThisMonth')}</p> | <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success-soft text-success" aria-hidden="true">
+=== D:\DukanOS\src\app\dashboard\analytics\customers\customers-analytics-client.tsx:247
+<GlowCard hue="rose" className="flex flex-col gap-2 p-4 sm:p-5"> | <div className="flex items-center justify-between gap-2"> | <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('analytics.customers.outstandingUdhaar')}</p> | <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-danger-soft text-danger" aria-hidden="true">
+=== D:\DukanOS\src\app\dashboard\analytics\customers\customers-analytics-client.tsx:262
+<GlowCard hue="emerald" className="flex flex-col gap-2 p-4 sm:p-5"> | <div className="flex items-center justify-between gap-2"> | <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('analytics.customers.creditRecovery')}</p> | <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success-soft text-success" aria-hidden="true">
+=== D:\DukanOS\src\app\dashboard\analytics\expenses\expenses-analytics-client.tsx:54
+<GlowCard hue="rose" className="p-5 space-y-2"> | <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.expenses.totalExpenses')}</p> | <p className="text-xl font-bold text-red-700">{formatCurrency(data.totalCurrent)}</p> | <p className="text-[10px] text-gray-400">{t('analytics.shared.previousValue', { value: formatCurrency(data.totalPrevious) })}</p>
+=== D:\DukanOS\src\app\dashboard\analytics\expenses\expenses-analytics-client.tsx:59
+<GlowCard hue="amber" className="p-5 space-y-2"> | <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.shared.growth')}</p> | <p className="text-xl font-bold text-gray-900"> | {data.totalGrowth.status === 'UP' ? '+' : ''}
+=== D:\DukanOS\src\app\dashboard\analytics\expenses\expenses-analytics-client.tsx:66
+<GlowCard hue="violet" className="p-5 space-y-2"> | <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.expenses.categoriesCard')}</p> | <p className="text-xl font-bold text-gray-900">{formatNumber(data.categories.length)}</p> | <p className="text-[10px] text-gray-400">{t('analytics.expenses.activeCategories')}</p>
+=== D:\DukanOS\src\app\dashboard\analytics\expenses\expenses-analytics-client.tsx:71
+<GlowCard hue="sky" className="p-5 space-y-2"> | <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.expenses.transactionsCard')}</p> | <p className="text-xl font-bold text-gray-900">{formatNumber(data.expenseCount)}</p> | <p className="text-[10px] text-gray-400">{t('analytics.expenses.expenseRecords')}</p>
+=== D:\DukanOS\src\app\dashboard\analytics\inventory\inventory-analytics-client.tsx:46
+<GlowCard hue="sky" className="p-5 space-y-2"> | <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.shared.totalUnits')}</p> | <p className="text-xl font-bold text-gray-900">{formatNumber(inventory.totalUnits)}</p> | <p className="text-[10px] text-gray-400">{t('analytics.inventory.acrossAllProducts')}</p>
+=== D:\DukanOS\src\app\dashboard\analytics\inventory\inventory-analytics-client.tsx:51
+<GlowCard hue="emerald" className="p-5 space-y-2"> | <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.shared.totalValue')}</p> | <p className="text-xl font-bold text-gray-950">{formatCurrency(inventory.totalValue)}</p> | <p className="text-[10px] text-gray-400">{inventory.valuationMethod === 'LATEST_COST' ? t('analytics.inventory.latestCost') : tm(inventory.valuationMethod)}</p>
+=== D:\DukanOS\src\app\dashboard\analytics\inventory\inventory-analytics-client.tsx:56
+<GlowCard hue="rose" className="p-5 space-y-2"> | <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.shared.deadStockValue')}</p> | <p className="text-xl font-bold text-red-600">{formatCurrency(inventory.deadStockValue)}</p> | <p className="text-[10px] text-gray-400">{t('analytics.inventory.ninetyDaysNoSales')}</p>
+=== D:\DukanOS\src\app\dashboard\analytics\inventory\inventory-analytics-client.tsx:61
+<GlowCard hue="amber" className="p-5 space-y-2"> | <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.shared.lowStockValue')}</p> | <p className="text-xl font-bold text-amber-600">{formatCurrency(inventory.lowStockValue)}</p> | <p className="text-[10px] text-gray-400">{t('analytics.inventory.belowThreshold')}</p>
+=== D:\DukanOS\src\app\dashboard\analytics\inventory\inventory-analytics-client.tsx:69
+<GlowCard hue="rose" className="p-4 text-center"> | <p className="text-2xl font-bold text-red-700">{formatNumber(lowStock.outOfStock)}</p> | <p className="text-xs font-semibold text-red-600 mt-0.5">{t('analytics.shared.outOfStock')}</p> | </GlowCard>
+=== D:\DukanOS\src\app\dashboard\analytics\inventory\inventory-analytics-client.tsx:73
+<GlowCard hue="amber" className="p-4 text-center"> | <p className="text-2xl font-bold text-amber-700">{formatNumber(lowStock.critical)}</p> | <p className="text-xs font-semibold text-amber-600 mt-0.5">{t('analytics.shared.criticalStock')}</p> | </GlowCard>
+=== D:\DukanOS\src\app\dashboard\analytics\inventory\inventory-analytics-client.tsx:77
+<GlowCard hue="amber" className="p-4 text-center"> | <p className="text-2xl font-bold text-yellow-700">{formatNumber(lowStock.low)}</p> | <p className="text-xs font-semibold text-yellow-600 mt-0.5">{t('analytics.shared.lowStock')}</p> | </GlowCard>
+=== D:\DukanOS\src\app\dashboard\analytics\inventory\inventory-analytics-client.tsx:81
+<GlowCard hue="emerald" className="p-4 text-center"> | <p className="text-2xl font-bold text-emerald-700">{formatNumber(lowStock.healthy)}</p> | <p className="text-xs font-semibold text-emerald-600 mt-0.5">{t('analytics.shared.healthyStock')}</p> | </GlowCard>
+=== D:\DukanOS\src\app\dashboard\analytics\products\products-analytics-client.tsx:75
+<GlowCard hue="sky" className="p-5 space-y-2"> | <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.products.topProductsCard')}</p> | <p className="text-xl font-bold text-gray-900">{formatNumber(topProducts.length)}</p> | <p className="text-[10px] text-gray-400">{t('analytics.products.rankedByUnits')}</p>
+=== D:\DukanOS\src\app\dashboard\analytics\products\products-analytics-client.tsx:80
+<GlowCard hue="emerald" className="p-5 space-y-2"> | <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.products.bestProfitCard')}</p> | <p className="text-xl font-bold text-emerald-700">{formatNumber(bestProfit.length)}</p> | <p className="text-[10px] text-gray-400">{t('analytics.products.rankedByMargin')}</p>
+=== D:\DukanOS\src\app\dashboard\analytics\products\products-analytics-client.tsx:85
+<GlowCard hue="amber" className="p-5 space-y-2"> | <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.products.slowMovingCard')}</p> | <p className="text-xl font-bold text-amber-600">{formatNumber(slowMoving.length)}</p> | <p className="text-[10px] text-gray-400">{t('analytics.products.noSales30Card')}</p>
+=== D:\DukanOS\src\app\dashboard\analytics\products\products-analytics-client.tsx:90
+<GlowCard hue="rose" className="p-5 space-y-2"> | <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.products.decliningCard')}</p> | <p className="text-xl font-bold text-red-600">{formatNumber(declining.length)}</p> | <p className="text-[10px] text-gray-400">{t('analytics.products.salesDownCard')}</p>
+=== D:\DukanOS\src\app\dashboard\analytics\purchases\purchases-analytics-client.tsx:70
+<GlowCard hue="violet" className="p-5 space-y-2"> | <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.purchases.totalSpend')}</p> | <p className="text-xl font-bold text-gray-900">{formatCurrency(data.totalSpend.current)}</p> | <p className="text-[10px] text-gray-400">{t('analytics.shared.previousValue', { value: formatCurrency(data.totalSpend.previous) })}</p>
+=== D:\DukanOS\src\app\dashboard\analytics\purchases\purchases-analytics-client.tsx:75
+<GlowCard hue="sky" className="p-5 space-y-2"> | <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.purchases.purchaseOrders')}</p> | <p className="text-xl font-bold text-gray-900">{formatNumber(data.orderCount.current)}</p> | <p className="text-[10px] text-gray-400">{t('analytics.shared.previousValue', { value: formatNumber(data.orderCount.previous) })}</p>
+=== D:\DukanOS\src\app\dashboard\analytics\purchases\purchases-analytics-client.tsx:80
+<GlowCard hue="amber" className="p-5 space-y-2"> | <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.shared.avgOrderValue')}</p> | <p className="text-xl font-bold text-gray-900"> | {data.orderCount.current > 0 ? formatCurrency(data.totalSpend.current / data.orderCount.current) : formatCurrency(0)}
+=== D:\DukanOS\src\app\dashboard\analytics\purchases\purchases-analytics-client.tsx:86
+<GlowCard hue="emerald" className="p-5 space-y-2"> | <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.shared.growth')}</p> | <p className="text-xl font-bold text-gray-900"> | {data.totalSpend.growth.status === 'UP' ? '+' : ''}
+=== D:\DukanOS\src\app\dashboard\analytics\sales\sales-analytics-client.tsx:120
+<GlowCard hue="sky" className="p-5 space-y-2"> | <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.shared.totalSales')}</p> | <p className="text-xl font-bold text-gray-900">{formatCurrency(kpis.totalSales.current)}</p> | <GrowthBadge growth={kpis.totalSales.growth} />
+=== D:\DukanOS\src\app\dashboard\analytics\sales\sales-analytics-client.tsx:125
+<GlowCard hue="emerald" className="p-5 space-y-2"> | <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.shared.grossProfit')}</p> | <p className="text-xl font-bold text-emerald-700">{formatCurrency(kpis.grossProfit.current)}</p> | <GrowthBadge growth={kpis.grossProfit.growth} />
+=== D:\DukanOS\src\app\dashboard\analytics\sales\sales-analytics-client.tsx:130
+<GlowCard hue="amber" className="p-5 space-y-2"> | <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.shared.avgOrderValue')}</p> | <p className="text-xl font-bold text-gray-900">{formatCurrency(kpis.avgOrderValue.current)}</p> | <p className="text-[10px] text-gray-400">{t('analytics.shared.ordersCount', { count: formatNumber(kpis.orderCount.current) })}</p>
+=== D:\DukanOS\src\app\dashboard\analytics\sales\sales-analytics-client.tsx:135
+<GlowCard hue="violet" className="p-5 space-y-2"> | <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.shared.netProfit')}</p> | <p className="text-xl font-bold text-violet-700">{formatCurrency(kpis.netProfit.current)}</p> | <GrowthBadge growth={kpis.netProfit.growth} />
+=== D:\DukanOS\src\app\dashboard\employees\employees-page-client.tsx:109
+<GlowCard index={0} className="p-4"> | <span className="text-xs font-semibold text-gray-500 uppercase">{t('employees.totalStaff')}</span> | <h3 className="text-2xl font-bold text-gray-900 mt-1">{stats.totalEmployees}</h3> | <span className="text-[11px] text-gray-400">{t('employees.activeCount', { count: stats.activeEmployees })}</span>
+=== D:\DukanOS\src\app\dashboard\employees\employees-page-client.tsx:115
+<GlowCard index={1} className="p-4"> | <span className="text-xs font-semibold text-green-700 uppercase">{t('employees.presentToday')}</span> | <h3 className="text-2xl font-bold text-green-700 mt-1">{stats.presentToday}</h3> | <span className="text-[11px] text-green-600">{t('employees.onDuty')}</span>
+=== D:\DukanOS\src\app\dashboard\employees\employees-page-client.tsx:121
+<GlowCard index={2} className="p-4"> | <span className="text-xs font-semibold text-red-700 uppercase">{t('employees.absentToday')}</span> | <h3 className="text-2xl font-bold text-red-700 mt-1">{stats.absentToday}</h3> | <span className="text-[11px] text-red-500">{t('employees.unexcused')}</span>
+=== D:\DukanOS\src\app\dashboard\employees\employees-page-client.tsx:127
+<GlowCard index={3} className="p-4"> | <span className="text-xs font-semibold text-gray-950 uppercase">{t('employees.pendingLeaves')}</span> | <h3 className="text-2xl font-bold text-gray-950 mt-1">{stats.pendingLeaves}</h3> | <span className="text-[11px] text-gray-800">{t('employees.awaitingApproval')}</span>
+=== D:\DukanOS\src\app\dashboard\employees\employees-page-client.tsx:133
+<GlowCard index={4} className="p-4"> | <span className="text-xs font-semibold text-amber-700 uppercase">{t('employees.complaints')}</span> | <h3 className="text-2xl font-bold text-amber-700 mt-1">{stats.openComplaints}</h3> | <span className="text-[11px] text-amber-600">{t('employees.underReview')}</span>
+=== D:\DukanOS\src\app\dashboard\growth\growth-client.tsx:127
+<GlowCard | key={item.label} | index={idx} | className="p-5 rounded-2xl flex flex-col justify-between space-y-4"
+=== D:\DukanOS\src\app\dashboard\growth\growth-client.tsx:193
+<GlowCard hue="sky" className="p-5 rounded-2xl space-y-2"> | <h4 className="font-bold text-blue-900 dark:text-blue-200 text-sm">{t('growth.scalabilityTitle')}</h4> | <p className="text-xs text-gray-900 dark:text-gray-200 leading-relaxed"> | {t('growth.scalabilityDesc')}
+=== D:\DukanOS\src\app\dashboard\growth\growth-client.tsx:200
+<GlowCard hue="emerald" className="p-5 rounded-2xl space-y-2"> | <h4 className="font-bold text-emerald-900 dark:text-emerald-200 text-sm">{t('growth.marginTitle')}</h4> | <p className="text-xs text-emerald-800 dark:text-emerald-200 leading-relaxed"> | {t('growth.marginDesc')}
+=== D:\DukanOS\src\app\dashboard\growth\growth-client.tsx:207
+<GlowCard hue="violet" className="p-5 rounded-2xl space-y-2"> | <h4 className="font-bold text-purple-900 dark:text-purple-200 text-sm">{t('growth.capitalTitle')}</h4> | <p className="text-xs text-purple-800 dark:text-purple-200 leading-relaxed"> | {t('growth.capitalDesc')}
+=== D:\DukanOS\src\app\dashboard\payroll\payroll-view.tsx:43
+<GlowCard index={0} className="p-4"> | <span className="text-xs font-semibold text-gray-500 uppercase">{t('payroll.periods')}</span> | <h3 className="text-2xl font-bold text-gray-900 mt-1">{formatNumber(payrolls.length)}</h3> | <span className="text-[11px] text-gray-400">{t('payroll.totalPayrolls')}</span>
+=== D:\DukanOS\src\app\dashboard\platform\plans\plans-client.tsx:71
+<GlowCard | key={plan.id} | hue="violet" | className="p-6 space-y-6 flex flex-col justify-between"
+=== D:\DukanOS\src\app\dashboard\product-feedback\product-feedback-page-client.tsx:47
+<GlowCard hue="rose" className="p-5 space-y-2"> | <div className="flex items-center justify-between text-xs text-gray-500 font-semibold"> | <span>{t('product.bugReports')}</span> | <Bug className="w-4 h-4 text-red-600" />
+=== D:\DukanOS\src\app\dashboard\product-feedback\product-feedback-page-client.tsx:66
+<GlowCard hue="amber" className="p-5 space-y-2"> | <div className="flex items-center justify-between text-xs text-gray-500 font-semibold"> | <span>{t('product.userSatisfaction')}</span> | <Star className="w-4 h-4 text-amber-500" />
+=== D:\DukanOS\src\app\dashboard\product-feedback\product-feedback-page-client.tsx:87
+<GlowCard hue="sky" className="p-5 space-y-2"> | <div className="flex items-center justify-between text-xs text-gray-500 font-semibold"> | <span>{t('product.roadmapIdeas')}</span> | <Lightbulb className="w-4 h-4 text-gray-900" />
+=== D:\DukanOS\src\app\dashboard\reports\reports-page-client.tsx:178
+<GlowCard | as={Link} | key={item.type} | href={item.href}
+=== D:\DukanOS\src\app\dashboard\reports\daily\daily-report-client.tsx:163
+<GlowCard index={0} className="p-5"> | <span className="text-xs font-semibold text-gray-500 uppercase">{t('reports.grossSales')}</span> | <h3 className="text-2xl font-bold text-gray-900 mt-1"> | {formatCurrency(summary.grossRevenue)}
+=== D:\DukanOS\src\app\dashboard\reports\daily\daily-report-client.tsx:171
+<GlowCard index={1} hue="emerald" className="p-5"> | <span className="text-xs font-semibold text-emerald-700 uppercase">{t('reports.grossProfit')}</span> | <h3 className="text-2xl font-bold text-emerald-700 mt-1"> | {formatCurrency(summary.grossProfit)}
+=== D:\DukanOS\src\app\dashboard\reports\daily\daily-report-client.tsx:181
+<GlowCard index={2} hue="rose" className="p-5"> | <span className="text-xs font-semibold text-red-700 uppercase">{t('reports.expenses')}</span> | <h3 className="text-2xl font-bold text-red-700 mt-1"> | {formatCurrency(summary.expenses)}
+=== D:\DukanOS\src\app\dashboard\reports\daily\daily-report-client.tsx:189
+<GlowCard index={3} hue="teal" className="p-5"> | <span className="text-xs font-semibold text-gray-950 uppercase">{t('reports.netProfitLabel')}</span> | <h3 className="text-2xl font-bold text-gray-950 mt-1"> | {formatCurrency(summary.netProfit)}
+=== D:\DukanOS\src\app\dashboard\reports\daily\daily-report-client.tsx:199
+<GlowCard hue="amber" className="p-4 flex items-center justify-between"> | <div> | <span className="text-xs text-gray-500 font-medium">{t('reports.newCustomerCredit')}</span> | <p className="text-lg font-bold text-orange-600 mt-0.5">{formatCurrency(summary.creditGiven)}</p>
+=== D:\DukanOS\src\app\dashboard\reports\daily\daily-report-client.tsx:206
+<GlowCard hue="emerald" className="p-4 flex items-center justify-between"> | <div> | <span className="text-xs text-gray-500 font-medium">{t('reports.debtPaymentsReceived')}</span> | <p className="text-lg font-bold text-green-600 mt-0.5">{formatCurrency(summary.paymentsReceived)}</p>
+=== D:\DukanOS\src\app\dashboard\reports\daily\daily-report-client.tsx:213
+<GlowCard hue="sky" className="p-4 flex items-center justify-between"> | <div> | <span className="text-xs text-gray-500 font-medium">{t('reports.procurementSpend')}</span> | <p className="text-lg font-bold text-gray-900 mt-0.5">{formatCurrency(summary.purchaseSpend)}</p>
+=== D:\DukanOS\src\app\dashboard\reports\monthly\monthly-report-client.tsx:171
+<GlowCard index={0} className="p-5"> | <span className="text-xs font-semibold text-gray-500 uppercase">{t('reports.grossRevenue')}</span> | <h3 className="text-2xl font-bold text-gray-900 mt-1"> | {formatCurrency(summary.grossRevenue)}
+=== D:\DukanOS\src\app\dashboard\reports\monthly\monthly-report-client.tsx:179
+<GlowCard index={1} hue="emerald" className="p-5"> | <span className="text-xs font-semibold text-emerald-700 uppercase">{t('reports.grossProfit')}</span> | <h3 className="text-2xl font-bold text-emerald-700 mt-1"> | {formatCurrency(summary.grossProfit)}
+=== D:\DukanOS\src\app\dashboard\reports\monthly\monthly-report-client.tsx:189
+<GlowCard index={2} hue="rose" className="p-5"> | <span className="text-xs font-semibold text-red-700 uppercase">{t('reports.monthlyExpenses')}</span> | <h3 className="text-2xl font-bold text-red-700 mt-1"> | {formatCurrency(summary.expenses)}
+=== D:\DukanOS\src\app\dashboard\reports\monthly\monthly-report-client.tsx:197
+<GlowCard index={3} hue="teal" className="p-5"> | <span className="text-xs font-semibold text-gray-950 uppercase">{t('reports.netProfitLabel')}</span> | <h3 className="text-2xl font-bold text-gray-950 mt-1"> | {formatCurrency(summary.netProfit)}
+=== D:\DukanOS\src\app\dashboard\reports\weekly\weekly-report-client.tsx:152
+<GlowCard index={0} className="p-5"> | <span className="text-xs font-semibold text-gray-500 uppercase">{t('reports.weeklyRevenue')}</span> | <h3 className="text-2xl font-bold text-gray-900 mt-1"> | {formatCurrency(summary.grossRevenue)}
+=== D:\DukanOS\src\app\dashboard\reports\weekly\weekly-report-client.tsx:160
+<GlowCard index={1} hue="emerald" className="p-5"> | <span className="text-xs font-semibold text-emerald-700 uppercase">{t('reports.grossProfit')}</span> | <h3 className="text-2xl font-bold text-emerald-700 mt-1"> | {formatCurrency(summary.grossProfit)}
+=== D:\DukanOS\src\app\dashboard\reports\weekly\weekly-report-client.tsx:170
+<GlowCard index={2} hue="rose" className="p-5"> | <span className="text-xs font-semibold text-red-700 uppercase">{t('reports.weeklyExpenses')}</span> | <h3 className="text-2xl font-bold text-red-700 mt-1"> | {formatCurrency(summary.expenses)}
+=== D:\DukanOS\src\app\dashboard\reports\weekly\weekly-report-client.tsx:178
+<GlowCard index={3} hue="teal" className="p-5"> | <span className="text-xs font-semibold text-gray-950 uppercase">{t('reports.netProfitLabel')}</span> | <h3 className="text-2xl font-bold text-gray-950 mt-1"> | {formatCurrency(summary.netProfit)}
+=== D:\DukanOS\src\app\dashboard\reports\yearly\yearly-report-client.tsx:143
+<GlowCard index={0} className="p-5"> | <span className="text-xs font-semibold text-gray-500 uppercase">{t('reports.annualRevenue')}</span> | <h3 className="text-2xl font-bold text-gray-900 mt-1"> | {formatCurrency(summary.grossRevenue)}
+=== D:\DukanOS\src\app\dashboard\reports\yearly\yearly-report-client.tsx:151
+<GlowCard index={1} hue="emerald" className="p-5"> | <span className="text-xs font-semibold text-emerald-700 uppercase">{t('reports.annualGrossProfit')}</span> | <h3 className="text-2xl font-bold text-emerald-700 mt-1"> | {formatCurrency(summary.grossProfit)}
+=== D:\DukanOS\src\app\dashboard\reports\yearly\yearly-report-client.tsx:161
+<GlowCard index={2} hue="rose" className="p-5"> | <span className="text-xs font-semibold text-red-700 uppercase">{t('reports.annualExpenses')}</span> | <h3 className="text-2xl font-bold text-red-700 mt-1"> | {formatCurrency(summary.expenses)}
+=== D:\DukanOS\src\app\dashboard\reports\yearly\yearly-report-client.tsx:169
+<GlowCard index={3} hue="teal" className="p-5"> | <span className="text-xs font-semibold text-gray-950 uppercase">{t('reports.annualNetProfit')}</span> | <h3 className="text-2xl font-bold text-gray-950 mt-1"> | {formatCurrency(summary.netProfit)}
+=== D:\DukanOS\src\app\dashboard\suppliers\suppliers-page-client.tsx:97
+<GlowCard index={0} className="flex flex-col gap-2 p-4 sm:p-5"> | <div className="flex items-center justify-between gap-2"> | <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('suppliers.totalSuppliers')}</p> | <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary" aria-hidden="true">
+=== D:\DukanOS\src\app\dashboard\suppliers\suppliers-page-client.tsx:110
+<GlowCard index={1} className="flex flex-col gap-2 p-4 sm:p-5"> | <div className="flex items-center justify-between gap-2"> | <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('common.active')}</p> | <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success-soft text-success" aria-hidden="true">
+=== D:\DukanOS\src\app\dashboard\suppliers\suppliers-page-client.tsx:123
+<GlowCard index={2} className="flex flex-col gap-2 p-4 sm:p-5"> | <div className="flex items-center justify-between gap-2"> | <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('suppliers.withPurchases')}</p> | <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-info-soft text-info" aria-hidden="true">
+=== D:\DukanOS\src\app\dashboard\suppliers\suppliers-page-client.tsx:136
+<GlowCard index={3} className="flex flex-col gap-2 p-4 sm:p-5"> | <div className="flex items-center justify-between gap-2"> | <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('suppliers.balancePayable')}</p> | <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-warning-soft text-warning" aria-hidden="true">
+=== D:\DukanOS\src\app\dashboard\system\system-client.tsx:192
+<GlowCard hue="emerald" className="p-6 space-y-4"> | <div className="flex items-center justify-between"> | <h3 className="text-gray-500 text-sm font-medium">{t('system.appStatus')}</h3> | <div className="h-8 w-8 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center">
+=== D:\DukanOS\src\app\dashboard\system\system-client.tsx:205
+<GlowCard hue="sky" className="p-6 space-y-4"> | <div className="flex items-center justify-between"> | <h3 className="text-gray-500 text-sm font-medium">{t('system.dbStatus')}</h3> | <div className="h-8 w-8 bg-primary-soft text-gray-900 rounded-lg flex items-center justify-center">
+=== D:\DukanOS\src\app\dashboard\system\system-client.tsx:220
+<GlowCard hue="violet" className="p-6 space-y-4"> | <div className="flex items-center justify-between"> | <h3 className="text-gray-500 text-sm font-medium">{t('system.readiness')}</h3> | <div className="h-8 w-8 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center">
+=== D:\DukanOS\src\app\dashboard\system\system-client.tsx:236
+<GlowCard hue="amber" className="p-6 space-y-4"> | <div className="flex items-center justify-between"> | <h3 className="text-gray-500 text-sm font-medium">{t('system.lastHealthCheck')}</h3> | <div className="h-8 w-8 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center">
+=== D:\DukanOS\src\app\docs\page.tsx:137
+<GlowCard key={idx} hue="sky" className="p-6 space-y-4"> | <div className="flex items-center gap-3"> | <div className="w-10 h-10 rounded-lg bg-primary-soft text-gray-900 flex items-center justify-center shrink-0"> | <Icon className="w-5 h-5" />
+=== D:\DukanOS\src\components\advisor\advisor-page-view.tsx:163
+<GlowCard | key={finding.id} | hue={isCritical ? 'rose' : isWarning ? 'amber' : isOpportunity ? 'sky' : 'teal'} | className={`p-5 rounded-2xl transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${
+=== D:\DukanOS\src\components\business\business-management-view.tsx:193
+<GlowCard | key={biz.id} | hue={isActive ? 'sky' : 'slate'} | className={`p-6 flex flex-col justify-between relative overflow-hidden ${
+=== D:\DukanOS\src\components\cctv\camera-list-view.tsx:174
+<GlowCard index={0} className="p-4"> | <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('cctv.totalDevices')}</div> | <div className="text-2xl font-black text-gray-900 mt-1">{cameras.length}</div> | </GlowCard>
+=== D:\DukanOS\src\components\cctv\camera-list-view.tsx:178
+<GlowCard index={1} className="p-4"> | <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider">{t('cctv.statusOnline')}</div> | <div className="text-2xl font-black text-emerald-600 mt-1"> | {cameras.filter((c) => c.status === 'ONLINE' && c.isEnabled).length}
+=== D:\DukanOS\src\components\cctv\camera-list-view.tsx:184
+<GlowCard index={2} className="p-4"> | <div className="text-xs font-bold text-red-600 uppercase tracking-wider">{t('cctv.statusOffline')}</div> | <div className="text-2xl font-black text-red-600 mt-1"> | {cameras.filter((c) => c.status === 'OFFLINE' && c.isEnabled).length}
+=== D:\DukanOS\src\components\cctv\camera-list-view.tsx:190
+<GlowCard index={3} className="p-4"> | <div className="text-xs font-bold text-amber-600 uppercase tracking-wider">{t('cctv.statusDegraded')}</div> | <div className="text-2xl font-black text-amber-600 mt-1"> | {cameras.filter((c) => c.status === 'DEGRADED' && c.isEnabled).length}
+=== D:\DukanOS\src\components\cctv\camera-list-view.tsx:219
+<GlowCard | key={camera.id} | index={idx} | className="p-5 flex flex-col justify-between space-y-4"
+=== D:\DukanOS\src\components\communications\communications-view.tsx:531
+<GlowCard | key={a.id} | hue={isUrgent ? 'rose' : isImportant ? 'amber' : 'sky'} | className={`rounded-3xl p-6 shadow-xs flex flex-col justify-between space-y-4 ${
+=== D:\DukanOS\src\components\customers\customer-profile-view.tsx:256
+<GlowCard variant="card" hue="teal" className="flex flex-col gap-6 p-6 lg:flex-row lg:items-center lg:justify-between"> | <div className="flex items-start gap-4"> | <div | className="flex h-14 w-14 shrink-0 items-center justify-center rounded-card bg-primary-soft text-lg font-bold text-primary"
+=== D:\DukanOS\src\components\customers\customer-profile-view.tsx:339
+<GlowCard variant="stat" hue="teal" className="overflow-hidden"> | <div className="grid grid-cols-2 divide-y divide-border sm:divide-y-0 sm:divide-x divide-border lg:grid-cols-4"> | <div className="flex flex-col gap-2 p-4 sm:p-5"> | <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.totalSalesLabel')}</p>
+=== D:\DukanOS\src\components\employees\employee-profile-view.tsx:219
+<GlowCard hue="sky" className="p-4 space-y-1"> | <span className="text-xs font-semibold text-gray-500 uppercase">{t('employees.attendanceRate')}</span> | <h3 className="text-2xl font-bold text-gray-900 mt-1">{stats.attendanceRate}%</h3> | <span className="text-[11px] text-gray-400">{t('employees.past30Days')}</span>
+=== D:\DukanOS\src\components\employees\employee-profile-view.tsx:225
+<GlowCard hue="emerald" className="p-4 space-y-1"> | <span className="text-xs font-semibold text-green-700 uppercase">{t('employees.daysPresent')}</span> | <h3 className="text-2xl font-bold text-green-700 mt-1">{stats.presentCount}</h3> | <span className="text-[11px] text-green-600">{t('employees.onTimeDuty')}</span>
+=== D:\DukanOS\src\components\employees\employee-profile-view.tsx:231
+<GlowCard hue="amber" className="p-4 space-y-1"> | <span className="text-xs font-semibold text-amber-700 uppercase">{t('employees.lateArrivals')}</span> | <h3 className="text-2xl font-bold text-amber-700 mt-1">{stats.lateCount}</h3> | <span className="text-[11px] text-amber-600">{t('employees.loggedTardy')}</span>
+=== D:\DukanOS\src\components\employees\employee-profile-view.tsx:237
+<GlowCard hue="rose" className="p-4 space-y-1"> | <span className="text-xs font-semibold text-red-700 uppercase">{t('employees.unexcusedAbsences')}</span> | <h3 className="text-2xl font-bold text-red-700 mt-1">{stats.absentCount}</h3> | <span className="text-[11px] text-red-500">{t('employees.recordedAbsent')}</span>
+=== D:\DukanOS\src\components\employees\employee-profile-view.tsx:243
+<GlowCard hue="violet" className="p-4 space-y-1"> | <span className="text-xs font-semibold text-purple-700 uppercase">{t('employees.approvedLeaves')}</span> | <h3 className="text-2xl font-bold text-purple-700 mt-1">{stats.approvedLeavesCount}</h3> | <span className="text-[11px] text-purple-600">{t('employees.totalRequests')}</span>
+=== D:\DukanOS\src\components\feedback\feedback-dashboard-view.tsx:153
+<GlowCard variant="card" hue="amber" className="border-primary/25 bg-primary-soft p-4"> | <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"> | <div className="min-w-0 space-y-0.5"> | <p className="flex items-center gap-1.5 text-xs font-bold text-gray-900">
+=== D:\DukanOS\src\components\feedback\feedback-dashboard-view.tsx:188
+<GlowCard key={tile.label} variant="stat" hue="amber" index={idx} className="flex flex-col gap-2 p-4 sm:p-5 justify-between"> | <div className="flex items-center justify-between gap-2"> | <p className="text-xs font-semibold uppercase tracking-wider text-muted">{tile.label}</p> | <span
+=== D:\DukanOS\src\components\feedback\feedback-management-view.tsx:158
+<GlowCard key={tile.label} variant="stat" hue="amber" index={idx} className="flex flex-col gap-2 p-4 sm:p-5 justify-between"> | <div className="flex items-center justify-between gap-2"> | <p className="text-xs font-semibold uppercase tracking-wider text-muted">{tile.label}</p> | <span
+=== D:\DukanOS\src\components\monitoring\remote-monitoring-view.tsx:135
+<GlowCard hue="sky" className="p-5"> | <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('monitoring.todayTotalSales')}</span> | <h3 className="text-2xl font-bold text-gray-900 mt-1"> | {formatCurrency(liveSales.totalSales)}
+=== D:\DukanOS\src\components\monitoring\remote-monitoring-view.tsx:143
+<GlowCard hue="emerald" className="p-5"> | <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">{t('monitoring.realizedGrossProfit')}</span> | <h3 className="text-2xl font-bold text-emerald-700 mt-1"> | {formatCurrency(liveSales.grossProfit)}
+=== D:\DukanOS\src\components\monitoring\remote-monitoring-view.tsx:151
+<GlowCard hue="sky" className="p-5"> | <span className="text-xs font-semibold text-gray-950 uppercase tracking-wider">{t('monitoring.avgBasketSize')}</span> | <h3 className="text-2xl font-bold text-gray-950 mt-1"> | {formatCurrency(liveSales.orderCount > 0 ? Math.round(liveSales.totalSales / liveSales.orderCount) : 0)}
+=== D:\DukanOS\src\components\onboarding\onboarding-checklist.tsx:90
+<GlowCard hue="sky" className="rounded-2xl p-5 shadow-xs transition-all space-y-4"> | <div className="flex items-center justify-between"> | <div className="flex items-center gap-2.5"> | <div className="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center font-bold text-sm shadow-xs">
+=== D:\DukanOS\src\components\pos\pos-checkout-screen.tsx:584
+<GlowCard | as="button" | key={product.id} | index={idx}
+=== D:\DukanOS\src\components\pos\pos-terminal.tsx:600
+<GlowCard | as="button" | key={product.id} | index={idx}
+=== D:\DukanOS\src\components\settings\branches-view.tsx:198
+<GlowCard | key={b.id} | index={idx} | className={`rounded-3xl p-5 shadow-xs flex flex-col justify-between space-y-4 ${b.status !== 'ACTIVE' ? 'opacity-75' : ''}`}
+=== D:\DukanOS\src\components\settings\members-view.tsx:248
+<GlowCard hue="sky" className="max-w-md w-full p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in-95"> | <div className="flex items-center justify-between border-b border-gray-100 pb-3"> | <h3 className="font-bold text-gray-900 text-base">{t('settingsAdmin.members.addByEmail')}</h3> | <button
+=== D:\DukanOS\src\components\settings\receipts-settings-form.tsx:162
+<GlowCard hue="violet" className="border border-gray-300 rounded-2xl p-5 shadow-xs font-mono text-[11px] space-y-3 max-w-xs mx-auto text-gray-800"> | <div className="text-center space-y-0.5 border-b border-dashed pb-2"> | <div className="font-bold text-sm text-black">{businessName}</div> | <div className="text-[10px] text-gray-500">{t('settings.previewBranch')}</div>
+=== D:\DukanOS\src\components\settings\settings-hub-view.tsx:289
+<GlowCard | as={Link} | key={item.href} | href={item.href}
+=== D:\DukanOS\src\components\settings\system-info-view.tsx:57
+<GlowCard hue="sky" className="rounded-3xl p-5 shadow-xs flex flex-wrap items-center justify-between gap-4"> | <div className="space-y-0.5"> | <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">{t('settingsAdmin.system.softwareVersion')}</span> | <span className="font-bold text-base text-gray-900 font-mono">DukaanOS v{version}</span>
+=== D:\DukanOS\src\components\settings\system-info-view.tsx:81
+<GlowCard index={0} className="rounded-3xl p-5 shadow-xs space-y-3"> | <div className="flex items-center justify-between"> | <div className="w-9 h-9 rounded-xl bg-primary-soft text-gray-900 flex items-center justify-center"> | <Database className="w-5 h-5" />
+=== D:\DukanOS\src\components\settings\system-info-view.tsx:107
+<GlowCard index={1} className="rounded-3xl p-5 shadow-xs space-y-3"> | <div className="flex items-center justify-between"> | <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center"> | <ShieldCheck className="w-5 h-5" />
+=== D:\DukanOS\src\components\settings\system-info-view.tsx:127
+<GlowCard index={2} className="rounded-3xl p-5 shadow-xs space-y-3"> | <div className="flex items-center justify-between"> | <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"> | <Wifi className="w-5 h-5" />
+=== D:\DukanOS\src\components\settings\system-info-view.tsx:147
+<GlowCard index={3} className="rounded-3xl p-5 shadow-xs space-y-3"> | <div className="flex items-center justify-between"> | <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center"> | <Bell className="w-5 h-5" />
+=== D:\DukanOS\src\components\settings\system-info-view.tsx:167
+<GlowCard index={4} className="rounded-3xl p-5 shadow-xs space-y-3"> | <div className="flex items-center justify-between"> | <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"> | <MessageSquare className="w-5 h-5" />
+=== D:\DukanOS\src\components\settings\system-info-view.tsx:187
+<GlowCard index={5} className="rounded-3xl p-5 shadow-xs space-y-3"> | <div className="flex items-center justify-between"> | <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center"> | <Video className="w-5 h-5" />
+=== D:\DukanOS\src\components\settings\usage-view.tsx:92
+<GlowCard | key={metric.limitKey} | index={idx} | className="p-5 space-y-3"
+=== D:\DukanOS\src\components\sync\sync-center-view.tsx:133
+<GlowCard index={0} className="p-5 space-y-1"> | <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block"> | {t('sync.deviceConnection')} | </span>
+=== D:\DukanOS\src\components\sync\sync-center-view.tsx:163
+<GlowCard index={1} className="p-5"> | <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('sync.pendingOfflineSales')}</span> | <h3 className="text-2xl font-bold text-gray-900 mt-1">{pendingCount}</h3> | <span className="text-[11px] text-gray-900">{t('sync.awaitingAutoSync')}</span>
+=== D:\DukanOS\src\components\sync\sync-center-view.tsx:170
+<GlowCard index={2} className="p-5"> | <span className="text-xs font-semibold text-amber-800 uppercase tracking-wider">{t('sync.inventoryConflicts')}</span> | <h3 className={`text-2xl font-bold mt-1 ${conflictCount > 0 ? 'text-amber-800' : 'text-gray-900'}`}> | {conflictCount}
+=== D:\DukanOS\src\components\sync\sync-center-view.tsx:179
+<GlowCard index={3} className="p-5"> | <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">{t('sync.syncedTransactions')}</span> | <h3 className="text-2xl font-bold text-emerald-700 mt-1">{syncedCount}</h3> | <span className="text-[11px] text-emerald-600">{t('sync.committedToServer')}</span>

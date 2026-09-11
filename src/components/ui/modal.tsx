@@ -123,7 +123,7 @@ export function Modal({
               </p>
             )}
           </div>
-          <IconButton aria-label={t('ui.closeDialog')} onClick={onClose} className="-me-1.5 -mt-1 shrink-0">
+          <IconButton variant="3d" aria-label={t('ui.closeDialog')} onClick={onClose} className="-me-1.5 -mt-1 shrink-0">
             <X className="h-4 w-4" />
           </IconButton>
         </div>

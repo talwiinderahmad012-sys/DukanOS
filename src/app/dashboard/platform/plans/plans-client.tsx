@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { ShieldCheck, Lock, Gift } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
 
@@ -67,10 +68,7 @@ export function PlansPageClient({
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {plans.map((plan) => (
-          <div
-            key={plan.id}
-            className="bg-white rounded-2xl border border-gray-200 p-6 space-y-6 shadow-sm flex flex-col justify-between"
-          >
+          <SurfaceCard key={plan.id} className="p-6 space-y-6 flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="font-mono text-xs font-bold bg-primary-soft text-gray-950 px-2 py-0.5 rounded border border-blue-100">
@@ -122,7 +120,7 @@ export function PlansPageClient({
                 </div>
               </div>
             </div>
-          </div>
+          </SurfaceCard>
         ))}
       </div>
     </div>

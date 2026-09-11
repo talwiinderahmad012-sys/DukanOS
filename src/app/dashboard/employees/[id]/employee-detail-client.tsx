@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { ArrowLeft, ChevronRight, CalendarDays } from 'lucide-react';
 import { EmployeeProfileView } from '@/components/employees/employee-profile-view';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 export type SerializedEmployeeData = {
   employee: {
@@ -129,7 +131,7 @@ export function EmployeeDetailClient({
       </div>
 
       {isOwnerOrManager && leaveBalances.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <SurfaceCard className="p-5">
           <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-3">
             <CalendarDays className="w-4 h-4 text-gray-900" />{' '}
             {t('employees.leaveBalancesYear', { year: currentYear })}
@@ -145,7 +147,7 @@ export function EmployeeDetailClient({
               </div>
             ))}
           </div>
-        </div>
+        </SurfaceCard>
       )}
 
       <EmployeeProfileView

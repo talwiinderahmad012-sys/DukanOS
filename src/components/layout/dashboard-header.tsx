@@ -72,16 +72,16 @@ export function DashboardHeader({
           <NotificationBell businessId={businessId} />
           <Link
             href="/dashboard/settings/notifications"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="btn-3d flex h-9 w-9 items-center justify-center rounded-full text-gray-700 dark:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             title={t('nav.notificationSettings')}
             aria-label={t('nav.notificationSettings')}
           >
-            <Settings className="h-5 w-5" aria-hidden="true" />
+            <Settings className="h-4 w-4" aria-hidden="true" />
           </Link>
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft text-sm font-bold text-gray-900 transition-colors hover:bg-blue-100 dark:bg-primary-soft0/20 dark:text-blue-400 dark:hover:bg-primary-soft0/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="btn-3d btn-3d-primary flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               title={t('nav.myWorkspace')}
               aria-label={t('nav.myWorkspaceOf', { name: displayName })}
               aria-expanded={isOpen}

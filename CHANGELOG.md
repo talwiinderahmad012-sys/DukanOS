@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Global GlowCard Unification & Universal Hover Glare System**:
+  - Reusable `GlowCard` component featuring resting glass surface, animated color gradient fade-in (`opacity 0 -> 1`), rAF-throttled pointer glare spotlight, and translateY(-4px) lift.
+  - 7 curated color palettes (`lime`, `emerald`, `amber`, `teal`, `violet`, `rose`, `sky`) with automatic `index % 7` assignment and tailored Light/Dark mode contrast.
+  - Polymorphic `as` support (`div`, `section`, `form`, `button`, Next.js `Link`) and touch tap auto-reset without stuck hover states.
+  - Upgraded core `Card` and `GlassCard` to delegate to `GlowCard`.
+  - Unbundled monolithic KPI grids into individual responsive cards across Sales, Purchases, Products, Categories, Inventory, Expenses, Customers, and Suppliers.
+  - Converted all surfaces across POS, Reports, Analytics, Growth, Advisor, Employees, Payroll, Cameras, Feedback, Sync, Settings, Onboarding, and Auth.
 - **Apple Liquid Glass Design System & Micro-Interactions**:
   - Full-screen animated `AuroraBackground` with GPU-composited morphing gradient blobs (lime green, cyan-teal, soft violet, warm amber) and micro-noise grain texture.
   - Frosted glass component wrappers (`GlassCard`, `GlassPanel`) and CSS utility classes (`.glass`, `.glass-strong`, `.glass-panel`, `.glass-section`).

@@ -10,6 +10,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 export type ProductInsightsFunnelStage = {
   stage: string;
@@ -138,7 +139,7 @@ export function ProductInsightsPageClient({
         </div>
       </div>
 
-      <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-2xl p-6 sm:p-8 text-white shadow-xl space-y-6">
+      <SurfaceCard className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-2xl p-6 sm:p-8 text-white shadow-xl space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-700 pb-4">
           <div className="space-y-1">
             <span className="text-xs font-bold uppercase tracking-wider text-blue-400">
@@ -197,9 +198,9 @@ export function ProductInsightsPageClient({
             </span>
           </div>
         </div>
-      </div>
+      </SurfaceCard>
 
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8 space-y-6 shadow-sm">
+      <SurfaceCard className="p-6 sm:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-4">
           <div>
             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -250,10 +251,10 @@ export function ProductInsightsPageClient({
             </div>
           ))}
         </div>
-      </div>
+      </SurfaceCard>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6 space-y-4 shadow-sm">
+        <SurfaceCard className="lg:col-span-2 p-6 space-y-4">
           <div className="border-b pb-3">
             <h3 className="font-bold text-gray-900 text-base flex items-center gap-2">
               <Layers className="w-5 h-5 text-gray-900" />
@@ -280,10 +281,10 @@ export function ProductInsightsPageClient({
               </div>
             ))}
           </div>
-        </div>
+        </SurfaceCard>
 
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4 shadow-sm">
+          <SurfaceCard className="p-6 space-y-4">
             <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2 border-b pb-3">
               <Users className="w-4 h-4 text-gray-900" /> {t('productInsights.retentionTitle')}
             </h3>
@@ -307,9 +308,9 @@ export function ProductInsightsPageClient({
                 </span>
               </div>
             </div>
-          </div>
+          </SurfaceCard>
 
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4 shadow-sm">
+          <SurfaceCard className="p-6 space-y-4">
             <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2 border-b pb-3">
               <ShieldCheck className="w-4 h-4 text-emerald-600" /> {t('productInsights.reliabilityTitle')}
             </h3>
@@ -331,7 +332,7 @@ export function ProductInsightsPageClient({
                 <span className="font-semibold text-gray-900">{formatNumber(reliability.commDeliveryFailures)}</span>
               </div>
             </div>
-          </div>
+          </SurfaceCard>
         </div>
       </div>
     </div>

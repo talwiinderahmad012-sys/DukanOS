@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { SelfCheckButtons } from '@/components/employees/self-check-buttons';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 export type MeProfileData = {
   name: string;
@@ -163,11 +164,11 @@ export function MePageClient({
     return (
       <div className="max-w-3xl mx-auto space-y-4">
         <h1 className="text-2xl font-bold text-gray-900">{t('me.title')}</h1>
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <SurfaceCard className="p-6">
           <p className="text-sm text-gray-600">
             {t('me.noProfile')}
           </p>
-        </div>
+        </SurfaceCard>
       </div>
     );
   }
@@ -181,7 +182,7 @@ export function MePageClient({
         </p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <SurfaceCard className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
           <div className="w-11 h-11 rounded-full bg-blue-100 text-gray-950 flex items-center justify-center font-bold text-lg shrink-0">
             {profile.name.charAt(0).toUpperCase()}
@@ -220,10 +221,10 @@ export function MePageClient({
           checkedIn={checkedIn}
           checkedOut={checkedOut}
         />
-      </div>
+      </SurfaceCard>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <section className="bg-white rounded-xl border border-gray-200 p-5">
+        <SurfaceCard as="section" className="p-5">
           <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-3">
             <CalendarDays className="w-4 h-4 text-gray-900" /> {t('me.leaveBalanceTitle', { year })}
           </h2>
@@ -261,9 +262,9 @@ export function MePageClient({
               </div>
             ))}
           </div>
-        </section>
+        </SurfaceCard>
 
-        <section className="bg-white rounded-xl border border-gray-200 p-5">
+        <SurfaceCard as="section" className="p-5">
           <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-3">
             <ClipboardList className="w-4 h-4 text-gray-900" /> {t('me.attendanceTitle')}
           </h2>
@@ -294,9 +295,9 @@ export function MePageClient({
               </div>
             ))}
           </div>
-        </section>
+        </SurfaceCard>
 
-        <section className="bg-white rounded-xl border border-gray-200 p-5">
+        <SurfaceCard as="section" className="p-5">
           <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-3">
             <Wallet className="w-4 h-4 text-gray-900" /> {t('me.salaryTitle')}
           </h2>
@@ -326,9 +327,9 @@ export function MePageClient({
               </Link>
             ))}
           </div>
-        </section>
+        </SurfaceCard>
 
-        <section className="bg-white rounded-xl border border-gray-200 p-5">
+        <SurfaceCard as="section" className="p-5">
           <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-3">
             <Bell className="w-4 h-4 text-gray-900" /> {t('me.notificationsTitle')}
           </h2>
@@ -346,7 +347,7 @@ export function MePageClient({
               </div>
             ))}
           </div>
-        </section>
+        </SurfaceCard>
       </div>
     </div>
   );

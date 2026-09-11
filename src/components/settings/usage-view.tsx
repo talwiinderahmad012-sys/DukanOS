@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import {
   Activity,
   ArrowLeft,
@@ -84,13 +85,10 @@ export function UsageView({
 
       {/* Usage Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {metrics.map((metric) => {
+        {metrics.map((metric, idx) => {
           const Icon = metricIcons[metric.limitKey] || Package;
           return (
-            <div
-              key={metric.limitKey}
-              className="bg-white rounded-2xl border border-gray-200 p-5 space-y-3 shadow-sm"
-            >
+            <SurfaceCard key={metric.limitKey} className="p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="w-9 h-9 rounded-lg bg-primary-soft text-gray-900 flex items-center justify-center">
                   <Icon className="w-4 h-4" />
@@ -124,13 +122,13 @@ export function UsageView({
                   }}
                 />
               </div>
-            </div>
+            </SurfaceCard>
           );
         })}
       </div>
 
       {/* Fair Use Assurance Note */}
-      <div className="bg-gray-50 rounded-2xl border border-gray-200 p-6 flex items-start gap-4 text-xs text-gray-600">
+      <SurfaceCard className="p-6 flex items-start gap-4 text-xs text-gray-600">
         <ShieldCheck className="w-6 h-6 text-gray-900 shrink-0 mt-0.5" />
         <div className="space-y-1">
           <h4 className="font-bold text-gray-900 text-sm">{t('settingsAdmin.usage.trackingTitle')}</h4>
@@ -138,7 +136,7 @@ export function UsageView({
             {t('settingsAdmin.usage.trackingBody')}
           </p>
         </div>
-      </div>
+      </SurfaceCard>
     </div>
   );
 }

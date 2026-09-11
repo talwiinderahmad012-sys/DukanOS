@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { triageBugReportAction, triageFeatureRequestAction } from '@/app/actions/product-feedback.actions';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 export type BugSeverity = 'P0' | 'P1' | 'P2' | 'P3';
 export type BugStatus = 'NEW' | 'TRIAGED' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED' | 'WONT_FIX';
@@ -149,7 +150,7 @@ export function BugTriagePanel({
       {tab === 'bugs' ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Bug List */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-2 max-h-[600px] overflow-y-auto">
+          <SurfaceCard className="p-4 space-y-2 max-h-[600px] overflow-y-auto">
             {bugs.length === 0 ? (
               <div className="p-8 text-center text-xs text-gray-400">{t('feedback.triage.noBugs')}</div>
             ) : (
@@ -187,10 +188,10 @@ export function BugTriagePanel({
                 </button>
               ))
             )}
-          </div>
+          </SurfaceCard>
 
           {/* Bug Detail & Triage Controls */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6 space-y-6">
+          <SurfaceCard className="lg:col-span-2 p-6 space-y-6">
             {selectedBug ? (
               <div className="space-y-6">
                 <div className="border-b pb-4 space-y-2">
@@ -274,12 +275,12 @@ export function BugTriagePanel({
                 {t('feedback.triage.selectBug')}
               </div>
             )}
-          </div>
+          </SurfaceCard>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Feature List */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-2 max-h-[600px] overflow-y-auto">
+          <SurfaceCard className="p-4 space-y-2 max-h-[600px] overflow-y-auto">
             {features.length === 0 ? (
               <div className="p-8 text-center text-xs text-gray-400">{t('feedback.triage.noFeatures')}</div>
             ) : (
@@ -306,10 +307,10 @@ export function BugTriagePanel({
                 </button>
               ))
             )}
-          </div>
+          </SurfaceCard>
 
           {/* Feature Detail & Status updater */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6 space-y-6">
+          <SurfaceCard className="lg:col-span-2 p-6 space-y-6">
             {selectedFeature ? (
               <div className="space-y-6">
                 <div className="border-b pb-4 space-y-2">
@@ -379,7 +380,7 @@ export function BugTriagePanel({
                 {t('feedback.triage.selectFeature')}
               </div>
             )}
-          </div>
+          </SurfaceCard>
         </div>
       )}
     </div>

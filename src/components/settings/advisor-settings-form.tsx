@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { updateAdvisorSettingsAction } from '@/app/actions/settings.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { GlowCard } from '@/components/ui';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 export function AdvisorSettingsForm({
   businessId,
@@ -99,7 +101,7 @@ export function AdvisorSettingsForm({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-6">
+      <SurfaceCard as="form" onSubmit={handleSubmit} className="p-6 space-y-6">
         <div className="space-y-4">
           <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
             <Sliders className="w-3.5 h-3.5 text-gray-500" />
@@ -207,7 +209,7 @@ export function AdvisorSettingsForm({
             <span>{saving ? t('common.saving') : t('settings.saveAdvisorSettings')}</span>
           </button>
         </div>
-      </form>
+      </SurfaceCard>
     </div>
   );
 }

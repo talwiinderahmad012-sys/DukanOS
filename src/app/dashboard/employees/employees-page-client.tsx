@@ -13,6 +13,8 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { GlowCard } from '@/components/ui';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 export type EmployeeDirectoryRow = {
   id: string;
@@ -104,38 +106,38 @@ export function EmployeesPageClient({
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
+        <GlowCard index={0} className="p-4">
           <span className="text-xs font-semibold text-gray-500 uppercase">{t('employees.totalStaff')}</span>
           <h3 className="text-2xl font-bold text-gray-900 mt-1">{stats.totalEmployees}</h3>
           <span className="text-[11px] text-gray-400">{t('employees.activeCount', { count: stats.activeEmployees })}</span>
-        </div>
+        </GlowCard>
 
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
+        <GlowCard index={1} className="p-4">
           <span className="text-xs font-semibold text-green-700 uppercase">{t('employees.presentToday')}</span>
           <h3 className="text-2xl font-bold text-green-700 mt-1">{stats.presentToday}</h3>
           <span className="text-[11px] text-green-600">{t('employees.onDuty')}</span>
-        </div>
+        </GlowCard>
 
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
+        <GlowCard index={2} className="p-4">
           <span className="text-xs font-semibold text-red-700 uppercase">{t('employees.absentToday')}</span>
           <h3 className="text-2xl font-bold text-red-700 mt-1">{stats.absentToday}</h3>
           <span className="text-[11px] text-red-500">{t('employees.unexcused')}</span>
-        </div>
+        </GlowCard>
 
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
+        <GlowCard index={3} className="p-4">
           <span className="text-xs font-semibold text-gray-950 uppercase">{t('employees.pendingLeaves')}</span>
           <h3 className="text-2xl font-bold text-gray-950 mt-1">{stats.pendingLeaves}</h3>
           <span className="text-[11px] text-gray-800">{t('employees.awaitingApproval')}</span>
-        </div>
+        </GlowCard>
 
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
+        <GlowCard index={4} className="p-4">
           <span className="text-xs font-semibold text-amber-700 uppercase">{t('employees.complaints')}</span>
           <h3 className="text-2xl font-bold text-amber-700 mt-1">{stats.openComplaints}</h3>
           <span className="text-[11px] text-amber-600">{t('employees.underReview')}</span>
-        </div>
+        </GlowCard>
       </div>
 
-      <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs flex flex-col sm:flex-row gap-3 justify-between items-center">
+      <SurfaceCard className="p-4 flex flex-col sm:flex-row gap-3 justify-between items-center">
         <form method="GET" className="relative flex-1 w-full flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-gray-400 absolute start-3 top-1/2 -translate-y-1/2" />
@@ -167,9 +169,9 @@ export function EmployeesPageClient({
             {t('common.filter')}
           </button>
         </form>
-      </div>
+      </SurfaceCard>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
+      <SurfaceCard className="overflow-hidden">
         {employees.length === 0 ? (
           <div className="p-12 text-center space-y-3">
             <div className="w-12 h-12 rounded-full bg-primary-soft text-gray-900 flex items-center justify-center mx-auto">
@@ -303,7 +305,7 @@ export function EmployeesPageClient({
             </div>
           </div>
         )}
-      </div>
+      </SurfaceCard>
     </div>
   );
 }

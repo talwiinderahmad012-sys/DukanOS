@@ -1,11 +1,12 @@
 'use client';
 
 import { useId, useState } from 'react';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { useRouter } from 'next/navigation';
 import { Search, Trash2 } from 'lucide-react';
 import { createPurchaseAction } from '@/app/actions/purchase.actions';
 import Link from 'next/link';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { Button, buttonClasses, IconButton } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
@@ -204,7 +205,7 @@ export function PurchaseForm({
         </Alert>
       )}
 
-      <Card padded>
+      <SurfaceCard>
         <div className="mb-5 border-b border-border pb-3">
           <h2 className="text-base font-bold text-gray-900">{t('purchases.supplierInfoTitle')}</h2>
           <p className="text-xs text-muted">{t('purchases.supplierInfoSub')}</p>
@@ -265,9 +266,9 @@ export function PurchaseForm({
             />
           </Field>
         </div>
-      </Card>
+      </SurfaceCard>
 
-      <Card>
+      <SurfaceCard>
         <CardHeader className="flex-row items-center justify-between gap-3">
           <div className="space-y-0.5">
             <CardTitle>{t('purchases.purchasedProducts')}</CardTitle>
@@ -440,10 +441,10 @@ export function PurchaseForm({
             </div>
           )}
         </CardContent>
-      </Card>
+      </SurfaceCard>
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
-        <Card padded>
+        <SurfaceCard>
           <div className="mb-4 border-b border-border pb-3">
             <h3 className="text-base font-bold text-gray-900">{t('purchases.paymentTermsTitle')}</h3>
             <p className="text-xs text-muted">{t('purchases.paymentTermsSub')}</p>
@@ -499,9 +500,9 @@ export function PurchaseForm({
             </span>
             <Badge tone={paymentBadge.tone}>{t(paymentBadge.labelKey)}</Badge>
           </div>
-        </Card>
+        </SurfaceCard>
 
-        <Card padded>
+        <SurfaceCard>
           <div className="mb-4 border-b border-border pb-3">
             <h3 className="text-base font-bold text-gray-900">{t('purchases.invoiceSummary')}</h3>
             <p className="text-xs text-muted">{t('purchases.invoiceSummarySub')}</p>
@@ -548,7 +549,7 @@ export function PurchaseForm({
               {loading ? t('purchases.recordingSubmit') : t('purchases.recordSubmit')}
             </Button>
           </div>
-        </Card>
+        </SurfaceCard>
       </div>
     </form>
   );

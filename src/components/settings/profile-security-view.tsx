@@ -17,6 +17,7 @@ import {
   updateUserProfileAction, 
   changePasswordAction 
 } from '@/app/actions/settings.actions';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 export function ProfileSecurityView({
   initialUser,
@@ -164,7 +165,7 @@ export function ProfileSecurityView({
 
       {/* TAB 1: Profile */}
       {activeTab === 'PROFILE' && (
-        <form onSubmit={handleSaveProfile} className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-4">
+        <SurfaceCard as="form" onSubmit={handleSaveProfile} className="p-6 space-y-4">
           <div className="space-y-1">
             <label className="text-xs font-semibold text-gray-700 block">{t('common.fullName')}</label>
             <input
@@ -207,12 +208,12 @@ export function ProfileSecurityView({
               <span>{savingProfile ? t('common.saving') : t('settingsAdmin.profile.saveProfile')}</span>
             </button>
           </div>
-        </form>
+        </SurfaceCard>
       )}
 
       {/* TAB 2: Security */}
       {activeTab === 'SECURITY' && (
-        <form onSubmit={handleChangePassword} className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-4">
+        <SurfaceCard as="form" onSubmit={handleChangePassword} className="p-6 space-y-4">
           <div className="space-y-1">
             <label className="text-xs font-semibold text-gray-700 block">{t('common.currentPassword')}</label>
             <input
@@ -259,7 +260,7 @@ export function ProfileSecurityView({
               <span>{savingPassword ? t('settingsAdmin.profile.updatingPassword') : t('settingsAdmin.profile.updatePassword')}</span>
             </button>
           </div>
-        </form>
+        </SurfaceCard>
       )}
     </div>
   );

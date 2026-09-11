@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { toast } from 'sonner';
+
 import { createBranchAction, updateBranchAction, deactivateBranchAction, reactivateBranchAction } from '@/app/actions/settings.actions';
 
 const STATUS_KEYS: Record<string, string> = {
@@ -185,84 +187,89 @@ export function BranchesView({
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {branches.map((b) => (
-          <div
-            key={b.id}
-            className={`bg-white rounded-3xl border ${b.status === 'ACTIVE' ? 'border-gray-200 hover:border-gray-300' : 'border-red-100 opacity-75'} p-5 shadow-xs flex flex-col justify-between space-y-4 transition-colors`}
-          >
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className={`w-8 h-8 rounded-xl ${b.status === 'ACTIVE' ? 'bg-primary-soft text-gray-900' : 'bg-gray-100 text-gray-500'} flex items-center justify-center font-bold text-xs`}>
-                    <Building2 className="w-4 h-4" />
-                  </div>
-                  <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
-                    {b.name}
-                    <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${b.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-700'}`}>
-                      {statusLabel(b.status)}
-                    </span>
-                  </h3>
-                </div>
-                <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-lg text-[10px] font-mono font-bold">
-                  {b.code}
-                </span>
-              </div>
-
-              <div className="space-y-1 text-xs text-gray-500 pt-1">
-                {b.address && (
-                  <div className="flex items-center gap-1.5 text-gray-600">
-                    <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                    <span>{b.address}{b.city ? `, ${b.city}` : ''}</span>
-                  </div>
-                )}
-                {b.phone && (
-                  <div className="flex items-center gap-1.5 text-gray-600 font-mono text-[11px]">
-                    <Phone className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                    <span>{b.phone}</span>
-                  </div>
-                )}
-                {b.email && (
-                  <div className="flex items-center gap-1.5 text-gray-600 text-[11px]">
-                    <Mail className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                    <span>{b.email}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="pt-3 border-t border-gray-100 flex items-center justify-end gap-2">
-              {b.status === 'ACTIVE' ? (
-                <button
-                  onClick={() => handleDeactivate(b)}
-                  disabled={saving || activeBranchCount <= 1}
-                  className="px-3 py-1.5 hover:bg-red-50 text-red-600 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors disabled:opacity-50"
-                  title={t('settingsAdmin.branches.deactivateTitle')}
-                >
-                  <PowerOff className="w-3 h-3" />
-                  <span>{t('settingsAdmin.branches.deactivate')}</span>
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleReactivate(b)}
-                  disabled={saving}
-                  className="px-3 py-1.5 hover:bg-emerald-50 text-emerald-600 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors disabled:opacity-50"
-                >
-                  <Power className="w-3 h-3" />
-                  <span>{t('settingsAdmin.branches.reactivate')}</span>
-                </button>
-              )}
-              <button
-                onClick={() => openEditModal(b)}
-                className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors"
-              >
-                <Edit2 className="w-3 h-3 text-gray-500" />
-                <span>{t('common.edit')}</span>
-              </button>
-            </div>
+      <SurfaceCard className="p-6 overflow-hidden space-y-6">
+        {branches.length === 0 ? (
+          <div className="py-12 text-center text-sm text-gray-500">
+            {t('settingsAdmin.branches.noBranches', 'No branches found.')}
           </div>
-        ))}
-      </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {branches.map((b, idx) => (
+              <SurfaceCard key={b.id} className={`rounded-3xl p-5 shadow-xs flex flex-col justify-between space-y-4 ${b.status !== 'ACTIVE' ? 'opacity-75' : ''}`}>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-8 h-8 rounded-xl ${b.status === 'ACTIVE' ? 'bg-primary-soft text-gray-900' : 'bg-gray-100 text-gray-500'} flex items-center justify-center font-bold text-xs`}>
+                        <Building2 className="w-4 h-4" />
+                      </div>
+                      <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
+                        {b.name}
+                        <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${b.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-700'}`}>
+                          {statusLabel(b.status)}
+                        </span>
+                      </h3>
+                    </div>
+                    <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-lg text-[10px] font-mono font-bold">
+                      {b.code}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1 text-xs text-gray-500 pt-1">
+                    {b.address && (
+                      <div className="flex items-center gap-1.5 text-gray-600">
+                        <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                        <span>{b.address}{b.city ? `, ${b.city}` : ''}</span>
+                      </div>
+                    )}
+                    {b.phone && (
+                      <div className="flex items-center gap-1.5 text-gray-600 font-mono text-[11px]">
+                        <Phone className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                        <span>{b.phone}</span>
+                      </div>
+                    )}
+                    {b.email && (
+                      <div className="flex items-center gap-1.5 text-gray-600 text-[11px]">
+                        <Mail className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                        <span>{b.email}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100 dark:border-white/10">
+                  {b.status === 'ACTIVE' ? (
+                    <button
+                      onClick={() => handleDeactivate(b)}
+                      disabled={saving}
+                      className="px-3 py-1.5 hover:bg-red-50 text-red-600 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors disabled:opacity-50"
+                      title={t('settingsAdmin.branches.deactivateTitle')}
+                    >
+                      <PowerOff className="w-3 h-3" />
+                      <span>{t('settingsAdmin.branches.deactivate')}</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleReactivate(b)}
+                      disabled={saving}
+                      className="px-3 py-1.5 hover:bg-emerald-50 text-emerald-600 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors disabled:opacity-50"
+                    >
+                      <Power className="w-3 h-3" />
+                      <span>{t('settingsAdmin.branches.reactivate')}</span>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => openEditModal(b)}
+                    className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors"
+                  >
+                    <Edit2 className="w-3 h-3 text-gray-500" />
+                    <span>{t('common.edit')}</span>
+                  </button>
+                </div>
+              </SurfaceCard>
+            ))}
+          </div>
+        )}
+      </SurfaceCard>
 
       {showModal && (
         <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">

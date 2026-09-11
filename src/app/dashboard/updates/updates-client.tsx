@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { Sparkles, ArrowLeft, Rocket, Shield, ShoppingCart } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 export function UpdatesPageClient() {
   const { t } = useTranslation();
@@ -36,7 +38,7 @@ export function UpdatesPageClient() {
       </div>
 
       <div className="space-y-8">
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8 space-y-6 shadow-sm">
+        <SurfaceCard className="p-6 sm:p-8 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-4">
             <div className="flex items-center gap-3">
               <span className="text-lg font-bold text-gray-900">{t('updates.releaseVersion')}</span>
@@ -61,7 +63,7 @@ export function UpdatesPageClient() {
               );
             })}
           </div>
-        </div>
+        </SurfaceCard>
       </div>
     </div>
   );

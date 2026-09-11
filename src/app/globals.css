@@ -234,88 +234,460 @@
 
 /* ============================================================================
  * SURFACE-GLASS — Solid, visible frosted glass card & panel surfaces
- * High opacity (75-80%) gives crisp contrast against the aurora blobs.
+ * Semi-solid background + soft shadow + 1px border + inner top sheen.
+ * Near-zero GPU compositing cost (no expensive backdrop-filter blur).
  * ============================================================================ */
 .surface-glass {
-  backdrop-filter: blur(28px) saturate(1.8) brightness(1.03);
-  -webkit-backdrop-filter: blur(28px) saturate(1.8) brightness(1.03);
-  background-color: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  background-color: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.75);
   border-radius: 1rem;
   box-shadow:
     0 10px 30px -5px rgba(0, 0, 0, 0.05),
     0 4px 12px -2px rgba(0, 0, 0, 0.03),
-    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
     inset 0 -1px 0 rgba(0, 0, 0, 0.02);
 }
 .dark .surface-glass {
-  background-color: rgba(15, 23, 42, 0.75);
-  border-color: rgba(255, 255, 255, 0.14);
+  background-color: rgba(18, 24, 38, 0.88);
+  border-color: rgba(255, 255, 255, 0.12);
   box-shadow:
     0 10px 30px -5px rgba(0, 0, 0, 0.40),
     0 4px 12px -2px rgba(0, 0, 0, 0.20),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
-/* Automatically upgrade rounded cards across all app routes into surface-glass */
+/* ============================================================================
+ * 3D TACTILE BUTTONS (.btn-3d)
+ * Physical tactile depth with layered drop shadows, inner rim highlight,
+ * bottom shade, and interactive physical keypress animation.
+ * ============================================================================ */
+.btn-3d {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(243, 244, 246, 0.95) 100%);
+  color: #374151;
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.10),
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.70),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.06);
+  transform: translateY(0);
+  transition:
+    transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+  user-select: none;
+  cursor: pointer;
+}
+
+.btn-3d:hover {
+  transform: translateY(-1px);
+  color: #111827;
+  border-color: rgba(0, 0, 0, 0.12);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(240, 242, 245, 1) 100%);
+  box-shadow:
+    0 6px 14px rgba(0, 0, 0, 0.12),
+    0 2px 4px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.05);
+}
+
+.btn-3d:active {
+  transform: translateY(1px);
+  background: linear-gradient(180deg, rgba(235, 237, 240, 0.95) 0%, rgba(243, 244, 246, 0.98) 100%);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    0 1px 1px rgba(0, 0, 0, 0.06),
+    inset 0 2px 3px rgba(0, 0, 0, 0.10),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.50);
+}
+
+.btn-3d-primary {
+  background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%) !important;
+  color: #1d4ed8 !important;
+  border-color: rgba(59, 130, 246, 0.25) !important;
+  box-shadow:
+    0 4px 10px rgba(37, 99, 235, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -2px 3px rgba(37, 99, 235, 0.08) !important;
+}
+
+.btn-3d-primary:hover {
+  background: linear-gradient(180deg, #ffffff 0%, #dbeafe 100%) !important;
+  color: #1e40af !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+  box-shadow:
+    0 6px 14px rgba(37, 99, 235, 0.16),
+    0 2px 4px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -2px 3px rgba(37, 99, 235, 0.06) !important;
+}
+
+.btn-3d-primary:active {
+  background: linear-gradient(180deg, #bfdbfe 0%, #dbeafe 100%) !important;
+  box-shadow:
+    0 1px 3px rgba(37, 99, 235, 0.12),
+    0 1px 1px rgba(0, 0, 0, 0.06),
+    inset 0 2px 3px rgba(29, 78, 216, 0.15),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.50) !important;
+}
+
+.dark .btn-3d {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, rgba(38, 43, 54, 0.95) 0%, rgba(23, 26, 33, 0.95) 100%);
+  color: #cbd5e1;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.45),
+    0 1px 2px rgba(0, 0, 0, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.35);
+}
+
+.dark .btn-3d:hover {
+  transform: translateY(-1px);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.20);
+  background: linear-gradient(180deg, rgba(48, 55, 68, 1) 0%, rgba(28, 32, 42, 1) 100%);
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.55),
+    0 2px 4px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.30);
+}
+
+.dark .btn-3d:active {
+  transform: translateY(1px);
+  background: linear-gradient(180deg, rgba(18, 20, 26, 0.98) 0%, rgba(26, 30, 38, 0.98) 100%);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.30),
+    inset 0 2px 4px rgba(0, 0, 0, 0.45),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.10);
+}
+
+.dark .btn-3d-primary {
+  background: linear-gradient(180deg, rgba(30, 58, 138, 0.55) 0%, rgba(23, 37, 84, 0.65) 100%) !important;
+  color: #93c5fd !important;
+  border-color: rgba(96, 165, 250, 0.30) !important;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.45),
+    0 1px 2px rgba(0, 0, 0, 0.30),
+    inset 0 1px 0 rgba(147, 197, 253, 0.25),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.40) !important;
+}
+
+.dark .btn-3d-primary:hover {
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.50) 0%, rgba(30, 58, 138, 0.70) 100%) !important;
+  color: #bfdbfe !important;
+  border-color: rgba(96, 165, 250, 0.45) !important;
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.55),
+    0 2px 4px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(147, 197, 253, 0.35),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.35) !important;
+}
+
+.dark .btn-3d-primary:active {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.90) 0%, rgba(30, 58, 138, 0.50) 100%) !important;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.35),
+    inset 0 2px 4px rgba(0, 0, 0, 0.50),
+    inset 0 -1px 1px rgba(147, 197, 253, 0.15) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-3d,
+  .btn-3d:hover,
+  .btn-3d:active {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* ============================================================================
+ * SURFACE-CARD — Premium NON-glowing surface for everything that is NOT a
+ * small stat/KPI card. Semi-solid frosted background, soft shadow, 1px light
+ * border, inner top sheen. Only a subtle shadow deepen on hover — no gradient,
+ * no glare, no tilt. STRICT APP RULE: only stat cards may glow (glow-panel).
+ * ============================================================================ */
+.surface-card {
+  background-color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow:
+    0 10px 30px -12px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.dark .surface-card {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 10px 30px -12px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* ============================================================================
+ * GLOW-PANEL — Pure-CSS Gradient Hover & Mouse Glare for Large Page Panels
+ * No JSX overlays, no framer-motion, fully immune to DOM nesting.
+ * ============================================================================ */
+
+.glow-panel {
+  position: relative;
+  overflow: hidden;
+  --glow-a: rgba(167, 243, 208, 0.55);
+  --glow-b: rgba(153, 246, 228, 0.45);
+  --glow-glare: rgba(255, 255, 255, 0.55);
+  --glow-border: rgba(16, 185, 129, 0.50);
+  --mx: 50%;
+  --my: 50%;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.dark .glow-panel {
+  --glow-a: rgba(6, 95, 70, 0.45);
+  --glow-b: rgba(17, 94, 89, 0.45);
+  --glow-glare: rgba(255, 255, 255, 0.25);
+  --glow-border: rgba(16, 185, 129, 0.45);
+}
+
+/* ::before: full-inset multi-stop gradient using CSS vars --glow-a and --glow-b */
+.glow-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(135deg, var(--glow-a) 0%, var(--glow-b) 100%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.glow-panel:hover::before,
+.glow-panel[data-hovered="true"]::before {
+  opacity: 0.9;
+}
+
+/* ::after: soft radial glare spot positioned via --mx and --my CSS vars */
+.glow-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(ellipse 380px 380px at var(--mx, 50%) var(--my, 50%), var(--glow-glare) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.glow-panel:hover::after,
+.glow-panel[data-hovered="true"]::after {
+  opacity: 1;
+}
+
+/* Direct children render above the overlays so text and controls stay crisp and clickable */
+.glow-panel > * {
+  position: relative;
+  z-index: 3;
+}
+
+/* Subtle hover lift and border glow on the panel container */
+.glow-panel:hover,
+.glow-panel[data-hovered="true"] {
+  border-color: var(--glow-border) !important;
+  box-shadow:
+    0 0 0 1px var(--glow-border),
+    0 16px 40px -4px var(--glow-border),
+    0 4px 14px -2px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Hue Presets */
+.glow-emerald {
+  --glow-a: rgba(167, 243, 208, 0.55);
+  --glow-b: rgba(153, 246, 228, 0.45);
+  --glow-glare: rgba(167, 243, 208, 0.55);
+  --glow-border: rgba(16, 185, 129, 0.45);
+}
+.dark .glow-emerald {
+  --glow-a: rgba(6, 95, 70, 0.45);
+  --glow-b: rgba(17, 94, 89, 0.45);
+  --glow-glare: rgba(167, 243, 208, 0.28);
+  --glow-border: rgba(16, 185, 129, 0.45);
+}
+
+.glow-amber {
+  --glow-a: rgba(254, 215, 170, 0.55);
+  --glow-b: rgba(253, 230, 138, 0.45);
+  --glow-glare: rgba(254, 215, 170, 0.55);
+  --glow-border: rgba(245, 158, 11, 0.45);
+}
+.dark .glow-amber {
+  --glow-a: rgba(146, 64, 14, 0.45);
+  --glow-b: rgba(161, 98, 7, 0.45);
+  --glow-glare: rgba(254, 215, 170, 0.28);
+  --glow-border: rgba(245, 158, 11, 0.45);
+}
+
+.glow-violet {
+  --glow-a: rgba(221, 214, 254, 0.55);
+  --glow-b: rgba(251, 207, 232, 0.45);
+  --glow-glare: rgba(221, 214, 254, 0.55);
+  --glow-border: rgba(139, 92, 246, 0.45);
+}
+.dark .glow-violet {
+  --glow-a: rgba(91, 33, 182, 0.45);
+  --glow-b: rgba(131, 24, 67, 0.45);
+  --glow-glare: rgba(221, 214, 254, 0.28);
+  --glow-border: rgba(139, 92, 246, 0.45);
+}
+
+.glow-sky {
+  --glow-a: rgba(186, 230, 253, 0.55);
+  --glow-b: rgba(199, 210, 254, 0.45);
+  --glow-glare: rgba(186, 230, 253, 0.55);
+  --glow-border: rgba(14, 165, 233, 0.45);
+}
+.dark .glow-sky {
+  --glow-a: rgba(7, 89, 133, 0.45);
+  --glow-b: rgba(49, 46, 129, 0.45);
+  --glow-glare: rgba(186, 230, 253, 0.28);
+  --glow-border: rgba(14, 165, 233, 0.45);
+}
+
+.glow-teal {
+  --glow-a: rgba(165, 243, 252, 0.55);
+  --glow-b: rgba(191, 219, 254, 0.45);
+  --glow-glare: rgba(165, 243, 252, 0.55);
+  --glow-border: rgba(20, 184, 166, 0.45);
+}
+.dark .glow-teal {
+  --glow-a: rgba(17, 94, 89, 0.45);
+  --glow-b: rgba(30, 58, 138, 0.45);
+  --glow-glare: rgba(165, 243, 252, 0.28);
+  --glow-border: rgba(20, 184, 166, 0.45);
+}
+
+.glow-rose {
+  --glow-a: rgba(254, 205, 211, 0.55);
+  --glow-b: rgba(254, 215, 170, 0.45);
+  --glow-glare: rgba(254, 205, 211, 0.55);
+  --glow-border: rgba(244, 63, 94, 0.45);
+}
+.dark .glow-rose {
+  --glow-a: rgba(159, 18, 57, 0.45);
+  --glow-b: rgba(154, 52, 18, 0.45);
+  --glow-glare: rgba(254, 205, 211, 0.28);
+  --glow-border: rgba(244, 63, 94, 0.45);
+}
+
+.glow-lime {
+  --glow-a: rgba(217, 249, 157, 0.55);
+  --glow-b: rgba(134, 239, 172, 0.45);
+  --glow-glare: rgba(217, 249, 157, 0.55);
+  --glow-border: rgba(175, 243, 62, 0.45);
+}
+.dark .glow-lime {
+  --glow-a: rgba(63, 98, 18, 0.45);
+  --glow-b: rgba(20, 83, 45, 0.45);
+  --glow-glare: rgba(217, 249, 157, 0.28);
+  --glow-border: rgba(175, 243, 62, 0.45);
+}
+
+.glow-slate {
+  --glow-a: rgba(241, 245, 249, 0.55);
+  --glow-b: rgba(226, 232, 240, 0.45);
+  --glow-glare: rgba(241, 245, 249, 0.55);
+  --glow-border: rgba(148, 163, 184, 0.45);
+}
+.dark .glow-slate {
+  --glow-a: rgba(30, 41, 59, 0.45);
+  --glow-b: rgba(15, 23, 42, 0.45);
+  --glow-glare: rgba(241, 245, 249, 0.28);
+  --glow-border: rgba(148, 163, 184, 0.45);
+}
+
+.glow-blue {
+  --glow-a: rgba(186, 230, 253, 0.55);
+  --glow-b: rgba(199, 210, 254, 0.45);
+  --glow-glare: rgba(186, 230, 253, 0.55);
+  --glow-border: rgba(14, 165, 233, 0.45);
+}
+.dark .glow-blue {
+  --glow-a: rgba(7, 89, 133, 0.45);
+  --glow-b: rgba(49, 46, 129, 0.45);
+  --glow-glare: rgba(186, 230, 253, 0.28);
+  --glow-border: rgba(14, 165, 233, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow-panel::after {
+    display: none !important;
+  }
+  .glow-panel::before {
+    transition: none !important;
+  }
+}
+
+/* Automatically upgrade rounded cards across all app routes into semi-solid surface */
 .bg-white.rounded-2xl,
 .bg-white.rounded-3xl,
 .bg-white.rounded-card,
 .bg-surface.border {
-  backdrop-filter: blur(24px) saturate(1.8) brightness(1.03);
-  -webkit-backdrop-filter: blur(24px) saturate(1.8) brightness(1.03);
-  background-color: rgba(255, 255, 255, 0.78) !important;
-  border-color: rgba(255, 255, 255, 0.65) !important;
+  background-color: rgba(255, 255, 255, 0.88) !important;
+  border-color: rgba(255, 255, 255, 0.75) !important;
   box-shadow:
     0 10px 30px -5px rgba(0, 0, 0, 0.05),
     0 4px 12px -2px rgba(0, 0, 0, 0.03),
-    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 .dark .bg-white.rounded-2xl,
 .dark .bg-white.rounded-3xl,
 .dark .bg-white.rounded-card,
 .dark .bg-surface.border {
-  background-color: rgba(15, 23, 42, 0.75) !important;
-  border-color: rgba(255, 255, 255, 0.14) !important;
+  background-color: rgba(18, 24, 38, 0.88) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
   box-shadow:
     0 10px 30px -5px rgba(0, 0, 0, 0.40),
     0 4px 12px -2px rgba(0, 0, 0, 0.20),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
-/* Card glass — strong blur, clearly translucent */
+/* Card glass — lightweight semi-solid substitute */
 .glass {
-  backdrop-filter: blur(24px) saturate(1.8) brightness(1.05);
-  -webkit-backdrop-filter: blur(24px) saturate(1.8) brightness(1.05);
-  background-color: rgba(255, 255, 255, 0.68);
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  background-color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.70);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.80),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.04);
+    0 8px 24px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.02);
 }
 .dark .glass {
-  background-color: rgba(15, 23, 42, 0.60);
-  border-color: rgba(255, 255, 255, 0.14);
+  background-color: rgba(18, 24, 38, 0.85);
+  border-color: rgba(255, 255, 255, 0.12);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.40),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.20);
+    0 8px 24px rgba(0, 0, 0, 0.40),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
-/* Strong glass — sidebar, header, modals */
+/* Strong glass — strictly reserved for sticky header, sidebar, modals, notifications (max 4 concurrent layers) */
 .glass-strong {
-  backdrop-filter: blur(48px) saturate(2.0) brightness(1.06);
-  -webkit-backdrop-filter: blur(48px) saturate(2.0) brightness(1.06);
-  background-color: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background-color: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.70);
   box-shadow:
-    0 16px 48px rgba(0, 0, 0, 0.12),
+    0 16px 48px rgba(0, 0, 0, 0.10),
     inset 0 1px 0 rgba(255, 255, 255, 0.90),
     inset 0 -1px 0 rgba(0, 0, 0, 0.04);
 }
 .dark .glass-strong {
-  background-color: rgba(10, 15, 35, 0.84);
+  background-color: rgba(10, 15, 35, 0.88);
   border-color: rgba(255, 255, 255, 0.15);
   box-shadow:
     0 16px 48px rgba(0, 0, 0, 0.60),
@@ -323,30 +695,34 @@
     inset 0 -1px 0 rgba(0, 0, 0, 0.30);
 }
 
-/* Stat card glass — each tinted by CSS custom property */
+/* Stat card glass — lightweight tint substitute without backdrop-filter */
 .glass-card {
-  backdrop-filter: blur(24px) saturate(1.8);
-  -webkit-backdrop-filter: blur(24px) saturate(1.8);
-  background-color: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  background-color: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.75);
   box-shadow:
-    0 8px 30px var(--card-glow, rgba(0,0,0,0.08)),
-    0 2px 8px rgba(0,0,0,0.04),
+    0 8px 24px var(--card-glow, rgba(0,0,0,0.06)),
+    0 2px 8px rgba(0,0,0,0.03),
     inset 0 1px 0 rgba(255, 255, 255, 0.85);
   transition: box-shadow 0.3s ease, transform 0.2s ease;
 }
 .glass-card:hover {
   box-shadow:
-    0 16px 40px var(--card-glow, rgba(0,0,0,0.18)),
-    0 4px 12px rgba(0,0,0,0.08),
+    0 14px 32px var(--card-glow, rgba(0,0,0,0.14)),
+    0 4px 12px rgba(0,0,0,0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 .dark .glass-card {
-  background-color: rgba(15, 23, 42, 0.72);
-  border-color: rgba(255, 255, 255, 0.14);
+  background-color: rgba(18, 24, 38, 0.88);
+  border-color: rgba(255, 255, 255, 0.12);
   box-shadow:
-    0 8px 30px var(--card-glow, rgba(0,0,0,0.35)),
+    0 8px 24px var(--card-glow, rgba(0,0,0,0.30)),
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* Content visibility utility for below-the-fold performance */
+.content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 400px;
 }
 
 /* ── Ripple effect ── */

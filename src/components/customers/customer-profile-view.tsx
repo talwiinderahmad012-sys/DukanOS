@@ -19,7 +19,8 @@ import {
   ArrowDownLeft,
   Banknote,
 } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { Button, buttonClasses } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -252,7 +253,7 @@ export function CustomerProfileView({
 
   return (
     <div className="space-y-6">
-      <Card padded className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+      <SurfaceCard className="flex flex-col gap-6 p-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-start gap-4">
           <div
             className="flex h-14 w-14 shrink-0 items-center justify-center rounded-card bg-primary-soft text-lg font-bold text-primary"
@@ -325,7 +326,7 @@ export function CustomerProfileView({
             )}
           </div>
         </div>
-      </Card>
+      </SurfaceCard>
 
       {editOpen && (
         <CustomerEditDialog
@@ -335,9 +336,9 @@ export function CustomerProfileView({
         />
       )}
 
-      <Card className="overflow-hidden">
-        <div className="grid grid-cols-2 gap-px bg-border lg:grid-cols-4">
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
+      <GlowCard variant="stat" hue="teal" className="overflow-hidden">
+        <div className="grid grid-cols-2 divide-y divide-border sm:divide-y-0 sm:divide-x divide-border lg:grid-cols-4">
+          <div className="flex flex-col gap-2 p-4 sm:p-5">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.totalSalesLabel')}</p>
             <div>
               <p className="text-2xl font-bold leading-tight text-gray-900">{fmt(totalSpend)}</p>
@@ -349,14 +350,14 @@ export function CustomerProfileView({
               </p>
             </div>
           </div>
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
+          <div className="flex flex-col gap-2 p-4 sm:p-5">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.totalPaidLabel')}</p>
             <div>
               <p className="text-2xl font-bold leading-tight text-success">{fmt(totalPaid)}</p>
               <p className="mt-1 text-xs text-muted">{t('customers.totalPaidDescription')}</p>
             </div>
           </div>
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
+          <div className="flex flex-col gap-2 p-4 sm:p-5">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.tableOutstandingUdhaar')}</p>
             <div>
               <p
@@ -372,7 +373,7 @@ export function CustomerProfileView({
               </p>
             </div>
           </div>
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
+          <div className="flex flex-col gap-2 p-4 sm:p-5">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('customers.paymentsReceivedLabel')}</p>
             <div>
               <p className="text-2xl font-bold leading-tight text-gray-900">{payments.length}</p>
@@ -384,9 +385,9 @@ export function CustomerProfileView({
             </div>
           </div>
         </div>
-      </Card>
+      </GlowCard>
 
-      <Card>
+      <SurfaceCard>
         <div className="flex flex-col gap-2 border-b border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-base font-bold text-gray-900">{t('customers.udhaarLedgerTitle')}</h2>
@@ -527,9 +528,9 @@ export function CustomerProfileView({
             </ul>
           </>
         )}
-      </Card>
+      </SurfaceCard>
 
-      <Card>
+      <SurfaceCard>
         <nav aria-label={t('customers.customerSectionsAria')} className="overflow-x-auto border-b border-border px-2">
           <ul className="inline-flex min-w-full items-center gap-1 sm:min-w-0">
             {tabs.map((tab) => {
@@ -852,7 +853,7 @@ export function CustomerProfileView({
               ))}
             </ul>
           ))}
-      </Card>
+      </SurfaceCard>
     </div>
   );
 }

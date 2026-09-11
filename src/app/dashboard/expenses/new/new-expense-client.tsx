@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { createExpenseServerAction } from '@/app/actions/expenses.actions';
 import { Card } from '@/components/ui/card';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { buttonClasses } from '@/components/ui/button';
 import { Field, Input, Select, Textarea } from '@/components/ui/input';
 import { useTranslation } from '@/lib/i18n/language-context';
@@ -52,7 +53,7 @@ export function NewExpenseClient({
         <p className="mt-1 text-sm text-muted">{t('expenses.newExpenseDescription')}</p>
       </div>
 
-      <Card className="overflow-hidden">
+      <SurfaceCard className="overflow-hidden">
         <form action={createExpenseServerAction}>
           <div className="divide-y divide-border">
             <section className="space-y-4 p-5" aria-labelledby="expense-section-info">
@@ -154,7 +155,7 @@ export function NewExpenseClient({
             <SubmitButton t={t} />
           </div>
         </form>
-      </Card>
+      </SurfaceCard>
     </div>
   );
 }

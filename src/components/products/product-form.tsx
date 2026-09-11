@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createProductAction } from '@/app/actions/product.actions';
 import { Card } from '@/components/ui/card';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { Button } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
 import { Field, Input, Select, Textarea } from '@/components/ui/input';
@@ -77,7 +78,7 @@ export function ProductForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <Card className="overflow-hidden">
+      <SurfaceCard className="overflow-hidden">
         <div className="divide-y divide-border">
           {error && (
             <div className="p-5 pb-0">
@@ -258,7 +259,7 @@ export function ProductForm({
             {loading ? t('common.saving') : t('products.saveProduct')}
           </Button>
         </div>
-      </Card>
+      </SurfaceCard>
     </form>
   );
 }

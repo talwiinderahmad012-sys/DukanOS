@@ -14,6 +14,8 @@ import {
   Upload
 } from 'lucide-react';
 import { updateBusinessProfileAction } from '@/app/actions/settings.actions';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { useTranslation } from '@/lib/i18n/language-context';
 
 export function BusinessProfileForm({
@@ -137,7 +139,7 @@ export function BusinessProfileForm({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-6">
+      <SurfaceCard as="form" onSubmit={handleSubmit} className="rounded-3xl p-6 shadow-xs space-y-6">
         
         <div className="space-y-4">
           <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
@@ -405,7 +407,7 @@ export function BusinessProfileForm({
             <span>{saving ? t('settings.savingChanges') : t('settings.saveProfile')}</span>
           </button>
         </div>
-      </form>
+      </SurfaceCard>
     </div>
   );
 }

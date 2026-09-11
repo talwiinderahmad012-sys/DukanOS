@@ -5,6 +5,8 @@ import {
   ArrowLeft, TrendingUp, AlertTriangle, Minus,
   BarChart3,
 } from 'lucide-react';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { useTranslation } from '@/lib/i18n/language-context';
 
 export type ProductsAnalyticsProps = {
@@ -70,30 +72,30 @@ export function ProductsAnalyticsClient({
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-5 space-y-2">
+        <GlowCard hue="sky" className="p-5 space-y-2">
           <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.products.topProductsCard')}</p>
           <p className="text-xl font-bold text-gray-900">{formatNumber(topProducts.length)}</p>
           <p className="text-[10px] text-gray-400">{t('analytics.products.rankedByUnits')}</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-5 space-y-2">
+        </GlowCard>
+        <GlowCard hue="emerald" className="p-5 space-y-2">
           <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.products.bestProfitCard')}</p>
           <p className="text-xl font-bold text-emerald-700">{formatNumber(bestProfit.length)}</p>
           <p className="text-[10px] text-gray-400">{t('analytics.products.rankedByMargin')}</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-5 space-y-2">
+        </GlowCard>
+        <GlowCard hue="amber" className="p-5 space-y-2">
           <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.products.slowMovingCard')}</p>
           <p className="text-xl font-bold text-amber-600">{formatNumber(slowMoving.length)}</p>
           <p className="text-[10px] text-gray-400">{t('analytics.products.noSales30Card')}</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-5 space-y-2">
+        </GlowCard>
+        <GlowCard hue="rose" className="p-5 space-y-2">
           <p className="text-[10px] font-bold text-gray-500 uppercase">{t('analytics.products.decliningCard')}</p>
           <p className="text-xl font-bold text-red-600">{formatNumber(declining.length)}</p>
           <p className="text-[10px] text-gray-400">{t('analytics.products.salesDownCard')}</p>
-        </div>
+        </GlowCard>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4">
+        <SurfaceCard className="p-6 space-y-4">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-gray-900" aria-hidden="true" />
             <h2 className="font-bold text-gray-900">{t('analytics.products.topSellingTitle')}</h2>
@@ -113,9 +115,9 @@ export function ProductsAnalyticsClient({
               ))}
             </div>
           )}
-        </div>
+        </SurfaceCard>
 
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4">
+        <SurfaceCard className="p-6 space-y-4">
           <div className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4 text-emerald-600" aria-hidden="true" />
             <h2 className="font-bold text-gray-900">{t('analytics.products.bestProfitTitle')}</h2>
@@ -135,11 +137,11 @@ export function ProductsAnalyticsClient({
               ))}
             </div>
           )}
-        </div>
+        </SurfaceCard>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4">
+        <SurfaceCard className="p-6 space-y-4">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-600" aria-hidden="true" />
             <h2 className="font-bold text-gray-900">{t('analytics.shared.slowMovingTitle')}</h2>
@@ -159,9 +161,9 @@ export function ProductsAnalyticsClient({
               ))}
             </div>
           )}
-        </div>
+        </SurfaceCard>
 
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4">
+        <SurfaceCard className="p-6 space-y-4">
           <div className="flex items-center gap-2">
             <Minus className="w-4 h-4 text-red-600" aria-hidden="true" />
             <h2 className="font-bold text-gray-900">{t('analytics.products.decliningTitle')}</h2>
@@ -184,7 +186,7 @@ export function ProductsAnalyticsClient({
               ))}
             </div>
           )}
-        </div>
+        </SurfaceCard>
       </div>
     </div>
   );

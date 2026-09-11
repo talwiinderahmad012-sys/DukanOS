@@ -6,6 +6,7 @@ import { CheckCircle2, AlertCircle, Clock, Calendar, Check, X } from 'lucide-rea
 import { recordAttendanceAction } from '@/app/actions/employee.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { toast } from 'sonner';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 type AttendanceStatusOption = 'PRESENT' | 'ABSENT' | 'LATE' | 'HALF_DAY' | 'LEAVE' | 'OFF_DAY';
 
@@ -52,7 +53,7 @@ export function AttendanceBoard({
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-5 flex flex-col sm:flex-row gap-4 justify-between items-center">
+      <SurfaceCard className="p-5 flex flex-col sm:flex-row gap-4 justify-between items-center">
         <div className="flex items-center gap-3">
           <label className="text-sm font-bold text-gray-700">{t('common.date')}:</label>
           <input
@@ -85,9 +86,9 @@ export function AttendanceBoard({
             <span className="font-bold text-gray-950">{initialData.summary.leaveCount}</span>
           </div>
         </div>
-      </div>
+        </SurfaceCard>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
+      <SurfaceCard className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-start text-sm border-collapse">
             <thead>
@@ -218,7 +219,7 @@ export function AttendanceBoard({
             </tbody>
           </table>
         </div>
-      </div>
+      </SurfaceCard>
     </div>
   );
 }

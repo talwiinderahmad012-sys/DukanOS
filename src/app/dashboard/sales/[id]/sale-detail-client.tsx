@@ -2,7 +2,9 @@
 
 import Link from 'next/link';
 import { ChevronRight, TrendingUp, Package, User, Wallet, Clock } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { Alert } from '@/components/ui/alert';
 import { cn } from '@/components/ui/cn';
@@ -153,35 +155,35 @@ export function SaleDetailClient({
           </Alert>
         )}
 
-        <Card className="overflow-hidden">
-          <div className="grid grid-cols-2 gap-px bg-border lg:grid-cols-4">
-            <div className="bg-surface p-4">
+        <GlowCard variant="stat" hue="sky" className="overflow-hidden">
+          <div className="grid grid-cols-2 divide-y divide-border sm:divide-y-0 sm:divide-x divide-border lg:grid-cols-4">
+            <div className="p-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('common.total')}</p>
               <p className="mt-1 text-xl font-bold text-gray-900">{formatCurrency(total)}</p>
               {discount > 0 && <p className="mt-0.5 text-xs text-muted">{t('sales.afterDiscount', { amount: formatCurrency(discount) })}</p>}
             </div>
-            <div className="bg-surface p-4">
+            <div className="p-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('common.paid')}</p>
               <p className={cn('mt-1 text-xl font-bold', paid > 0 ? 'text-success' : 'text-gray-900')}>{formatCurrency(paid)}</p>
               <p className="mt-0.5 text-xs text-muted">{payMethodLabel(sale.paymentMethod)}</p>
             </div>
-            <div className="bg-surface p-4">
+            <div className="p-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('sales.due')}</p>
               <p className={cn('mt-1 text-xl font-bold', remaining > 0 ? 'text-warning' : 'text-gray-900')}>{formatCurrency(remaining)}</p>
               <p className="mt-0.5 text-xs text-muted">{remaining > 0 ? t('sales.outstandingCredit') : t('sales.nothingDue')}</p>
             </div>
             {canViewProfit && (
-            <div className="bg-surface p-4">
+            <div className="p-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('sales.statRealizedProfit')}</p>
               <p className="mt-1 text-xl font-bold text-gray-900">{formatCurrency(totalProfit)}</p>
               <p className="mt-0.5 text-xs text-muted">{t('sales.afterDiscounts')}</p>
             </div>
             )}
           </div>
-        </Card>
+        </GlowCard>
       </div>
 
-      <Card className="p-6 sm:p-10 print:border-none print:p-0 print:shadow-none">
+      <SurfaceCard className="p-6 sm:p-10 print:border-none print:p-0 print:shadow-none">
         <div className="space-y-8">
           <div className="flex flex-col justify-between gap-6 border-b border-border pb-6 sm:flex-row sm:items-start">
             <div>
@@ -210,7 +212,7 @@ export function SaleDetailClient({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 rounded-card border border-border bg-page p-4 text-sm sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 rounded-card border border-border bg-black/5 dark:bg-white/5 p-4 text-sm sm:grid-cols-2">
             <div>
               <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted">{t('sales.billedTo')}</span>
               {sale.customer ? (
@@ -308,10 +310,10 @@ export function SaleDetailClient({
             <p>{t('sales.poweredBy')}</p>
           </div>
         </div>
-      </Card>
+      </SurfaceCard>
 
       {sale.customer && (
-        <Card className="print:hidden">
+        <SurfaceCard className="print:hidden">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="h-4 w-4 text-primary" aria-hidden="true" />
@@ -345,10 +347,10 @@ export function SaleDetailClient({
               </div>
             )}
           </CardContent>
-        </Card>
+        </SurfaceCard>
       )}
 
-      <Card className="print:hidden">
+      <SurfaceCard className="print:hidden">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-4 w-4 text-primary" aria-hidden="true" />
@@ -390,7 +392,7 @@ export function SaleDetailClient({
             ))}
           </div>
         </CardContent>
-      </Card>
+      </SurfaceCard>
 
       {canViewProfit && (
       <div className="flex items-center justify-between rounded-card border border-success/25 bg-success-soft p-4 print:hidden">

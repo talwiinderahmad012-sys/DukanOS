@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { ArrowLeft, FileText, CheckCircle2, AlertTriangle, Scale } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { ConnectionBanner } from '@/components/pwa/pwa-provider';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
+import { AppFooter } from '@/components/layout/footer';
 
 export default function TermsPage() {
   const { t } = useTranslation();
@@ -25,7 +27,7 @@ export default function TermsPage() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 sm:p-12 space-y-8">
+        <SurfaceCard className="p-8 sm:p-12 space-y-8">
           <div>
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-900 bg-primary-soft px-2.5 py-1 rounded">
               {t('staticPages.effectiveDateAug2026')}
@@ -69,8 +71,9 @@ export default function TermsPage() {
               {t('staticPages.privacyPolicyLink')}
             </Link>
           </div>
-        </div>
+        </SurfaceCard>
       </main>
+      <AppFooter />
     </div>
   );
 }

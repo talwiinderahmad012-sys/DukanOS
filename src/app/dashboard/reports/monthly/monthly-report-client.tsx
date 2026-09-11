@@ -9,6 +9,8 @@ import {
   ShoppingBag,
 } from 'lucide-react';
 import { SimpleBarChart } from '@/components/charts/bar-chart';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { useTranslation } from '@/lib/i18n/language-context';
 
 export type BranchOption = { id: string; name: string };
@@ -135,7 +137,7 @@ export function MonthlyReportClient({
         </form>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <SurfaceCard className="p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <span className="text-xs font-semibold text-green-600 uppercase tracking-wider">
             {t('reports.monthlyFinancialStatement')}
@@ -148,7 +150,7 @@ export function MonthlyReportClient({
           </p>
         </div>
 
-        <div className="bg-gray-50 border border-gray-200 p-3 rounded-xl flex items-center gap-3">
+        <div className="bg-black/5 dark:bg-white/5 border border-border p-3 rounded-xl flex items-center gap-3">
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
             growth.status === 'UP' ? 'bg-green-100 text-green-700' : growth.status === 'DOWN' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
           }`}>
@@ -163,18 +165,18 @@ export function MonthlyReportClient({
             </span>
           </div>
         </div>
-      </div>
+      </SurfaceCard>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
+        <GlowCard index={0} className="p-5">
           <span className="text-xs font-semibold text-gray-500 uppercase">{t('reports.grossRevenue')}</span>
           <h3 className="text-2xl font-bold text-gray-900 mt-1">
             {formatCurrency(summary.grossRevenue)}
           </h3>
           <p className="text-xs text-gray-400 mt-1">{t('reports.completedOrdersCaption', { count: formatNumber(summary.ordersCount) })}</p>
-        </div>
+        </GlowCard>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
+        <GlowCard index={1} hue="emerald" className="p-5">
           <span className="text-xs font-semibold text-emerald-700 uppercase">{t('reports.grossProfit')}</span>
           <h3 className="text-2xl font-bold text-emerald-700 mt-1">
             {formatCurrency(summary.grossProfit)}
@@ -182,26 +184,26 @@ export function MonthlyReportClient({
           <p className="text-xs text-emerald-600 mt-1">
             {summary.grossRevenue > 0 ? t('reports.marginValue', { value: grossMarginPercent }) : '0%'}
           </p>
-        </div>
+        </GlowCard>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
+        <GlowCard index={2} hue="rose" className="p-5">
           <span className="text-xs font-semibold text-red-700 uppercase">{t('reports.monthlyExpenses')}</span>
           <h3 className="text-2xl font-bold text-red-700 mt-1">
             {formatCurrency(summary.expenses)}
           </h3>
           <p className="text-xs text-red-500 mt-1">{t('reports.operatingCosts')}</p>
-        </div>
+        </GlowCard>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
+        <GlowCard index={3} hue="teal" className="p-5">
           <span className="text-xs font-semibold text-gray-950 uppercase">{t('reports.netProfitLabel')}</span>
           <h3 className="text-2xl font-bold text-gray-950 mt-1">
             {formatCurrency(summary.netProfit)}
           </h3>
           <p className="text-xs text-gray-800 mt-1">{t('reports.finalBottomLine')}</p>
-        </div>
+        </GlowCard>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
+      <SurfaceCard className="p-6 space-y-4">
         <h3 className="font-bold text-gray-900 text-base">{t('reports.dailyTrendsRange', { count: daily.length })}</h3>
         <SimpleBarChart
           data={chartData}
@@ -213,10 +215,10 @@ export function MonthlyReportClient({
           color2="#16a34a"
           color3="#dc2626"
         />
-      </div>
+      </SurfaceCard>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
+        <SurfaceCard className="p-6 space-y-4">
           <div className="flex justify-between items-center border-b pb-3">
             <h3 className="font-bold text-gray-900 flex items-center gap-2">
               <PieChart className="w-4 h-4 text-red-600" /> {t('reports.expenseAllocation')}
@@ -247,9 +249,9 @@ export function MonthlyReportClient({
               ))}
             </div>
           )}
-        </div>
+        </SurfaceCard>
 
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
+        <SurfaceCard className="p-6 space-y-4">
           <div className="flex justify-between items-center border-b pb-3">
             <h3 className="font-bold text-gray-900 flex items-center gap-2">
               <ShoppingBag className="w-4 h-4 text-gray-900" /> {t('reports.monthlyTopPerformers')}
@@ -280,7 +282,7 @@ export function MonthlyReportClient({
               ))}
             </div>
           )}
-        </div>
+        </SurfaceCard>
       </div>
     </div>
   );

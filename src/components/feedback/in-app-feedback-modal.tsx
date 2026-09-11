@@ -83,7 +83,8 @@ export function InAppFeedbackModal() {
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100"
+                aria-label={t('common.close', 'Close')}
+                className="btn-3d flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>

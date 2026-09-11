@@ -199,10 +199,9 @@ export function soundNotification(): void {
   osc({ type: 'sine', freq: 1047, duration: 0.14, gain: 0.09, attack: 0.004, startAt: 0.18 }); // C6
 }
 
-/** Hover on stat card — ultra-quiet tick (3% volume, optional) */
+/** Hover sound ticks eliminated for 60fps responsiveness */
 export function soundCardHover(): void {
-  if (!canPlay()) return;
-  osc({ type: 'sine', freq: 1800, duration: 0.04, gain: 0.025, attack: 0.002, decay: 0.035 });
+  // No-op: hover audio ticks removed to eliminate GC and audio context scheduling overhead
 }
 
 /** Toggle on */

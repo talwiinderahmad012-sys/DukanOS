@@ -20,6 +20,8 @@ import {
   markAllNotificationsReadAction 
 } from '@/app/actions/notification.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { GlowCard } from '@/components/ui';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 export function NotificationCenterView({
   businessId,
@@ -153,7 +155,7 @@ export function NotificationCenterView({
       </div>
 
       {/* Notifications Feed */}
-      <div className="bg-white rounded-3xl border border-gray-200 shadow-xs overflow-hidden">
+      <SurfaceCard className="overflow-hidden">
         {filteredNotifications.length === 0 ? (
           <div className="p-12 text-center space-y-3">
             <div className="w-12 h-12 rounded-full bg-gray-50 text-gray-400 flex items-center justify-center mx-auto">
@@ -230,7 +232,7 @@ export function NotificationCenterView({
             })}
           </div>
         )}
-      </div>
+      </SurfaceCard>
     </div>
   );
 }

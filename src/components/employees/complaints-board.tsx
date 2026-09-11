@@ -6,6 +6,7 @@ import { Clock, CheckCircle2, ShieldCheck, AlertOctagon } from 'lucide-react';
 import { resolveComplaintAction } from '@/app/actions/employee.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { toast } from 'sonner';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 const CATEGORY_KEY: Record<string, string> = {
   WORKPLACE: 'employees.categoryWorkplace',
@@ -83,7 +84,7 @@ export function ComplaintsBoard({
         ))}
       </div>
 
-      <div className="bg-white rounded-3xl border border-gray-200 shadow-xs overflow-hidden">
+      <SurfaceCard className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-start text-sm border-collapse">
             <thead>
@@ -183,7 +184,7 @@ export function ComplaintsBoard({
             </tbody>
           </table>
         </div>
-      </div>
+      </SurfaceCard>
 
       {initialData.pagination.totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { ArrowLeft, Store } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
 
@@ -53,7 +54,7 @@ export function BranchesAnalyticsClient({ periodKey, branches }: BranchesAnalyti
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {branches.map(b => (
-          <div key={b.branchId} className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6 space-y-4">
+          <SurfaceCard key={b.branchId} className="p-6 space-y-4">
             <div className="flex items-center gap-2">
               <Store className="w-4 h-4 text-gray-900" aria-hidden="true" />
               <div>
@@ -83,7 +84,7 @@ export function BranchesAnalyticsClient({ periodKey, branches }: BranchesAnalyti
               <span>{t('analytics.shared.ordersCount', { count: b.orderCount })}</span>
               <span>{b.revenue > 0 ? t('analytics.shared.pctMargin', { pct: Math.round((b.grossProfit / b.revenue) * 100) }) : t('analytics.shared.zeroMargin')}</span>
             </div>
-          </div>
+          </SurfaceCard>
         ))}
       </div>
     </div>

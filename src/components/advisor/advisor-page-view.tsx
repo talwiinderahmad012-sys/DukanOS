@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import {
   Sparkles,
   AlertTriangle,
@@ -13,6 +14,7 @@ import {
 } from 'lucide-react';
 import { HealthGauge } from '@/components/charts/health-gauge';
 import { RefreshAdvisorButton } from '@/components/advisor/refresh-advisor-button';
+
 import { useTranslation } from '@/lib/i18n/language-context';
 
 export type AdvisorFindingView = {
@@ -80,8 +82,8 @@ export function AdvisorPageView({
         <RefreshAdvisorButton businessId={businessId} />
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-        <div className="lg:col-span-4 flex flex-col items-center justify-center border-b lg:border-b-0 lg:border-e border-gray-100 pb-6 lg:pb-0 lg:pe-6">
+      <SurfaceCard className="rounded-2xl p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div className="lg:col-span-4 flex flex-col items-center justify-center border-b lg:border-b-0 lg:border-e border-gray-100 dark:border-white/10 pb-6 lg:pb-0 lg:pe-6">
           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
             {t('advisor.healthIndex')}
           </span>
@@ -105,10 +107,10 @@ export function AdvisorPageView({
               return (
                 <div
                   key={factor.name}
-                  className="p-3.5 bg-gray-50/70 border border-gray-100 rounded-xl space-y-1.5"
+                  className="p-3.5 bg-gray-50/70 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl space-y-1.5"
                 >
                   <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-gray-800">{tm(factor.name)}</span>
+                    <span className="text-gray-800 dark:text-gray-200">{tm(factor.name)}</span>
                     <span className={isAlert ? 'text-red-600' : isWarning ? 'text-orange-600' : 'text-green-700'}>
                       {factor.score} / {factor.maxScore}
                     </span>
@@ -129,7 +131,7 @@ export function AdvisorPageView({
             })}
           </div>
         </div>
-      </div>
+      </SurfaceCard>
 
       <div className="space-y-4">
         <div className="flex justify-between items-center">
@@ -141,7 +143,7 @@ export function AdvisorPageView({
         </div>
 
         {findings.length === 0 ? (
-          <div className="bg-white p-12 rounded-2xl border border-gray-200 text-center space-y-2">
+          <SurfaceCard className="p-12 rounded-2xl text-center space-y-2">
             <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-2">
               <CheckCircle2 className="w-6 h-6" />
             </div>
@@ -149,7 +151,7 @@ export function AdvisorPageView({
             <p className="text-xs text-gray-500 max-w-md mx-auto">
               {t('advisor.peakHealthDescription')}
             </p>
-          </div>
+          </SurfaceCard>
         ) : (
           <div className="space-y-3">
             {findings.map((finding) => {
@@ -158,18 +160,15 @@ export function AdvisorPageView({
               const isOpportunity = finding.severity === 'OPPORTUNITY';
 
               return (
-                <div
-                  key={finding.id}
-                  className={`p-5 rounded-2xl border transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${
+                <SurfaceCard key={finding.id} className={`p-5 rounded-2xl transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${
                     isCritical
-                      ? 'bg-red-50/50 border-red-200'
+                      ? 'bg-red-50/50 dark:bg-red-950/20'
                       : isWarning
-                      ? 'bg-amber-50/50 border-amber-200'
+                      ? 'bg-amber-50/50 dark:bg-amber-950/20'
                       : isOpportunity
-                      ? 'bg-primary-soft/50 border-blue-200'
-                      : 'bg-white border-gray-200'
-                  }`}
-                >
+                      ? 'bg-primary-soft/50 dark:bg-primary/20'
+                      : ''
+                  }`}>
                   <div className="flex items-start gap-3.5">
                     <div
                       className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
@@ -197,14 +196,14 @@ export function AdvisorPageView({
                       <div className="flex items-center gap-2">
                         <h4 className="font-bold text-gray-900 text-sm">{tm(finding.title)}</h4>
                         {finding.metric && (
-                          <span className="px-2 py-0.5 bg-white/80 border border-gray-200 text-gray-800 text-[11px] font-bold rounded-md">
+                          <span className="px-2 py-0.5 bg-white/80 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-800 dark:text-gray-200 text-[11px] font-bold rounded-md">
                             {tm(finding.metric)}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-600 leading-relaxed">{tm(finding.message)}</p>
-                      <div className="pt-1 flex items-center gap-1.5 text-xs font-semibold text-gray-900">
-                        <span className="text-gray-900">{t('advisor.adviceLabel')}</span>
+                      <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">{tm(finding.message)}</p>
+                      <div className="pt-1 flex items-center gap-1.5 text-xs font-semibold text-gray-900 dark:text-gray-100">
+                        <span className="text-gray-900 dark:text-gray-100">{t('advisor.adviceLabel')}</span>
                         <span>{tm(finding.recommendation)}</span>
                       </div>
                     </div>
@@ -241,7 +240,7 @@ export function AdvisorPageView({
                       </Link>
                     )}
                   </div>
-                </div>
+                </SurfaceCard>
               );
             })}
           </div>

@@ -16,6 +16,7 @@ import {
 // Type-only import: the source module is server-only; this client component
 // must never pull its runtime (Prisma) into the browser bundle.
 import type { ActivityCategory, ActivityEvent } from '@/services/activity';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { useTranslation } from '@/lib/i18n/language-context';
 
 const categories: { id: ActivityCategory | 'ALL'; icon: any }[] = [
@@ -129,10 +130,10 @@ export function ActivityFeedView({
       </div>
 
       {/* Activity Timeline List */}
-      <div className="bg-white rounded-3xl border border-gray-200 shadow-xs overflow-hidden">
+      <SurfaceCard className="rounded-3xl shadow-xs overflow-hidden">
         {filteredEvents.length === 0 ? (
           <div className="p-12 text-center space-y-3">
-            <div className="w-12 h-12 rounded-full bg-gray-50 text-gray-400 flex items-center justify-center mx-auto">
+            <div className="w-12 h-12 rounded-full bg-gray-50 dark:bg-white/10 text-gray-400 flex items-center justify-center mx-auto">
               <Activity className="w-6 h-6" />
             </div>
             <h3 className="text-base font-bold text-gray-900">{t('activity.noEventsFound')}</h3>
@@ -141,14 +142,14 @@ export function ActivityFeedView({
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-100 dark:divide-white/10">
             {filteredEvents.map((evt) => {
               const { color, icon: Icon } = getCategoryBadge(evt.category);
 
               return (
                 <div
                   key={evt.id}
-                  className="p-4 sm:p-5 hover:bg-gray-50/50 transition-colors flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3"
+                  className="p-4 sm:p-5 hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3"
                 >
                   <div className="flex items-start gap-3.5">
                     <div className={`p-2.5 rounded-2xl border ${color} shrink-0`}>
@@ -160,7 +161,7 @@ export function ActivityFeedView({
                         <span className="font-bold text-xs text-gray-900">{getEventTitle(evt)}</span>
                         <span className="text-[11px] text-gray-400 font-medium">{t('activity.byActor', { name: evt.actorName })}</span>
                       </div>
-                      <p className="text-xs text-gray-600">{evt.description}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-300">{evt.description}</p>
                     </div>
                   </div>
 
@@ -190,7 +191,7 @@ export function ActivityFeedView({
             })}
           </div>
         )}
-      </div>
+      </SurfaceCard>
     </div>
   );
 }

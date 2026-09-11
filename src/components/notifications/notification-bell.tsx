@@ -93,13 +93,13 @@ export function NotificationBell({ businessId }: { businessId: string }) {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={handleToggle}
-        className="relative flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className="btn-3d relative flex h-9 w-9 items-center justify-center rounded-full text-gray-700 dark:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         title={t('common.notifications')}
         aria-label={unreadCount > 0 ? t('notifications.bellAriaUnread', { count: unreadCount }) : t('notifications.bellAria')}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
       >
-        <Bell className="h-5 w-5" aria-hidden="true" />
+        <Bell className="h-4 w-4" aria-hidden="true" />
         {unreadCount > 0 && (
           <span className="absolute top-0.5 end-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-0.5 text-[10px] font-bold text-white ring-2 ring-white dark:ring-gray-900" aria-hidden="true">
             {unreadCount > 9 ? '9+' : unreadCount}

@@ -10,6 +10,8 @@ import {
   Zap
 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { 
   updateNotificationPreferencesAction, 
   triggerDailyDigestAction 
@@ -112,7 +114,7 @@ export function NotificationPreferencesView({
 
       <form onSubmit={handleSavePreferences} className="space-y-6">
         {/* Section 1: Browser Web Push Notifications */}
-        <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-4">
+        <SurfaceCard className="p-6 space-y-4">
           <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
             <div className="w-10 h-10 rounded-2xl bg-primary-soft text-gray-900 flex items-center justify-center font-bold">
               <Smartphone className="w-5 h-5" />
@@ -172,10 +174,10 @@ export function NotificationPreferencesView({
               </button>
             </div>
           )}
-        </div>
+        </SurfaceCard>
 
         {/* Section 2: Alert Categories Configuration */}
-        <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-4">
+        <SurfaceCard className="p-6 space-y-4">
           <h2 className="font-bold text-gray-900 text-base border-b border-gray-100 pb-3">
             {t('settingsAdmin.notifications.alertCategories')}
           </h2>
@@ -268,11 +270,11 @@ export function NotificationPreferencesView({
               </>
             )}
           </div>
-        </div>
+        </SurfaceCard>
 
         {/* Section 3: Owner Daily Business Digest (Owner Only) */}
         {isOwnerOrManager && (
-          <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-4">
+          <SurfaceCard className="p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div>
                 <h2 className="font-bold text-gray-900 text-base">{t('settingsAdmin.notifications.digestTitle')}</h2>
@@ -328,7 +330,7 @@ export function NotificationPreferencesView({
                 )}
               </div>
             )}
-          </div>
+          </SurfaceCard>
         )}
 
         {/* Save Bar */}

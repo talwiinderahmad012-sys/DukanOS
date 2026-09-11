@@ -13,6 +13,8 @@ import {
   Zap,
 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 export type SystemLogEntry = {
   id: string;
@@ -187,7 +189,7 @@ export function SystemClient({
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+        <GlowCard hue="emerald" className="p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-gray-500 text-sm font-medium">{t('system.appStatus')}</h3>
             <div className="h-8 w-8 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center">
@@ -198,9 +200,9 @@ export function SystemClient({
           <p className="text-xs text-gray-400">
             {appHealthy ? t('system.allOperational') : t('system.degradationDetected')}
           </p>
-        </div>
+        </GlowCard>
 
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+        <GlowCard hue="sky" className="p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-gray-500 text-sm font-medium">{t('system.dbStatus')}</h3>
             <div className="h-8 w-8 bg-primary-soft text-gray-900 rounded-lg flex items-center justify-center">
@@ -213,9 +215,9 @@ export function SystemClient({
               ? t('system.latencyMs', { ms: latencyMs })
               : t('system.reachabilityCheck')}
           </p>
-        </div>
+        </GlowCard>
 
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+        <GlowCard hue="violet" className="p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-gray-500 text-sm font-medium">{t('system.readiness')}</h3>
             <div className="h-8 w-8 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center">
@@ -229,9 +231,9 @@ export function SystemClient({
               db: t(dbReady ? 'system.readyLabel' : 'system.uncheckedLabel'),
             })}
           </p>
-        </div>
+        </GlowCard>
 
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+        <GlowCard hue="amber" className="p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-gray-500 text-sm font-medium">{t('system.lastHealthCheck')}</h3>
             <div className="h-8 w-8 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center">
@@ -242,11 +244,11 @@ export function SystemClient({
           <p className="text-xs text-gray-400">
             {t('system.uptimeDetail', { uptime: formatUptime(uptimeSeconds), version })}
           </p>
-        </div>
+        </GlowCard>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+        <SurfaceCard className="p-6">
           <div className="flex items-center justify-between mb-5">
             <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
               <Zap className="w-5 h-5 text-emerald-600" />
@@ -262,9 +264,9 @@ export function SystemClient({
             <StatItem label={t('system.evictions')} value={formatNumber(cacheEvictions)} />
             <StatItem label={t('system.entries')} value={formatNumber(cacheEntries)} />
           </div>
-        </div>
+        </SurfaceCard>
 
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+        <SurfaceCard className="p-6">
           <div className="flex items-center justify-between mb-5">
             <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
               <Layers className="w-5 h-5 text-gray-900" />
@@ -283,10 +285,10 @@ export function SystemClient({
           <p className="text-[11px] text-gray-400 mt-4">
             {t('system.syncQueueNote')}
           </p>
-        </div>
+        </SurfaceCard>
       </div>
 
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
+      <SurfaceCard className="p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-red-500" />
@@ -302,9 +304,9 @@ export function SystemClient({
         ) : (
           logRows(errorLogs)
         )}
-      </div>
+      </SurfaceCard>
 
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
+      <SurfaceCard className="p-6 space-y-4">
         <div className="flex items-center justify-between border-b border-gray-100 pb-3">
           <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
             <History className="w-5 h-5 text-emerald-600" />
@@ -317,7 +319,7 @@ export function SystemClient({
         ) : (
           logRows(recentLogs, 'hover:bg-gray-50/50 rounded-lg px-2 -mx-2 transition-colors')
         )}
-      </div>
+      </SurfaceCard>
     </div>
   );
 }

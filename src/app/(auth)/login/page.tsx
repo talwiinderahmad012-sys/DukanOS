@@ -1,12 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Store } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { SiteHeader } from '@/components/layout/site-header';
+import { PoweredByHexframe } from '@/components/brand/PoweredByHexframe';
+import { AppFooter } from '@/components/layout/footer';
 
 export default function LoginPage() {
   const { t, language, setLanguage } = useTranslation();
@@ -64,7 +67,7 @@ export default function LoginPage() {
       <SiteHeader showLanguageToggle={false} />
 
       <div className="flex flex-1 items-center justify-center p-4">
-      <div className="relative max-w-md w-full surface-glass rounded-2xl shadow-xl border border-white/60 dark:border-white/15 p-8">
+        <SurfaceCard className="relative max-w-md w-full rounded-2xl shadow-xl p-8">
         <div
           className="absolute top-4 end-4 flex items-center gap-1.5"
           role="group"
@@ -94,6 +97,9 @@ export default function LoginPage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900">{t('auth.signInTitle')}</h1>
           <p className="text-gray-500 mt-2 text-sm">{t('auth.signInSubtitle')}</p>
+          <div className="mt-3">
+            <PoweredByHexframe />
+          </div>
         </div>
 
         {error && (
@@ -113,7 +119,7 @@ export default function LoginPage() {
               type="text"
               required
               autoComplete="username"
-              className="w-full px-4 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors"
+              className="w-full px-4 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors"
               placeholder={t('auth.identifierPlaceholder')}
               disabled={loading}
             />
@@ -129,7 +135,7 @@ export default function LoginPage() {
               type="password"
               required
               autoComplete="current-password"
-              className="w-full px-4 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors"
+              className="w-full px-4 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors"
               placeholder={t('auth.passwordPlaceholder')}
               disabled={loading}
             />
@@ -150,8 +156,9 @@ export default function LoginPage() {
             {t('auth.createAccountLink')}
           </Link>
         </p>
+        </SurfaceCard>
       </div>
-      </div>
+      <AppFooter />
     </div>
   );
 }

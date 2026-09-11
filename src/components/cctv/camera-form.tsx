@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { createCameraAction, testCameraConnectionAction } from '@/app/actions/cctv.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 const STATUS_LABEL_KEYS: Record<string, string> = {
   ONLINE: 'cctv.statusOnline',
@@ -178,7 +179,7 @@ export function CameraForm({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-6">
+      <SurfaceCard as="form" onSubmit={handleSubmit} className="p-6 space-y-6">
         {/* Section 1: Device Identification */}
         <div className="space-y-4">
           <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
@@ -390,7 +391,7 @@ export function CameraForm({
             </button>
           </div>
         </div>
-      </form>
+      </SurfaceCard>
     </div>
   );
 }

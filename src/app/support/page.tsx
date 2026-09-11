@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { ArrowLeft, HelpCircle, BookOpen, MessageSquare, Zap, CheckCircle2 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { ConnectionBanner } from '@/components/pwa/pwa-provider';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
+import { AppFooter } from '@/components/layout/footer';
 
 export default function SupportPage() {
   const { t } = useTranslation();
@@ -34,7 +36,7 @@ export default function SupportPage() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 sm:p-12 text-center space-y-4">
+        <SurfaceCard className="p-8 sm:p-12 text-center space-y-4">
           <div className="w-12 h-12 bg-primary-soft text-gray-900 rounded-full flex items-center justify-center mx-auto">
             <Zap className="w-6 h-6" />
           </div>
@@ -57,9 +59,9 @@ export default function SupportPage() {
               {t('staticPages.supportCreateStore')}
             </Link>
           </div>
-        </div>
+        </SurfaceCard>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 sm:p-12 space-y-6">
+        <SurfaceCard className="p-8 sm:p-12 space-y-6">
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2 border-b pb-4">
             <MessageSquare className="w-5 h-5 text-gray-900" /> {t('staticPages.supportFaqTitle')}
           </h2>
@@ -74,8 +76,9 @@ export default function SupportPage() {
               </div>
             ))}
           </div>
-        </div>
+        </SurfaceCard>
       </main>
+      <AppFooter />
     </div>
   );
 }

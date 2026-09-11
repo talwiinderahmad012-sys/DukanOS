@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Star, Send, Loader2, CheckCircle2 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { submitPublicFeedbackAction } from '@/app/actions/feedback-management.actions';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 // Type-only import: erased at build time, never bundled into client JS.
 import type { CustomerFeedbackType } from '@/generated/prisma/client';
 
@@ -49,18 +50,18 @@ export function PublicFeedbackSubmitForm({
 
   if (done) {
     return (
-      <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-10 text-center space-y-3">
+      <SurfaceCard className="p-10 text-center space-y-3">
         <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto" />
         <h2 className="font-bold text-gray-900 text-lg">{t('feedback.publicSubmit.thankYouTitle')}</h2>
         <p className="text-xs text-gray-500">
           {phone ? t('feedback.publicSubmit.thankYouMessagePhone') : t('feedback.publicSubmit.thankYouMessage')}
         </p>
-      </div>
+      </SurfaceCard>
     );
   }
 
   return (
-    <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 space-y-4">
+    <SurfaceCard className="p-6 space-y-4">
       {/* Type selector */}
       <div className="grid grid-cols-3 gap-2">
         {FEEDBACK_TYPES.map((ty) => (
@@ -152,6 +153,6 @@ export function PublicFeedbackSubmitForm({
         {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
         {t('common.submit')}
       </button>
-    </div>
+    </SurfaceCard>
   );
 }

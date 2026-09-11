@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Star, CheckCircle2, AlertCircle, Heart, Store, Send, UserX } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { submitFeedbackAction } from '@/app/actions/feedback.actions';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 type CategoryOption = 'SERVICE' | 'PRODUCT' | 'PRICE' | 'STAFF' | 'CLEANLINESS' | 'DELIVERY' | 'OTHER';
 
@@ -53,7 +54,7 @@ export function PublicFeedbackForm({
 
   if (submitted) {
     return (
-      <div className="bg-white rounded-3xl p-8 sm:p-10 border border-gray-100 shadow-xl text-center space-y-6 max-w-md mx-auto animate-in fade-in zoom-in-95 duration-200">
+      <SurfaceCard className="p-8 sm:p-10 text-center space-y-6 max-w-md mx-auto animate-in fade-in zoom-in-95 duration-200">
         <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto shadow-inner">
           <Heart className="w-8 h-8 fill-current text-red-500" />
         </div>
@@ -84,22 +85,22 @@ export function PublicFeedbackForm({
         <p className="text-xs text-gray-400">
           {t('feedback.publicForm.thankYouFooter')}
         </p>
-      </div>
+      </SurfaceCard>
     );
   }
 
   return (
-    <div className="bg-white rounded-3xl border border-gray-200/80 shadow-xl overflow-hidden max-w-lg mx-auto">
+    <SurfaceCard className="overflow-hidden max-w-lg mx-auto">
       {/* Top Banner */}
       <div className="relative bg-linear-to-r from-blue-600 to-indigo-600 p-6 sm:p-8 text-white space-y-2 text-center">
         <button
           type="button"
           onClick={toggleLanguage}
-          className="absolute top-3 end-3 px-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 text-[11px] font-semibold backdrop-blur-xs transition-colors"
+          className="absolute top-3 end-3 px-2.5 py-1 rounded-full bg-white/20 hover:bg-white/30 text-[11px] font-semibold transition-colors"
         >
           {language === 'EN' ? <span className="urdu-font">اردو</span> : 'English'}
         </button>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold backdrop-blur-xs">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold">
           <Store className="w-3.5 h-3.5" /> {businessName}
         </div>
         <h1 className="text-2xl font-extrabold tracking-tight">{t('feedback.publicForm.heading')}</h1>
@@ -219,6 +220,6 @@ export function PublicFeedbackForm({
           <Send className="w-4 h-4" /> {loading ? t('common.submitting') : t('feedback.publicForm.submitReview')}
         </button>
       </form>
-    </div>
+    </SurfaceCard>
   );
 }

@@ -63,9 +63,15 @@ export default async function DashboardPage() {
     }),
     prisma.sale.findMany({
       where: { businessId: business.id },
-      include: {
+      select: {
+        id: true,
+        invoiceNumber: true,
         customer: { select: { name: true } },
-        items: true,
+        _count: { select: { items: true } },
+        saleDate: true,
+        total: true,
+        paidAmount: true,
+        status: true,
       },
       orderBy: { createdAt: 'desc' },
       take: 5,
@@ -128,7 +134,7 @@ export default async function DashboardPage() {
         id: sale.id,
         invoiceNumber: sale.invoiceNumber,
         customerName: sale.customer?.name ?? null,
-        itemsCount: sale.items.length,
+        itemsCount: sale._count.items,
         saleDate: sale.saleDate.toISOString(),
         total: Number(sale.total),
         paidAmount: Number(sale.paidAmount),

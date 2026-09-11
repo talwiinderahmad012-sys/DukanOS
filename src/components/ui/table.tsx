@@ -6,7 +6,7 @@ export function TableWrap({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div
       className={cn(
-        'surface-glass w-full overflow-x-auto rounded-2xl border border-white/60 dark:border-white/10 shadow-lg shadow-black/5',
+        'w-full overflow-x-auto',
         className
       )}
       {...props}
@@ -22,7 +22,7 @@ export function TableHead({ className, ...props }: ComponentProps<'thead'>) {
   return (
     <thead
       className={cn(
-        'sticky top-0 z-10 border-b border-black/5 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold',
+        'sticky top-0 z-10 border-b border-black/5 dark:border-white/10 bg-slate-100/95 dark:bg-slate-900/95 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold',
         className
       )}
       {...props}

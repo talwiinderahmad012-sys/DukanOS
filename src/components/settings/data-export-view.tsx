@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { exportDataAction } from '@/app/actions/settings.actions';
+import { GlowCard } from '@/components/ui';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 const MODULE_LABEL_KEYS: Record<string, string> = {
   products: 'settingsAdmin.export.moduleProducts',
@@ -141,7 +143,7 @@ export function DataExportView({
         </div>
       )}
 
-      <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-6">
+      <SurfaceCard className="p-6 space-y-6">
         {/* Step 1: Format */}
         <div className="space-y-3">
           <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
@@ -241,7 +243,7 @@ export function DataExportView({
             <span>{exporting ? t('settingsAdmin.export.generating') : t('settingsAdmin.export.generate')}</span>
           </button>
         </div>
-      </div>
+      </SurfaceCard>
     </div>
   );
 }

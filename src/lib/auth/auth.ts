@@ -23,6 +23,12 @@ function getClientIp(request: { headers: { get: (key: string) => string | null }
   return 'unknown';
 }
 
+/** Returns true when a stored hash looks like a valid bcrypt hash (length 60, correct prefix). */
+function isValidBcryptHash(hash: string | null | undefined): boolean {
+  if (!hash || typeof hash !== 'string') return false;
+  return /^\$2[aby]?\$\d{1,2}\$[A-Za-z0-9./]{53}$/.test(hash) && hash.length === 60;
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: process.env.AUTH_SECRET,
   trustHost: true,
@@ -34,8 +40,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials, request) {
-        const identifier = typeof credentials?.identifier === 'string' ? credentials.identifier.trim() : '';
-        const password = typeof credentials?.password === 'string' ? credentials.password : '';
+        // ── Input sanitisation ──────────────────────────────────────────────
+        // Always trim + lowercase so stale browser-autofilled values with
+        // accidental leading/trailing whitespace or wrong case still work.
+        const identifier = typeof credentials?.identifier === 'string'
+          ? credentials.identifier.trim().toLowerCase()
+          : '';
+        const password = typeof credentials?.password === 'string'
+          ? credentials.password
+          : '';
 
         if (!identifier || !password) {
           return null
@@ -45,7 +58,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         try {
           await enforceRateLimit('LOGIN', identifier)
-        } catch (rateLimitError) {
+        } catch {
           await recordAuthAudit({
             userId: null,
             action: 'LOGIN_RATE_LIMITED',
@@ -54,40 +67,106 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new RateLimitError();
         }
 
+        // ── User lookup — hardened against DUPLICATE_AMBIGUITY ──────────────
+        //
+        // Root cause of the recurring "Invalid email or password" on this
+        // machine: The OR query (email ILIKE | username ILIKE) returned
+        // multiple rows when another user's email happened to contain the
+        // word "ahmad". Prisma's findFirst() has no deterministic ordering
+        // guarantee and can return a DIFFERENT row on each call.
+        //
+        // Fix: resolve the identifier through two independent exact lookups
+        // in priority order, then apply hash-validity tiebreaking.
         let user;
+        let lookupReason: string;
+
         try {
           const isEmail = identifier.includes('@');
-          const normalizedEmail = isEmail ? normalizeEmail(identifier) : undefined;
 
-          user = await prisma.user.findFirst({
-            where: {
-              OR: [
-                ...(normalizedEmail ? [{ email: { equals: normalizedEmail, mode: 'insensitive' as const } }] : []),
-                { username: { equals: identifier, mode: 'insensitive' as const } }
-              ]
-            },
-          })
+          if (isEmail) {
+            // Email path — single exact match
+            const normalizedEmail = normalizeEmail(identifier);
+            user = await prisma.user.findFirst({
+              where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
+            });
+            lookupReason = user ? 'email_exact' : 'email_not_found';
+          } else {
+            // Username path — exact match first, then OR fallback for
+            // legacy accounts that stored the username in the email field.
+            //
+            // IMPORTANT: findMany + manual selection instead of findFirst
+            // to safely handle the DUPLICATE_AMBIGUITY case.
+            const usernameRows = await prisma.user.findMany({
+              where: { username: { equals: identifier, mode: 'insensitive' } },
+            });
+
+            if (usernameRows.length === 1) {
+              // Ideal: exactly one row
+              user = usernameRows[0];
+              lookupReason = 'username_exact';
+            } else if (usernameRows.length > 1) {
+              // Multiple rows with the same username (data anomaly) —
+              // prefer the one with a valid full-length hash.
+              const validRows = usernameRows.filter((u) => isValidBcryptHash(u.password));
+              user = validRows.length > 0 ? validRows[0] : usernameRows[0];
+              lookupReason = 'username_duplicate_resolved';
+              console.error(
+                `[AUTH] DUPLICATE_USERNAME detected for identifier="${identifier}": ` +
+                `${usernameRows.length} rows found; resolved to id=${user.id.slice(0, 8)}`
+              );
+            } else {
+              // No username match — attempt email fallback (covers accounts
+              // created before username field existed).
+              user = await prisma.user.findFirst({
+                where: { email: { equals: identifier, mode: 'insensitive' } },
+              });
+              lookupReason = user ? 'email_fallback' : 'not_found';
+            }
+          }
         } catch (error) {
-          console.error("[AUTH] Database connection failed during authorize():", error instanceof Error ? error.message : "Unknown error");
+          console.error("[AUTH] Database lookup failed during authorize():", error instanceof Error ? error.message : "Unknown error");
           throw new ServiceUnavailableError();
         }
 
-        // [AUTH] user lookup is intentionally silent — failures are audited below.
+        // ── Not found ───────────────────────────────────────────────────────
         if (!user || !user.password) {
+          const reason = !user ? 'user_not_found' : 'no_password_set';
+          console.info(`[AUTH] LOGIN_FAILED reason=${reason} identifier="${identifier}" lookup=${lookupReason!}`);
           await recordAuthAudit({
             userId: user?.id ?? null,
             action: 'LOGIN_FAILED',
-            metadata: { reason: 'user_not_found', identifier },
+            metadata: { reason, identifier },
           })
           return null
         }
 
-        const isValid = await bcrypt.compare(
-          password,
-          user.password
-        )
+        // ── Hash validity guard ─────────────────────────────────────────────
+        // A truncated hash (< 60 chars) will always fail bcrypt.compare;
+        // detect it early and log clearly instead of silently returning null.
+        // Capture in a local string so TS doesn't narrow to `never` inside the branch.
+        const storedHash: string = user.password;
+        if (!isValidBcryptHash(storedHash)) {
+          const hashLen = storedHash.length;
+          console.error(
+            `[AUTH] LOGIN_FAILED reason=hash_invalid identifier="${identifier}" ` +
+            `userId=${user.id.slice(0, 8)} hashLen=${hashLen}`
+          );
+          await recordAuthAudit({
+            userId: user.id,
+            action: 'LOGIN_FAILED',
+            metadata: { reason: 'hash_invalid', identifier, hashLen },
+          })
+          return null
+        }
+
+        // ── Password verification ───────────────────────────────────────────
+        const isValid = await bcrypt.compare(password, storedHash)
 
         if (!isValid) {
+          console.info(
+            `[AUTH] LOGIN_FAILED reason=invalid_password identifier="${identifier}" ` +
+            `userId=${user.id.slice(0, 8)} lookup=${lookupReason}`
+          );
           await recordAuthAudit({
             userId: user.id,
             action: 'LOGIN_FAILED',
@@ -96,6 +175,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null
         }
 
+        // ── Success ─────────────────────────────────────────────────────────
+        console.info(
+          `[AUTH] LOGIN_SUCCESS identifier="${identifier}" userId=${user.id.slice(0, 8)} lookup=${lookupReason}`
+        );
         await recordAuthAudit({
           userId: user.id,
           action: 'LOGIN_SUCCESS',

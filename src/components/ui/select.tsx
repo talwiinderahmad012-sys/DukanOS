@@ -157,7 +157,7 @@ export function Select({
         aria-expanded={isOpen}
         aria-label={ariaLabel || placeholder || 'Select option'}
         className={cn(
-          'flex w-full items-center justify-between rounded-xl border border-gray-300/80 dark:border-white/15 bg-white/75 dark:bg-slate-900/75 backdrop-blur-md px-4 py-2 outline-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed',
+          'flex w-full items-center justify-between rounded-xl border border-gray-300/80 dark:border-white/15 bg-white/90 dark:bg-slate-900/90 px-4 py-2 outline-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed',
           !selectedOption && 'text-gray-500',
           isOpen && 'ring-2 ring-primary border-primary'
         )}

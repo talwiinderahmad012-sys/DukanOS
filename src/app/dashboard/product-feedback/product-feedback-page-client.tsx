@@ -4,6 +4,7 @@ import { Bug, Lightbulb, Star, ShieldAlert, Activity } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { BugTriagePanel } from '@/components/feedback/bug-triage-panel';
+import { GlowCard } from '@/components/ui/GlowCard';
 
 interface Overview {
   bugs: { open: number; p0: number; resolved: number };
@@ -43,7 +44,7 @@ export function ProductFeedbackPageClient({ overview, bugs, features }: ProductF
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-2">
+        <GlowCard hue="rose" className="p-5 space-y-2">
           <div className="flex items-center justify-between text-xs text-gray-500 font-semibold">
             <span>{t('product.bugReports')}</span>
             <Bug className="w-4 h-4 text-red-600" />
@@ -60,9 +61,9 @@ export function ProductFeedbackPageClient({ overview, bugs, features }: ProductF
             <span className="text-gray-300">&bull;</span>
             <span className="text-gray-500">{t('product.resolvedCount', { count: overview.bugs.resolved })}</span>
           </div>
-        </div>
+        </GlowCard>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-2">
+        <GlowCard hue="amber" className="p-5 space-y-2">
           <div className="flex items-center justify-between text-xs text-gray-500 font-semibold">
             <span>{t('product.userSatisfaction')}</span>
             <Star className="w-4 h-4 text-amber-500" />
@@ -81,9 +82,9 @@ export function ProductFeedbackPageClient({ overview, bugs, features }: ProductF
               needs: overview.satisfaction.needsImprovement,
             })}
           </div>
-        </div>
+        </GlowCard>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-2">
+        <GlowCard hue="sky" className="p-5 space-y-2">
           <div className="flex items-center justify-between text-xs text-gray-500 font-semibold">
             <span>{t('product.roadmapIdeas')}</span>
             <Lightbulb className="w-4 h-4 text-gray-900" />
@@ -97,7 +98,7 @@ export function ProductFeedbackPageClient({ overview, bugs, features }: ProductF
               shipped: overview.featureRequests.shipped,
             })}
           </div>
-        </div>
+        </GlowCard>
       </div>
 
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}

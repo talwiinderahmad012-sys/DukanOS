@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -42,6 +43,7 @@ import { Alert } from '@/components/ui/alert';
 import { Button, buttonClasses, IconButton } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { inputClasses, Select } from '@/components/ui/input';
+
 import { useTranslation } from '@/lib/i18n/language-context';
 import { getLocalizedValue } from '@/lib/translation/localized';
 import type { POSProduct, POSCustomer, CartItem } from './pos-terminal';
@@ -460,7 +462,7 @@ export function POSCheckoutScreen({
           >
             <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
             <p className="flex-1 font-medium">{error}</p>
-            <IconButton aria-label={t('pos.dismissError')} size="sm" onClick={() => setError(null)} className="-my-1 shrink-0">
+            <IconButton variant="3d" aria-label={t('pos.dismissError')} size="sm" onClick={() => setError(null)} className="-my-1 shrink-0">
               <X className="h-4 w-4" />
             </IconButton>
           </div>
@@ -499,7 +501,7 @@ export function POSCheckoutScreen({
             aria-label={t('pos.productCatalogAria')}
             className={cn('space-y-4 lg:col-span-7 xl:col-span-8', mobileTab === 'order' ? 'hidden lg:block' : 'block')}
           >
-            <div className="space-y-3 rounded-card border border-border bg-surface p-4">
+            <SurfaceCard className="space-y-3 p-4">
               <div className="relative">
                 <Barcode
                   className="pointer-events-none absolute start-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted"
@@ -518,6 +520,7 @@ export function POSCheckoutScreen({
                 />
                 {searchQuery && (
                   <IconButton
+                    variant="3d"
                     aria-label={t('pos.clearSearchAria')}
                     size="sm"
                     onClick={() => setSearchQuery('')}
@@ -559,42 +562,35 @@ export function POSCheckoutScreen({
                   </button>
                 ))}
               </div>
-            </div>
+            </SurfaceCard>
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
               {filteredProducts.length === 0 ? (
-                <div className="col-span-full rounded-card border border-border bg-surface py-16 text-center">
+                <SurfaceCard className="col-span-full py-16 text-center">
                   <Search className="mx-auto mb-2 h-8 w-8 text-muted opacity-60" aria-hidden="true" />
                   <p className="text-sm font-medium text-muted">
                     {products.length === 0
                       ? t('pos.noActiveProducts')
                       : t('pos.noMatchingProducts')}
                   </p>
-                </div>
+                </SurfaceCard>
               ) : (
-                filteredProducts.map((product) => {
+                filteredProducts.map((product, idx) => {
                   const isOutOfStock = product.currentStock <= 0;
                   const inCartItem = cart.find((i) => i.product.id === product.id);
                   const stockTone = isOutOfStock ? 'danger' : product.currentStock <= 5 ? 'warning' : 'success';
 
                   return (
-                    <button
-                      key={product.id}
-                      type="button"
-                      disabled={isOutOfStock}
-                      onClick={() => handleAddToCart(product)}
-                      aria-label={
+                    <SurfaceCard as="button" key={product.id} type="button" disabled={isOutOfStock} onClick={() => handleAddToCart(product)} aria-label={
                         isOutOfStock
                           ? t('pos.outOfStockAria', { name: product.name })
                           : t('pos.addToCartAria', { name: product.name, price: fmt(product.sellingPrice) })
-                      }
-                      className={cn(
-                        'group relative flex min-h-[120px] flex-col justify-between rounded-xl border p-3.5 text-start transition-colors',
+                      } className={cn(
+                        'group relative flex min-h-[120px] flex-col justify-between p-3.5 text-start transition-all',
                         isOutOfStock
-                          ? 'cursor-not-allowed border-border bg-page opacity-60'
-                          : 'border-border bg-surface hover:border-primary focus-visible:border-primary active:scale-[0.98]'
-                      )}
-                    >
+                          ? 'cursor-not-allowed opacity-60'
+                          : 'active:scale-[0.98]'
+                      )}>
                       {inCartItem && (
                         <span className="absolute end-2.5 top-2.5 flex h-6 min-w-6 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-bold text-on-primary">
                           {inCartItem.quantity}
@@ -616,7 +612,7 @@ export function POSCheckoutScreen({
                           {isOutOfStock ? t('pos.outOfStock') : `${product.currentStock} ${product.unit}`}
                         </Badge>
                       </span>
-                    </button>
+                    </SurfaceCard>
                   );
                 })
               )}
@@ -624,13 +620,10 @@ export function POSCheckoutScreen({
           </section>
 
           {/* Right: Order summary */}
-          <section
-            aria-label={t('pos.orderSummary')}
-            className={cn(
-              'flex flex-col overflow-hidden rounded-card border border-border bg-surface lg:sticky lg:col-span-5 lg:top-20 xl:col-span-4',
+          <SurfaceCard as="section" aria-label={t('pos.orderSummary')} className={cn(
+              'flex flex-col overflow-hidden lg:sticky lg:col-span-5 lg:top-20 xl:col-span-4',
               mobileTab === 'products' ? 'hidden lg:flex' : 'flex'
-            )}
-          >
+            )}>
             <div className="flex items-center justify-between border-b border-border bg-primary-soft/60 px-4 py-3">
               <div className="flex items-center gap-2">
                 <ShoppingCart className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -705,10 +698,11 @@ export function POSCheckoutScreen({
                         <div className="flex items-center gap-1.5">
                           <span className="text-sm font-bold text-gray-900">{fmt(lineTotal)}</span>
                           <IconButton
+                            variant="3d"
                             aria-label={t('pos.removeFromCartAria', { name: item.product.name })}
                             size="md"
                             onClick={() => handleRemoveFromCart(item.product.id)}
-                            className="text-muted hover:bg-danger-soft hover:text-danger"
+                            className="text-muted hover:text-danger"
                           >
                             <Trash2 className="h-4 w-4" />
                           </IconButton>
@@ -716,12 +710,13 @@ export function POSCheckoutScreen({
                       </div>
 
                       <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                        <div className="flex items-center gap-1 rounded-input border border-border bg-page p-0.5">
+                        <div className="flex items-center gap-1.5 p-0.5">
                           <IconButton
+                            variant="3d"
                             aria-label={t('pos.decreaseQtyAria', { name: item.product.name })}
                             size="md"
                             onClick={() => handleUpdateQuantity(item.product.id, item.quantity - 1)}
-                            className="h-9 w-9"
+                            className="h-8 w-8"
                           >
                             <Minus className="h-3.5 w-3.5" />
                           </IconButton>
@@ -740,10 +735,11 @@ export function POSCheckoutScreen({
                             className="w-12 bg-transparent text-center text-sm font-bold text-gray-900 focus:outline-none"
                           />
                           <IconButton
+                            variant="3d"
                             aria-label={t('pos.increaseQtyAria', { name: item.product.name })}
                             size="md"
                             onClick={() => handleUpdateQuantity(item.product.id, item.quantity + 1)}
-                            className="h-9 w-9"
+                            className="h-8 w-8"
                           >
                             <Plus className="h-3.5 w-3.5" />
                           </IconButton>
@@ -773,7 +769,7 @@ export function POSCheckoutScreen({
             </div>
 
             {/* Totals + payment + actions */}
-            <form onSubmit={handleCheckout} className="space-y-3 border-t border-border bg-page px-4 py-4" aria-label={t('pos.checkoutTitle')}>
+            <form onSubmit={handleCheckout} className="space-y-3 border-t border-border bg-black/5 dark:bg-white/5 px-4 py-4" aria-label={t('pos.checkoutTitle')}>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between text-muted">
                   <span>{t('pos.subtotal')}</span>
@@ -926,7 +922,7 @@ export function POSCheckoutScreen({
                 </div>
               </div>
             </form>
-          </section>
+          </SurfaceCard>
         </div>
       </main>
 

@@ -6,6 +6,8 @@ import { Save, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { createPayrollPeriodAction } from '@/app/actions/payroll.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 export function CreatePayrollForm({ businessId }: { businessId: string }) {
   const router = useRouter();
@@ -31,7 +33,7 @@ export function CreatePayrollForm({ businessId }: { businessId: string }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 space-y-6">
+    <SurfaceCard as="form" onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6">
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
@@ -64,6 +66,6 @@ export function CreatePayrollForm({ businessId }: { businessId: string }) {
           <Save className="w-4 h-4" /> {loading ? t('common.saving') : t('payroll.createPeriodButton')}
         </button>
       </div>
-    </form>
+    </SurfaceCard>
   );
 }

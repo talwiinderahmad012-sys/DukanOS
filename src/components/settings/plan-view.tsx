@@ -9,6 +9,7 @@ import {
   Gift,
 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 const STATUS_KEYS: Record<string, string> = {
   ACTIVE: 'settingsAdmin.plan.statusActive',
@@ -88,7 +89,7 @@ export function PlanView({
       </div>
 
       {/* Active Plan Card */}
-      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+      <SurfaceCard className="bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-blue-800/80 pb-6">
           <div className="space-y-1">
             <span className="text-xs font-bold uppercase tracking-wider text-blue-300">
@@ -115,10 +116,10 @@ export function PlanView({
             {t('settingsAdmin.plan.freeFirstBody')}
           </div>
         </div>
-      </div>
+      </SurfaceCard>
 
       {/* Included Features List */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8 space-y-6 shadow-sm">
+      <SurfaceCard className="p-6 sm:p-8 space-y-6">
         <div className="flex items-center justify-between border-b pb-4">
           <div>
             <h3 className="font-bold text-gray-900 text-lg flex items-center gap-2">
@@ -158,7 +159,7 @@ export function PlanView({
             </div>
           ))}
         </div>
-      </div>
+      </SurfaceCard>
     </div>
   );
 }

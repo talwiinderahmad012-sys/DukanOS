@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { 
   ArrowLeft, 
   Database, 
@@ -11,6 +12,7 @@ import {
   Video,
   Layers
 } from 'lucide-react';
+
 import { useTranslation } from '@/lib/i18n/language-context';
 
 const STATUS_KEYS: Record<string, string> = {
@@ -52,7 +54,7 @@ export function SystemInfoView({
       </div>
 
       {/* Version & Environment Card */}
-      <div className="bg-white rounded-3xl border border-gray-200 p-5 shadow-xs flex flex-wrap items-center justify-between gap-4">
+      <SurfaceCard className="rounded-3xl p-5 shadow-xs flex flex-wrap items-center justify-between gap-4">
         <div className="space-y-0.5">
           <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">{t('settingsAdmin.system.softwareVersion')}</span>
           <span className="font-bold text-base text-gray-900 font-mono">DukaanOS v{version}</span>
@@ -67,16 +69,16 @@ export function SystemInfoView({
 
         <div className="space-y-0.5">
           <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">{t('settingsAdmin.system.serverClock')}</span>
-          <span className="font-mono text-xs text-gray-600">
+          <span className="font-mono text-xs text-gray-600 dark:text-gray-300">
             {new Date(serverTime).toLocaleTimeString()} ({new Date(serverTime).toLocaleDateString()})
           </span>
         </div>
-      </div>
+      </SurfaceCard>
 
       {/* System Subsystems Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Database */}
-        <div className="bg-white rounded-3xl border border-gray-200 p-5 shadow-xs space-y-3">
+        <SurfaceCard className="rounded-3xl p-5 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <div className="w-9 h-9 rounded-xl bg-primary-soft text-gray-900 flex items-center justify-center">
               <Database className="w-5 h-5" />
@@ -95,74 +97,74 @@ export function SystemInfoView({
             <h3 className="font-bold text-sm text-gray-900">{t('settingsAdmin.system.databaseEngine')}</h3>
             <p className="text-xs text-gray-500">{sys.database.engine}</p>
           </div>
-          <div className="text-[11px] text-gray-400 font-mono pt-2 border-t border-gray-100 flex justify-between">
+          <div className="text-[11px] text-gray-400 font-mono pt-2 border-t border-gray-100 dark:border-white/10 flex justify-between">
             <span>{t('settingsAdmin.system.pingRoundtrip')}</span>
-            <span className="font-bold text-gray-700">{sys.database.latencyMs} ms</span>
+            <span className="font-bold text-gray-700 dark:text-gray-300">{sys.database.latencyMs} ms</span>
           </div>
-        </div>
+        </SurfaceCard>
 
-        {/* Auth Subsystem */}
-        <div className="bg-white rounded-3xl border border-gray-200 p-5 shadow-xs space-y-3">
+        {/* Security & Auth */}
+        <SurfaceCard className="rounded-3xl p-5 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-emerald-50 text-emerald-700">
-              ● {statusLabel(sys.auth.status)}
+              ● {statusLabel(sys.security.status)}
             </span>
           </div>
           <div>
             <h3 className="font-bold text-sm text-gray-900">{t('settingsAdmin.system.authTitle')}</h3>
-            <p className="text-xs text-gray-500">{sys.auth.strategy}</p>
+            <p className="text-xs text-gray-500">{sys.security.provider}</p>
           </div>
-          <div className="text-[11px] text-gray-400 font-mono pt-2 border-t border-gray-100 flex justify-between">
-            <span>{t('settingsAdmin.system.roleGuard')}</span>
-            <span className="font-bold text-gray-700">{t('settingsAdmin.system.rbac')}</span>
+          <div className="text-[11px] text-gray-400 font-mono pt-2 border-t border-gray-100 dark:border-white/10 flex justify-between">
+            <span>{t('settingsAdmin.system.activeRole')}</span>
+            <span className="font-bold text-gray-700 dark:text-gray-300">{sys.security.activeRole}</span>
           </div>
-        </div>
+        </SurfaceCard>
 
-        {/* PWA & Sync */}
-        <div className="bg-white rounded-3xl border border-gray-200 p-5 shadow-xs space-y-3">
+        {/* Edge Cache & CDN */}
+        <SurfaceCard className="rounded-3xl p-5 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <Wifi className="w-5 h-5" />
             </div>
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-emerald-50 text-emerald-700">
-              ● {statusLabel(sys.pwaSync.status)}
+              ● {statusLabel(sys.cacheAndStorage.status)}
             </span>
           </div>
           <div>
-            <h3 className="font-bold text-sm text-gray-900">{t('settingsAdmin.system.pwaTitle')}</h3>
-            <p className="text-xs text-gray-500">{t('settingsAdmin.system.pwaDescription')}</p>
+            <h3 className="font-bold text-sm text-gray-900">{t('settingsAdmin.system.edgeTitle')}</h3>
+            <p className="text-xs text-gray-500">{sys.cacheAndStorage.cdn}</p>
           </div>
-          <div className="text-[11px] text-gray-400 font-mono pt-2 border-t border-gray-100 flex justify-between">
-            <span>{t('settingsAdmin.system.conflictSafety')}</span>
-            <span className="font-bold text-gray-700">{t('settingsAdmin.system.idempotencyKeys')}</span>
+          <div className="text-[11px] text-gray-400 font-mono pt-2 border-t border-gray-100 dark:border-white/10 flex justify-between">
+            <span>{t('settingsAdmin.system.storageDriver')}</span>
+            <span className="font-bold text-gray-700 dark:text-gray-300">{sys.cacheAndStorage.storageDriver}</span>
           </div>
-        </div>
+        </SurfaceCard>
 
-        {/* Push Notifications */}
-        <div className="bg-white rounded-3xl border border-gray-200 p-5 shadow-xs space-y-3">
+        {/* Audit Logging */}
+        <SurfaceCard className="rounded-3xl p-5 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
-            <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
               <Bell className="w-5 h-5" />
             </div>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-primary-soft text-gray-950">
-              ● {statusLabel(sys.pushNotifications.status)}
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-emerald-50 text-emerald-700">
+              ● {statusLabel(sys.auditLogging.status)}
             </span>
           </div>
           <div>
-            <h3 className="font-bold text-sm text-gray-900">{t('settingsAdmin.system.pushTitle')}</h3>
-            <p className="text-xs text-gray-500">{sys.pushNotifications.service}</p>
+            <h3 className="font-bold text-sm text-gray-900">{t('settingsAdmin.system.auditTitle')}</h3>
+            <p className="text-xs text-gray-500">{sys.auditLogging.destination}</p>
           </div>
-          <div className="text-[11px] text-gray-400 font-mono pt-2 border-t border-gray-100 flex justify-between">
-            <span>{t('settingsAdmin.system.digestEngine')}</span>
-            <span className="font-bold text-gray-700">{t('settingsAdmin.system.timezoneAware')}</span>
+          <div className="text-[11px] text-gray-400 font-mono pt-2 border-t border-gray-100 dark:border-white/10 flex justify-between">
+            <span>{t('settingsAdmin.system.totalLoggedEvents')}</span>
+            <span className="font-bold text-gray-700 dark:text-gray-300">{sys.auditLogging.totalEvents}</span>
           </div>
-        </div>
+        </SurfaceCard>
 
         {/* Communications Gateway */}
-        <div className="bg-white rounded-3xl border border-gray-200 p-5 shadow-xs space-y-3">
+        <SurfaceCard className="rounded-3xl p-5 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
               <MessageSquare className="w-5 h-5" />
@@ -172,17 +174,17 @@ export function SystemInfoView({
             </span>
           </div>
           <div>
-            <h3 className="font-bold text-sm text-gray-900">{t('settingsAdmin.system.messagingTitle')}</h3>
-            <p className="text-xs text-gray-500">{t('settingsAdmin.system.messagingDescription')}</p>
+            <h3 className="font-bold text-sm text-gray-900">{t('settingsAdmin.system.gatewayTitle')}</h3>
+            <p className="text-xs text-gray-500">{sys.communicationsGateway.engine}</p>
           </div>
-          <div className="text-[11px] text-gray-400 font-mono pt-2 border-t border-gray-100 flex justify-between">
-            <span>{t('settingsAdmin.system.activeProviders')}</span>
-            <span className="font-bold text-gray-700">{sys.communicationsGateway.activeProvidersCount}</span>
+          <div className="text-[11px] text-gray-400 font-mono pt-2 border-t border-gray-100 dark:border-white/10 flex justify-between">
+            <span>{t('settingsAdmin.system.activeChannels')}</span>
+            <span className="font-bold text-gray-700 dark:text-gray-300">{sys.communicationsGateway.activeProvidersCount}</span>
           </div>
-        </div>
+        </SurfaceCard>
 
         {/* CCTV Security */}
-        <div className="bg-white rounded-3xl border border-gray-200 p-5 shadow-xs space-y-3">
+        <SurfaceCard className="rounded-3xl p-5 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center">
               <Video className="w-5 h-5" />
@@ -195,43 +197,43 @@ export function SystemInfoView({
             <h3 className="font-bold text-sm text-gray-900">{t('settingsAdmin.system.cctvTitle')}</h3>
             <p className="text-xs text-gray-500">{t('settingsAdmin.system.cctvDescription')}</p>
           </div>
-          <div className="text-[11px] text-gray-400 font-mono pt-2 border-t border-gray-100 flex justify-between">
+          <div className="text-[11px] text-gray-400 font-mono pt-2 border-t border-gray-100 dark:border-white/10 flex justify-between">
             <span>{t('settingsAdmin.system.registeredDevices')}</span>
-            <span className="font-bold text-gray-700">{sys.cctvSecurity.registeredDevices}</span>
+            <span className="font-bold text-gray-700 dark:text-gray-300">{sys.cctvSecurity.registeredDevices}</span>
           </div>
-        </div>
+        </SurfaceCard>
       </div>
 
       {/* Tenant Ledger Summary */}
-      <div className="bg-white rounded-3xl border border-gray-200 p-5 shadow-xs space-y-4">
+      <SurfaceCard className="rounded-3xl p-5 shadow-xs space-y-4">
         <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
           <Layers className="w-3.5 h-3.5 text-gray-500" />
           <span>{t('settingsAdmin.system.ledgerTitle')}</span>
         </h3>
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
-          <div className="p-3 bg-gray-50 rounded-2xl">
+          <div className="p-3 bg-gray-50 dark:bg-white/5 rounded-2xl">
             <span className="text-[10px] font-bold text-gray-400 uppercase">{t('settingsAdmin.system.countProducts')}</span>
             <div className="font-bold text-base text-gray-900 font-mono mt-0.5">{counts.products}</div>
           </div>
-          <div className="p-3 bg-gray-50 rounded-2xl">
+          <div className="p-3 bg-gray-50 dark:bg-white/5 rounded-2xl">
             <span className="text-[10px] font-bold text-gray-400 uppercase">{t('settingsAdmin.system.countSales')}</span>
             <div className="font-bold text-base text-gray-900 font-mono mt-0.5">{counts.sales}</div>
           </div>
-          <div className="p-3 bg-gray-50 rounded-2xl">
+          <div className="p-3 bg-gray-50 dark:bg-white/5 rounded-2xl">
             <span className="text-[10px] font-bold text-gray-400 uppercase">{t('settingsAdmin.system.countCustomers')}</span>
             <div className="font-bold text-base text-gray-900 font-mono mt-0.5">{counts.customers}</div>
           </div>
-          <div className="p-3 bg-gray-50 rounded-2xl">
+          <div className="p-3 bg-gray-50 dark:bg-white/5 rounded-2xl">
             <span className="text-[10px] font-bold text-gray-400 uppercase">{t('settingsAdmin.system.countMembers')}</span>
             <div className="font-bold text-base text-gray-900 font-mono mt-0.5">{counts.members}</div>
           </div>
-          <div className="p-3 bg-gray-50 rounded-2xl">
+          <div className="p-3 bg-gray-50 dark:bg-white/5 rounded-2xl">
             <span className="text-[10px] font-bold text-gray-400 uppercase">{t('settingsAdmin.system.countCameras')}</span>
             <div className="font-bold text-base text-gray-900 font-mono mt-0.5">{counts.cameras}</div>
           </div>
         </div>
-      </div>
+      </SurfaceCard>
     </div>
   );
 }

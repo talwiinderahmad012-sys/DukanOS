@@ -2,6 +2,8 @@
 
 import { useTranslation } from '@/lib/i18n/language-context';
 import { SiteHeader } from '@/components/layout/site-header';
+import { PoweredByHexframe } from '@/components/brand/PoweredByHexframe';
+import { AppFooter } from '@/components/layout/footer';
 
 export default function Home() {
   const { t } = useTranslation();
@@ -15,6 +17,9 @@ export default function Home() {
         <h1 className="text-4xl font-bold tracking-tight text-gray-900">
           DukaanOS
         </h1>
+        <div className="flex justify-center">
+          <PoweredByHexframe />
+        </div>
         <p className="text-gray-500 mb-8 max-w-md mx-auto urdu-font">
           {t('staticPages.homeTagline')}
         </p>
@@ -38,6 +43,7 @@ export default function Home() {
         </p>
       </div>
       </main>
+      <AppFooter />
     </div>
   );
 }

@@ -20,6 +20,8 @@
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "bootstrap": "tsx src/scripts/bootstrap_owner.ts",
+    "sessions:purge": "tsx --tsconfig tsconfig.scripts.json scripts/purge-sessions.ts",
+    "auth:reset": "tsx scripts/reset-auth.ts",
     "test": "tsx src/scripts/test_step34_reliability.ts",
     "test:auth": "tsx src/scripts/test_auth_permanent.ts",
     "test:db": "tsx src/scripts/test_db_health.ts",

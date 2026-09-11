@@ -125,7 +125,7 @@ export function FeedbackDetailPanel({
             </div>
             <h2 className="break-words text-base font-bold leading-snug text-gray-900">{record.title}</h2>
           </div>
-          <IconButton aria-label={t('ui.closeDialog')} onClick={onClose} className="shrink-0">
+          <IconButton variant="3d" aria-label={t('ui.closeDialog')} onClick={onClose} className="shrink-0">
             <X className="h-4 w-4" />
           </IconButton>
         </div>

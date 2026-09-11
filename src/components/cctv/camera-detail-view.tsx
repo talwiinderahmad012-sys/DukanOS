@@ -22,6 +22,7 @@ import {
 import { checkCameraHealthAction, archiveCameraAction } from '@/app/actions/cctv.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { toast } from 'sonner';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 
 export type CameraDetailItem = {
   id: string;
@@ -196,7 +197,7 @@ export function CameraDetailView({
       )}
 
       {/* Main Stream Area */}
-      <div className="bg-gray-900 rounded-3xl overflow-hidden border border-gray-800 shadow-lg">
+      <SurfaceCard className="bg-gray-900 overflow-hidden border border-gray-800 shadow-lg">
         {streamInfo.streamAvailable && streamInfo.streamUrl ? (
           <div className="aspect-video w-full bg-black flex items-center justify-center relative">
             <video
@@ -207,7 +208,7 @@ export function CameraDetailView({
               playsInline
               className="w-full h-full object-contain"
             />
-            <div className="absolute top-4 start-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-mono text-emerald-400 font-bold flex items-center gap-1.5">
+            <div className="absolute top-4 start-4 bg-black/85 px-3 py-1 rounded-full text-[10px] font-mono text-emerald-400 font-bold flex items-center gap-1.5 shadow-sm">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
               <span>{t('cctv.liveFeed')}</span>
             </div>
@@ -231,11 +232,11 @@ export function CameraDetailView({
             </div>
           </div>
         )}
-      </div>
+      </SurfaceCard>
 
       {/* Camera Information & Specs */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-4">
+        <SurfaceCard className="p-6 space-y-4">
           <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
             {t('cctv.deviceMetadata')}
           </h2>
@@ -264,10 +265,10 @@ export function CameraDetailView({
               </span>
             </div>
           </div>
-        </div>
+        </SurfaceCard>
 
         {/* Recent Health History Log */}
-        <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-4">
+        <SurfaceCard className="p-6 space-y-4">
           <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
             {t('cctv.recentHealthChecks')}
           </h2>
@@ -297,7 +298,7 @@ export function CameraDetailView({
               ))}
             </div>
           )}
-        </div>
+        </SurfaceCard>
       </div>
     </div>
   );

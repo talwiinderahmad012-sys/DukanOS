@@ -13,7 +13,8 @@ export type ButtonVariant =
   | 'outline'
   | 'ghost'
   | 'destructive'
-  | 'success';
+  | 'success'
+  | '3d';
 
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
@@ -27,6 +28,7 @@ const VARIANTS: Record<ButtonVariant, string> = {
   ghost: 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100',
   destructive: 'bg-danger text-white hover:bg-danger-hover hover:shadow-md hover:shadow-danger/20',
   success: 'bg-success text-white hover:bg-success-hover hover:shadow-md hover:shadow-success/20',
+  '3d': 'btn-3d text-gray-700 dark:text-gray-200',
 };
 
 const SIZES: Record<ButtonSize, string> = {
@@ -122,19 +124,28 @@ export function IconButton({
 }: IconButtonProps) {
   const shouldReduceMotion = useReducedMotion();
   const canHover = useCanHover();
+  const is3D = variant === '3d' || className?.includes('btn-3d');
 
-  const hoverAnimation = shouldReduceMotion || disabled || !canHover
+  // When .btn-3d is active, CSS handles translateY(-1px) hover and translateY(1px) press
+  const hoverAnimation = is3D || shouldReduceMotion || disabled || !canHover
     ? undefined
     : (whileHover ?? { scale: 1.05 });
 
-  const tapAnimation = shouldReduceMotion || disabled
+  const tapAnimation = is3D || shouldReduceMotion || disabled
     ? undefined
     : (whileTap ?? { scale: 0.95 });
 
   return (
     <motion.button
       type={type}
-      className={cn(BASE, VARIANTS[variant], ICON_BUTTON_SIZES[size], 'p-0', className)}
+      className={cn(
+        BASE,
+        is3D ? 'rounded-full' : '',
+        VARIANTS[variant],
+        ICON_BUTTON_SIZES[size],
+        'p-0',
+        className
+      )}
       disabled={disabled}
       whileHover={hoverAnimation}
       whileTap={tapAnimation}

@@ -54,6 +54,7 @@ export function CategoryActions({
   return (
     <div className="flex items-center gap-1">
       <IconButton
+        variant="3d"
         size={size}
         aria-label={t('categories.editAria', { name: category.name })}
         title={t('categories.editTitle')}
@@ -63,6 +64,7 @@ export function CategoryActions({
       </IconButton>
       {category.isActive && (
         <IconButton
+          variant="3d"
           size={size}
           aria-label={t('categories.archiveAria', { name: category.name })}
           title={t('categories.archiveTitle')}

@@ -6,7 +6,10 @@ import { Store, MapPin, Settings } from 'lucide-react';
 import { submitOnboardingAction } from '@/app/actions/onboarding.actions';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { Select } from '@/components/ui/select';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { SiteHeader } from '@/components/layout/site-header';
+import { PoweredByHexframe } from '@/components/brand/PoweredByHexframe';
+import { AppFooter } from '@/components/layout/footer';
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -51,11 +54,14 @@ export default function OnboardingPage() {
       <SiteHeader />
 
       <div className="flex flex-1 items-center justify-center p-4 py-8">
-      <div className="max-w-2xl w-full surface-glass rounded-2xl shadow-xl border border-white/60 dark:border-white/15 p-8">
+        <SurfaceCard className="max-w-2xl w-full rounded-2xl shadow-xl p-8">
         
         <div className="mb-8 border-b border-black/5 dark:border-white/10 pb-6">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('onboarding.setupTitle')}</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1">{t('onboarding.setupSubtitle')}</p>
+          <div className="mt-2">
+            <PoweredByHexframe />
+          </div>
         </div>
 
         {(error || serverError) && (
@@ -72,7 +78,7 @@ export default function OnboardingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('onboarding.businessName')}</label>
-                <input required name="businessName" type="text" className="w-full px-3.5 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors" placeholder={t('onboarding.businessNamePlaceholder')} />
+                <input required name="businessName" type="text" className="w-full px-3.5 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors" placeholder={t('onboarding.businessNamePlaceholder')} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('onboarding.businessType')}</label>
@@ -97,7 +103,7 @@ export default function OnboardingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('onboarding.currency')}</label>
-                <select name="currency" className="w-full px-3.5 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                <select name="currency" className="w-full px-3.5 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
                   <option value="PKR">{t('onboarding.currencyPkr')}</option>
                   <option value="USD">{t('onboarding.currencyUsd')}</option>
                   <option value="EUR">{t('onboarding.currencyEur')}</option>
@@ -106,7 +112,7 @@ export default function OnboardingPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('onboarding.timezone')}</label>
-                <select name="timezone" className="w-full px-3.5 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                <select name="timezone" className="w-full px-3.5 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
                   <option value="Asia/Karachi">{t('onboarding.timezoneKarachi')}</option>
                   <option value="Asia/Dubai">{t('onboarding.timezoneDubai')}</option>
                   <option value="Europe/London">{t('onboarding.timezoneLondon')}</option>
@@ -123,11 +129,11 @@ export default function OnboardingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('onboarding.branchName')}</label>
-                <input name="branchName" type="text" defaultValue="Main Branch" className="w-full px-3.5 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors" />
+                <input name="branchName" type="text" defaultValue="Main Branch" className="w-full px-3.5 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('common.city')}</label>
-                <input name="city" type="text" placeholder={t('onboarding.cityPlaceholder')} className="w-full px-3.5 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors" />
+                <input name="city" type="text" placeholder={t('onboarding.cityPlaceholder')} className="w-full px-3.5 py-2 border border-gray-300/80 dark:border-white/15 rounded-xl bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors" />
               </div>
             </div>
           </div>
@@ -143,8 +149,9 @@ export default function OnboardingPage() {
             <div className="clear-both"></div>
           </div>
         </form>
+        </SurfaceCard>
       </div>
-      </div>
+      <AppFooter />
     </div>
   );
 }

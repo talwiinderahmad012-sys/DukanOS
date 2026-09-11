@@ -16,7 +16,8 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/language-context';
 import { PageHeader } from '@/components/ui/page-header';
-import { Card } from '@/components/ui/card';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { Button, buttonClasses } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -149,7 +150,7 @@ export function FeedbackDashboardView({
       />
 
       {generatedLink && (
-        <Card className="border-primary/25 bg-primary-soft p-4">
+        <SurfaceCard className="border-primary/25 bg-primary-soft p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0 space-y-0.5">
               <p className="flex items-center gap-1.5 text-xs font-bold text-gray-900">
@@ -179,32 +180,30 @@ export function FeedbackDashboardView({
               </a>
             </div>
           </div>
-        </Card>
+        </SurfaceCard>
       )}
 
-      <Card className="overflow-hidden">
-        <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          {kpiTiles.map((tile) => (
-            <div key={tile.label} className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted">{tile.label}</p>
-                <span
-                  className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', tile.chip)}
-                  aria-hidden="true"
-                >
-                  <tile.icon className="h-4 w-4" />
-                </span>
-              </div>
-              <div>
-                <p className={cn('text-2xl font-bold leading-tight text-gray-900', tile.valueClassName)}>{tile.value}</p>
-                <p className="mt-1 text-xs text-muted">{tile.sub}</p>
-              </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        {kpiTiles.map((tile, idx) => (
+          <GlowCard key={tile.label} variant="stat" hue="amber" index={idx} className="flex flex-col gap-2 p-4 sm:p-5 justify-between">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{tile.label}</p>
+              <span
+                className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', tile.chip)}
+                aria-hidden="true"
+              >
+                <tile.icon className="h-4 w-4" />
+              </span>
             </div>
-          ))}
-        </div>
-      </Card>
+            <div>
+              <p className={cn('text-2xl font-bold leading-tight text-gray-900', tile.valueClassName)}>{tile.value}</p>
+              <p className="mt-1 text-xs text-muted">{tile.sub}</p>
+            </div>
+          </GlowCard>
+        ))}
+      </div>
 
-      <Card className="overflow-hidden">
+      <SurfaceCard className="overflow-hidden">
         <div className="space-y-3 border-b border-border p-4">
           <form method="GET" aria-label={t('feedback.dashboard.filterFormAria')} className="flex flex-col gap-2">
             <input type="hidden" name="tab" value="reviews" />
@@ -397,7 +396,7 @@ export function FeedbackDashboardView({
             )}
           </>
         )}
-      </Card>
+      </SurfaceCard>
 
       {activeModalFeedback && (
         <ResolveFeedbackModal

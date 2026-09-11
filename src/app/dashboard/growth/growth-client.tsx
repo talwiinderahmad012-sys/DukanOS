@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { TrendingUp, TrendingDown, ArrowRight } from 'lucide-react';
 import { SimpleBarChart } from '@/components/charts/bar-chart';
+
 import { useTranslation } from '@/lib/i18n/language-context';
 
 export type GrowthPeriodParam = 'DAILY' | 'MONTHLY' | 'YEARLY';
@@ -117,25 +119,22 @@ export function GrowthPageClient({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {metrics.map((item) => {
+        {metrics.map((item, idx) => {
           const isUp = item.growth.status === 'UP';
           const isDown = item.growth.status === 'DOWN';
 
           return (
-            <div
-              key={item.label}
-              className="p-5 bg-white rounded-2xl border border-gray-200 shadow-xs flex flex-col justify-between space-y-4"
-            >
+            <SurfaceCard key={item.label} className="p-5 rounded-2xl flex flex-col justify-between space-y-4">
               <div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-gray-500 uppercase">{item.label}</span>
                   <span
                     className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-bold ${
                       isUp
-                        ? 'bg-green-100 text-green-800'
+                        ? 'bg-green-100 dark:bg-green-950/40 text-green-800 dark:text-green-300'
                         : isDown
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-gray-100 text-gray-700'
+                        ? 'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300'
+                        : 'bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300'
                     }`}
                   >
                     {isUp && <TrendingUp className="w-3.5 h-3.5 rtl-flip" />}
@@ -152,17 +151,17 @@ export function GrowthPageClient({
                 </p>
               </div>
 
-              <div className="pt-2 border-t border-gray-100 text-[11px] text-gray-500 flex justify-between items-center">
+              <div className="pt-2 border-t border-gray-100 dark:border-white/10 text-[11px] text-gray-500 flex justify-between items-center">
                 <span>{item.desc}</span>
-                <span className="font-medium text-gray-700">{tabs.find((tab) => tab.id === periodParam)?.label}</span>
+                <span className="font-medium text-gray-700 dark:text-gray-300">{tabs.find((tab) => tab.id === periodParam)?.label}</span>
               </div>
-            </div>
+            </SurfaceCard>
           );
         })}
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
-        <div className="flex justify-between items-center border-b pb-3">
+      <SurfaceCard className="rounded-2xl p-6 space-y-4">
+        <div className="flex justify-between items-center border-b border-gray-100 dark:border-white/10 pb-3">
           <div>
             <h3 className="font-bold text-gray-900 text-base">{t('growth.trajectoryTitle')}</h3>
             <p className="text-xs text-gray-500">{t('growth.trajectoryDescription')}</p>
@@ -184,29 +183,29 @@ export function GrowthPageClient({
           color1="#aff33e"
           color2="#16a34a"
         />
-      </div>
+      </SurfaceCard>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-5 bg-primary-soft/60 border border-blue-100 rounded-2xl space-y-2">
-          <h4 className="font-bold text-blue-900 text-sm">{t('growth.scalabilityTitle')}</h4>
-          <p className="text-xs text-gray-900 leading-relaxed">
+        <SurfaceCard className="p-5 rounded-2xl space-y-2">
+          <h4 className="font-bold text-blue-900 dark:text-blue-200 text-sm">{t('growth.scalabilityTitle')}</h4>
+          <p className="text-xs text-gray-900 dark:text-gray-200 leading-relaxed">
             {t('growth.scalabilityDesc')}
           </p>
-        </div>
+        </SurfaceCard>
 
-        <div className="p-5 bg-emerald-50/60 border border-emerald-100 rounded-2xl space-y-2">
-          <h4 className="font-bold text-emerald-900 text-sm">{t('growth.marginTitle')}</h4>
-          <p className="text-xs text-emerald-800 leading-relaxed">
+        <SurfaceCard className="p-5 rounded-2xl space-y-2">
+          <h4 className="font-bold text-emerald-900 dark:text-emerald-200 text-sm">{t('growth.marginTitle')}</h4>
+          <p className="text-xs text-emerald-800 dark:text-emerald-200 leading-relaxed">
             {t('growth.marginDesc')}
           </p>
-        </div>
+        </SurfaceCard>
 
-        <div className="p-5 bg-purple-50/60 border border-purple-100 rounded-2xl space-y-2">
-          <h4 className="font-bold text-purple-900 text-sm">{t('growth.capitalTitle')}</h4>
-          <p className="text-xs text-purple-800 leading-relaxed">
+        <SurfaceCard className="p-5 rounded-2xl space-y-2">
+          <h4 className="font-bold text-purple-900 dark:text-purple-200 text-sm">{t('growth.capitalTitle')}</h4>
+          <p className="text-xs text-purple-800 dark:text-purple-200 leading-relaxed">
             {t('growth.capitalDesc')}
           </p>
-        </div>
+        </SurfaceCard>
       </div>
     </div>
   );

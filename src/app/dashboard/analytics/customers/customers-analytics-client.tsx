@@ -13,7 +13,8 @@ import {
   Crown,
 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
-import { Card } from '@/components/ui/card';
+import { GlowCard } from '@/components/ui/GlowCard';
+import { SurfaceCard } from '@/components/ui/SurfaceCard';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
 import { buttonClasses } from '@/components/ui/button';
@@ -126,7 +127,7 @@ export function CustomersAnalyticsClient({
         }
       />
 
-      <Card className="overflow-hidden">
+      <SurfaceCard className="overflow-hidden">
         <div className="space-y-3 p-4">
           <nav aria-label={t('analytics.customers.selectPeriodAria')} className="overflow-x-auto">
             <ul className="inline-flex min-w-full items-center gap-1 rounded-input border border-border bg-gray-50 p-1 sm:min-w-0">
@@ -195,102 +196,100 @@ export function CustomersAnalyticsClient({
             </button>
           </form>
         </div>
-      </Card>
+      </SurfaceCard>
 
-      <Card className="overflow-hidden">
-        <div className="grid grid-cols-2 gap-px bg-border lg:grid-cols-4">
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('analytics.customers.totalCustomers')}</p>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary" aria-hidden="true">
-                <Users className="h-4 w-4" />
-              </span>
-            </div>
-            <div>
-              <p className="text-2xl font-bold leading-tight text-gray-900">{formatNumber(customerGrowth.totalActive)}</p>
-              <p className="mt-1 text-xs text-muted">{t('analytics.customers.activeAccountsSub')}</p>
-            </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <GlowCard hue="teal" className="flex flex-col gap-2 p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('analytics.customers.totalCustomers')}</p>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary" aria-hidden="true">
+              <Users className="h-4 w-4" />
+            </span>
           </div>
-
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('analytics.customers.newThisMonth')}</p>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success-soft text-success" aria-hidden="true">
-                <UserPlus className="h-4 w-4" />
-              </span>
-            </div>
-            <div>
-              <p className="flex items-center gap-2 text-2xl font-bold leading-tight text-gray-900">
-                {formatNumber(customerGrowth.newThisMonth)}
-                {growth.status === 'UP' && (
-                  <span className="inline-flex items-center gap-0.5 rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success">
-                    <TrendingUp className="h-3 w-3" aria-hidden="true" />
-                    {growth.formatted}
-                  </span>
-                )}
-                {growth.status === 'DOWN' && (
-                  <span className="inline-flex items-center gap-0.5 rounded-full bg-danger-soft px-2 py-0.5 text-[10px] font-bold text-danger">
-                    <TrendingDown className="h-3 w-3" aria-hidden="true" />
-                    {growth.formatted}
-                  </span>
-                )}
-                {growth.status === 'NO_BASELINE' && (
-                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600">
-                    {t('common.new')}
-                  </span>
-                )}
-              </p>
-              <p className="mt-1 text-xs text-muted">{t('analytics.customers.vsLastMonthCount', { count: formatNumber(customerGrowth.newLastMonth) })}</p>
-            </div>
+          <div>
+            <p className="text-2xl font-bold leading-tight text-gray-900">{formatNumber(customerGrowth.totalActive)}</p>
+            <p className="mt-1 text-xs text-muted">{t('analytics.customers.activeAccountsSub')}</p>
           </div>
+        </GlowCard>
 
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('analytics.customers.outstandingUdhaar')}</p>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-danger-soft text-danger" aria-hidden="true">
-                <Wallet className="h-4 w-4" />
-              </span>
-            </div>
-            <div>
-              <p className={cn('text-2xl font-bold leading-tight', udhaar.totalOutstanding > 0 ? 'text-danger' : 'text-gray-900')}>
-                {formatCurrency(udhaar.totalOutstanding)}
-              </p>
-              <p className="mt-1 text-xs text-muted">{t('analytics.customers.totalCreditBalanceSub')}</p>
-            </div>
+        <GlowCard hue="emerald" className="flex flex-col gap-2 p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('analytics.customers.newThisMonth')}</p>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success-soft text-success" aria-hidden="true">
+              <UserPlus className="h-4 w-4" />
+            </span>
           </div>
-
-          <div className="flex flex-col gap-2 bg-surface p-4 sm:p-5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('analytics.customers.creditRecovery')}</p>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success-soft text-success" aria-hidden="true">
-                <Banknote className="h-4 w-4" />
-              </span>
-            </div>
-            <div>
-              <p className="text-2xl font-bold leading-tight text-success">{formatCurrency(udhaar.paymentsReceivedThisPeriod)}</p>
-              <p className="mt-1 text-xs text-muted">{t('analytics.customers.paymentsCollected', { period: label })}</p>
-            </div>
+          <div>
+            <p className="flex items-center gap-2 text-2xl font-bold leading-tight text-gray-900">
+              {formatNumber(customerGrowth.newThisMonth)}
+              {growth.status === 'UP' && (
+                <span className="inline-flex items-center gap-0.5 rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success">
+                  <TrendingUp className="h-3 w-3" aria-hidden="true" />
+                  {growth.formatted}
+                </span>
+              )}
+              {growth.status === 'DOWN' && (
+                <span className="inline-flex items-center gap-0.5 rounded-full bg-danger-soft px-2 py-0.5 text-[10px] font-bold text-danger">
+                  <TrendingDown className="h-3 w-3" aria-hidden="true" />
+                  {growth.formatted}
+                </span>
+              )}
+              {growth.status === 'NO_BASELINE' && (
+                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600">
+                  {t('common.new')}
+                </span>
+              )}
+            </p>
+            <p className="mt-1 text-xs text-muted">{t('analytics.customers.vsLastMonthCount', { count: formatNumber(customerGrowth.newLastMonth) })}</p>
           </div>
-        </div>
-      </Card>
+        </GlowCard>
 
-      <Card>
+        <GlowCard hue="rose" className="flex flex-col gap-2 p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('analytics.customers.outstandingUdhaar')}</p>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-danger-soft text-danger" aria-hidden="true">
+              <Wallet className="h-4 w-4" />
+            </span>
+          </div>
+          <div>
+            <p className={cn('text-2xl font-bold leading-tight', udhaar.totalOutstanding > 0 ? 'text-danger' : 'text-gray-900')}>
+              {formatCurrency(udhaar.totalOutstanding)}
+            </p>
+            <p className="mt-1 text-xs text-muted">{t('analytics.customers.totalCreditBalanceSub')}</p>
+          </div>
+        </GlowCard>
+
+        <GlowCard hue="emerald" className="flex flex-col gap-2 p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('analytics.customers.creditRecovery')}</p>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success-soft text-success" aria-hidden="true">
+              <Banknote className="h-4 w-4" />
+            </span>
+          </div>
+          <div>
+            <p className="text-2xl font-bold leading-tight text-success">{formatCurrency(udhaar.paymentsReceivedThisPeriod)}</p>
+            <p className="mt-1 text-xs text-muted">{t('analytics.customers.paymentsCollected', { period: label })}</p>
+          </div>
+        </GlowCard>
+      </div>
+
+      <SurfaceCard>
         <div className="border-b border-border px-5 py-4">
           <h2 className="text-base font-bold text-gray-900">{t('analytics.customers.udhaarMovementTitle')}</h2>
           <p className="text-sm text-muted">{t('analytics.customers.udhaarMovementSub', { period: label })}</p>
         </div>
-        <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-3">
-          <div className="bg-surface p-4 sm:p-5">
+        <div className="grid grid-cols-1 divide-y divide-border sm:divide-y-0 sm:divide-x sm:grid-cols-3">
+          <div className="p-4 sm:p-5">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('analytics.customers.newCreditGiven')}</p>
             <p className="mt-1 text-xl font-bold leading-tight text-warning">{formatCurrency(udhaar.newCreditThisPeriod)}</p>
             <p className="mt-1 text-xs text-muted">{t('analytics.customers.unpaidPortionSub')}</p>
           </div>
-          <div className="bg-surface p-4 sm:p-5">
+          <div className="p-4 sm:p-5">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('analytics.customers.paymentsReceivedLabel')}</p>
             <p className="mt-1 text-xl font-bold leading-tight text-success">{formatCurrency(udhaar.paymentsReceivedThisPeriod)}</p>
             <p className="mt-1 text-xs text-muted">{t('analytics.customers.udhaarRecoveredSub')}</p>
           </div>
-          <div className="bg-surface p-4 sm:p-5">
+          <div className="p-4 sm:p-5">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted">{t('analytics.customers.netChangeLabel')}</p>
             <p
               className={cn(
@@ -328,9 +327,9 @@ export function CustomersAnalyticsClient({
             </ul>
           )}
         </div>
-      </Card>
+      </SurfaceCard>
 
-      <Card className="overflow-hidden">
+      <SurfaceCard className="overflow-hidden">
         <div className="flex flex-col gap-1 border-b border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="flex items-center gap-2 text-base font-bold text-gray-900">
@@ -425,7 +424,7 @@ export function CustomersAnalyticsClient({
             </ul>
           </>
         )}
-      </Card>
+      </SurfaceCard>
 
       <p className="flex items-center gap-1.5 text-xs text-muted">
         <ArrowUpRight className="h-3.5 w-3.5 rtl-flip" aria-hidden="true" />
